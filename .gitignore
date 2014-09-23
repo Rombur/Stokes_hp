@@ -1,2 +1,5 @@
 *.eps
 .metadata
+CMakeCache.txt
+Stokes
+Makefile
