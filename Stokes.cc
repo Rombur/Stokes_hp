@@ -128,7 +128,7 @@ namespace hp_Stokes
 		//static bool cell_is_NOT_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
 
 		const RightHandSide<dim> rhs_function;
-		const RightHandSide<dim> exact_solution;
+		const ExactSolution<dim> exact_solution;
 		double pressure_mean_value () const;
 		void generate_mesh ();
 		void setup_system ();
