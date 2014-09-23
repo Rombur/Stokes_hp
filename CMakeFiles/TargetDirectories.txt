@@ -1,0 +1,8 @@
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/Stokes.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/debug.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/distclean.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/help.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/release.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/run.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/runclean.dir
+/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/strip_comments.dir

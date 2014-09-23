@@ -1,0 +1,21 @@
+
+
+
+
+
+
+std::vector< typename Container::active_cell_iterator> get_patch_around_cell(const typename Container::active_cell_iterator &cell)   
+{
+   vector<hp::DoFHandler<2>::active_cell_iterator> patch;  
+   patch.push_back (cell);
+   for (unsigned int face_number=0; face_number<GeometryInfo<2>::faces_per_cell; ++face_number)
+     if (cell->face(face_number)->at_boundary()==false)
+       {
+        if (cell->face(face_number)->has_children() == false)
+          patch.push_back (cell->neighbor(face_number));
+        else
+          for (unsigned int subface=0; subface< cell->face(face_number)->n_children(); ++subface)
+            patch.push_back (cell->neighbor_child_on_subface (face_number, subface));
+       }
+   return patch;
+}

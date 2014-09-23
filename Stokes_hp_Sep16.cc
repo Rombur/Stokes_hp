@@ -1,6 +1,4 @@
-﻿// FOR TEST GITHUB
-
-#include <fstream>
+﻿#include <fstream>
 #include <iostream>
 #include <complex>
 #include <cmath>
@@ -52,32 +50,31 @@
 #define PRINT(expr) {std::cout << ""#expr" = " << std::setprecision(15) << (expr) << std::endl;}
 /*----------------------------------------------------------------------------------------*/
 
-namespace hp_Stokes
+namespace hp-Stokes
 {
 	using namespace dealii;
 	using namespace std;
 
-	  template <int dim>
-	class ExactSolution : public Function<dim>
+	class ExactSolution : public Function<2>
 	{
 	public:
-		ExactSolution () : Function<dim>(dim+1) {}
-		virtual void vector_value (const Point<dim> &p,
+		ExactSolution () : Function<2>(2+1) {}
+		virtual void vector_value (const Point<2> &p,
 			Vector<double>   &value) const;
-		virtual void vector_gradient (const Point<dim> &p,
-			vector< Tensor< 1, dim > > &gradients) const;
+		virtual void vector_gradient (const Point<2> &p,
+			vector< Tensor< 1, 2 > > &gradients) const;
 	};
-	  template <int dim>
-	void ExactSolution <dim>::vector_value (const Point<dim> &p,
+
+	void ExactSolution <2>::vector_value (const Point<2> &p,
 		Vector<double>   &values) const
 	{
 		values(0) = -1.0 * exp (p(0)) * (p(1) * cos (p(1)) + sin (p(1)));
 		values(1) = exp(p(0)) * p(1) * sin (p(1));
 		values(2) = 2.0 * exp (p(0)) * sin (p(1)) - (2.0 * (1.0 - exp(1.0)) * (cos (1.0) - 1.0)) / 3.0;
 	}
-	  template <int dim>
-	void ExactSolution <dim>::vector_gradient  (const Point<dim> &p,
-		vector< Tensor< 1, dim > > &gradients) const
+
+	void ExactSolution <2>::vector_gradient  (const Point<2> &p,
+		vector< Tensor< 1, 2 > > &gradients) const
 	{
 		gradients[0][0]= -1.0 * exp (p(0)) * (p(1) * cos (p(1)) + sin (p(1)));
 		gradients[0][1]= -1.0 * exp (p(0)) * ( 2.0 * cos (p(1)) - p(1) * sin (p(1)));
@@ -88,28 +85,24 @@ namespace hp_Stokes
 	}
 	/*......................................................................................*/
 	// Calculate Right Hand Side
-	template <int dim>
-	class RightHandSide : public Function<dim>
+	class RightHandSide : public Function<2>
 	{
 	public:
-		RightHandSide () : Function<dim>(dim+1) {}
-		virtual double value (const Point<dim> &p, const unsigned int component = 0) const;
-		virtual void vector_value (const Point<dim> &p, Vector<double> &value) const;
+		RightHandSide () : Function<2>(2+1) {}
+		virtual double value (const Point<2> &p, const unsigned int component = 0) const;
+		virtual void vector_value (const Point<2> &p, Vector<double> &value) const;
 	};
-	template <int dim>
-	double RightHandSide <dim>::value (const Point<dim> & p, const unsigned int  component) const
+	double RightHandSide <2>::value (const Point<2> & p, const unsigned int  component) const
 	{
 		return 0;
 	}
-	template <int dim>
 	void
-		RightHandSide <dim>::vector_value (const Point<dim> &p, Vector<double> &values) const
+		RightHandSide <2>::vector_value (const Point<2> &p, Vector<double> &values) const
 	{
 		for (unsigned int c=0; c<this->n_components; ++c)
 			values(c) = RightHandSide::value (p, c);
 	}
 	/*......................................................................................*/
-	template <int dim>
 	class StokesProblem
 	{
 	public:  
@@ -124,11 +117,11 @@ namespace hp_Stokes
 			patch_off
 		};
 
-		//static bool cell_is_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
-		//static bool cell_is_NOT_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
+		static bool cell_is_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
+		static bool cell_is_NOT_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
 
-		const RightHandSide<dim> rhs_function;
-		const RightHandSide<dim> exact_solution;
+		RightHandSide rhs_function;
+		ExactSolution exact_solution;
 		double pressure_mean_value () const;
 		void generate_mesh ();
 		void setup_system ();
@@ -136,32 +129,32 @@ namespace hp_Stokes
 		void solve ();
 
 		void compute_error ();
-		void estimate (Vector<double> &est_per_cell);
-		//void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell) const;
-		//void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell ) const;
+		void estimate (Vector<double> &est_per_cell) const;
+		void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<2>::active_cell_iterator &cell) const;
+		void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<2>::active_cell_iterator &cell ) const;       
 
-		//vector<hp::DoFHandler<dim>::active_cell_iterator> get_patch_around_cell( typename hp::DoFHandler<dim>::active_cell_iterator &cell);
-		//vector<hp::DoFHandler<dim>::active_cell_iterator> get_cells_at_coarsest_common_level ( vector<hp::DoFHandler<dim>::active_cell_iterator>  &patch);
-		//void build_triangulation_from_patch (vector<hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
+		vector<hp::DoFHandler<2>::active_cell_iterator> get_patch_around_cell(const typename hp::DoFHandler<2>::active_cell_iterator &cell);
+		vector<hp::DoFHandler<2>::active_cell_iterator> get_cells_at_coarsest_common_level (const vector<hp::DoFHandler<2>::active_cell_iterator>  &patch);
+		void build_triangulation_from_patch (const vector<hp::DoFHandler<2>::active_cell_iterator>  &patch, Triangulation<2> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
 
-		//bool decreasing (pair<double,hp::DoFHandler<dim> > &i, pair<double,hp::DoFHandler<dim> > &j);
+		bool decreasing (pair<double,hp::DoFHandler<2> > &i, pair<double,hp::DoFHandler<2> > &j);
 
-		//void postprocess (const unsigned int cycle);
+		void postprocess (const unsigned int cycle);
 
 		const double Tolerance;
 		const unsigned int max_degree;
 
-		Triangulation<dim> triangulation;
-		hp::DoFHandler<dim> dof_handler;
+		Triangulation<2> triangulation;
+		hp::DoFHandler<2> dof_handler;
 
 		//FESystem<2>     stokes_fe;
 		//FESystem<2>     fe_no;
 		//Triangulation<2> tria_patch;
 		//hp::DoFHandler<2> dof_handler_patch;
 
-		hp::FECollection<dim> fe_collection;
-		hp::QCollection<dim> quadrature_collection;
-		hp::QCollection<dim-1> face_quadrature_collection;
+		hp::FECollection<2> fe_collection; 
+		hp::QCollection<2> quadrature_collection;
+		hp::QCollection<2-1> face_quadrature_collection;
 
 		ConstraintMatrix constraints;
 		BlockSparsityPattern sparsity_pattern;
@@ -170,12 +163,8 @@ namespace hp_Stokes
 		BlockVector<double> solution;
 		BlockVector<double> system_rhs;
 		double L2_norm_est;
-		double L1_norm_est;
-		Vector<double> est_per_cell;
-
 	}; 
 	/*......................................................................................*/
-// here A_inverse is of class SparseDirectUMFPACK, compare to for example step-22, which is of type Preconditioner
 	class SchurComplement : public Subscriptor
 	{
 	public:
@@ -206,8 +195,7 @@ namespace hp_Stokes
 	}
 	/*......................................................................................*/
 	// constructor and destructor
-	template <int dim>
-	StokesProblem<dim>::StokesProblem(): Tolerance (0.00001), max_degree (5), dof_handler(triangulation)
+	StokesProblem <2>::StokesProblem(): max_degree (5), dof_handler(triangulation), Tolerance (0.00001),
 
 
 		//stokes_fe (FE_Q<2>(QGaussLobatto<1> (unsigned int degree + 2)), 2, FE_Q<2> (QGaussLobatto<1> (unsigned int degree + 1)), 1),
@@ -216,61 +204,50 @@ namespace hp_Stokes
 		for (unsigned int degree=1; degree<=max_degree; ++degree)
 		{
 
-			fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree + 2)), 2, FE_Q<dim> (QGaussLobatto<1> (degree + 1)), 1));//QGaussLobatto<1>?
-			quadrature_collection.push_back(QGauss<dim> (degree+2));
-			face_quadrature_collection.push_back (QGauss<dim-1> (degree+1));
+			fe_collection.push_back( ((FE_Q<2> (QGaussLobatto<1> (degree + 2)), 2, FE_Q<2> (QGaussLobatto<1> (degree + 1)), 1));
+			quadrature_collection.push_back(QGauss<2> (degree+2));
+			face_quadrature_collection.push_back (QGauss<2-1> (degree+1));
 		}
-		fe_collection.push_back(FESystem<dim> (FE_Nothing<dim>(), 3) );
-		quadrature_collection.push_back(QGauss<dim>(0));
-		face_quadrature_collection.push_back (QGauss<dim-1>(0));
+		fe_collection.push_back(FESystem<2> (FE_Nothing<2>(), 3) );
+		quadrature_collection.push_back(QGauss<2>(0));
+		face_quadrature_collection.push_back (QGauss<2-1>(0));
 	} 
 	/*.....................................................................................*/
-	template <int dim>
-	StokesProblem <dim>::~StokesProblem() {
+	StokesProblem <2>::~StokesProblem() {
 		dof_handler.clear();
 	}
 	/*......................................................................................*/
-	/*
-	template <int dim>
-	bool StokesProblem <dim>::decreasing (pair<double,hp::DoFHandler<dim> > &i, pair<double,hp::DoFHandler<dim> > &j)
+	bool StokesProblem <2>::decreasing (pair<double,hp::DoFHandler<2> > &i, pair<double,hp::DoFHandler<2> > &j) 
 	{
 		return ((i.first) > (j.first));
 	}
-	*/
 	/*......................................................................................*/
-	/*
-	template <int dim>
-	bool StokesProblem <dim>::cell_is_on_patch (const typename hp::DoFHandler<dim>::cell_iterator &cell)
+	bool StokesProblem <2>::cell_is_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell)
 	{
 		return (cell->material_id() == patch_on);
 	}
-	*/
 	/*......................................................................................*/
-	/*
-	template <int dim>
-	bool StokesProblem <dim>::cell_is_NOT_on_patch (const typename hp::DoFHandler<dim>::cell_iterator &cell)
+	bool StokesProblem <2>::cell_is_NOT_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell)
 	{
 		return (cell->material_id() == patch_off);
 	}
-	*/
 	/*......................................................................................*/
 	// Generate mesh
-	template <int dim>
-	void StokesProblem <dim>::generate_mesh(){
+	void StokesProblem <2>::generate_mesh(){
 
-		vector<Point<dim>> vertices (8);
+		vector<Point<2>> vertices (8);
 
-		vertices [0]=Point<dim> (-1,-1);
-		vertices [1]=Point<dim> (0,-1);
-		vertices [2]=Point<dim> (-1,0);
-		vertices [3]=Point<dim> (0,0);
-		vertices [4]=Point<dim> (1,0);
-		vertices [5]=Point<dim> (-1,1);
-		vertices [6]=Point<dim> (0,1);
-		vertices [7]=Point<dim> (1,1);
+		vertices [0]=Point<2> (-1,-1);
+		vertices [1]=Point<2> (0,-1);
+		vertices [2]=Point<2> (-1,0);
+		vertices [3]=Point<2> (0,0);
+		vertices [4]=Point<2> (1,0);
+		vertices [5]=Point<2> (-1,1);
+		vertices [6]=Point<2>(0,1);
+		vertices [7]=Point<2>(1,1);
 
 		const unsigned int n_cells=3;
-		vector<CellData<dim> > cell(n_cells);
+		vector<CellData<2> > cell(n_cells);
 		cell[0].vertices[0]=0;
 		cell[0].vertices[1]=1;
 		cell[0].vertices[2]=2;
@@ -296,12 +273,11 @@ namespace hp_Stokes
 	} 
 	/*......................................................................................*/
 	// setup system()
-	template <int dim>
-	void StokesProblem <dim>::setup_system(){
+	void StokesProblem <2>::setup_system(){
 		dof_handler.distribute_dofs (fe_collection);
 
-		vector<unsigned int> block_component (dim+1, 0);
-		block_component[dim]=1;
+		vector<unsigned int> block_component (2+1, 0);
+		block_component[2]=1;
 		DoFRenumbering::component_wise(dof_handler, block_component);
 
 		{
@@ -332,9 +308,8 @@ namespace hp_Stokes
 	}// End of function setup_system()
 	/*......................................................................................*/
 	// assemble system
-	template <int dim>
-	void StokesProblem <dim>::assemble_system () {
-		hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients);
+	void StokesProblem <2>::assemble_system () {
+		hp::FEValues<2> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients);
 
 
 		FullMatrix<double> local_matrix;
@@ -344,14 +319,14 @@ namespace hp_Stokes
 		vector<Vector<double> >  rhs_values;
 
 		const FEValuesExtractors::Vector velocities (0);
-		const FEValuesExtractors::Scalar pressure (dim);
+		const FEValuesExtractors::Scalar pressure (2);
 
-		vector<Tensor<2,dim> > grad_phi_u;
+		vector<Tensor<2,2> > grad_phi_u;
 		vector<double> div_phi_u;
-		vector<Tensor<1,dim> > phi_u;
+		vector<Tensor<1,2> > phi_u;
 		vector<double> phi_p;
 		//abort();
-		typename hp::DoFHandler<dim>::active_cell_iterator
+		typename hp::DoFHandler<2>::active_cell_iterator
 			cell = dof_handler.begin_active(),
 			endc = dof_handler.end();
 		for (; cell!=endc; ++cell)
@@ -361,11 +336,11 @@ namespace hp_Stokes
 			local_rhs.reinit (dofs_per_cell);
 
 			hp_fe_values.reinit (cell);
-			const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+			const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 			const vector<double>& JxW_values = fe_values.get_JxW_values ();
 			const unsigned int n_q_points = fe_values.n_quadrature_points;
 
-			rhs_values.resize(n_q_points, Vector<double>(dim+1));
+			rhs_values.resize(n_q_points, Vector<double>(3));
 			rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
 
 			grad_phi_u.resize(dofs_per_cell);
@@ -392,7 +367,7 @@ namespace hp_Stokes
 						+ phi_p[i] * phi_p[j])
 							* JxW_values[q];
 					} // end of loop over 'j'
-					local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];//?
+					local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];
 				} // end of loop 'i'
 			} // end of loop 'q'
 			// to create the upper triangle of local_matrix
@@ -407,8 +382,7 @@ namespace hp_Stokes
 		} // end of iteration for cells
 	} 
 	/*......................................................................................*/
-	template <int dim>
-	void StokesProblem <dim>::solve ()
+	void StokesProblem <2>::solve ()
 	{
 		SparseDirectUMFPACK A_inverse;
 		A_inverse.initialize (system_matrix.block(0,0),
@@ -445,24 +419,23 @@ namespace hp_Stokes
 		constraints.distribute (solution);
 	}
 	/*......................................................................................*/
-	template <int dim>
-	double StokesProblem <dim>::pressure_mean_value () const
+	double StokesProblem <2>::pressure_mean_value () const
 	{
 		// get pressure such that satisfies mean value property:
-		hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_JxW_values);
-		const FEValuesExtractors::Scalar pressure (dim);
+		hp::FEValues<2> hp_fe_values (fe_collection, quadrature_collection, update_values|update_JxW_values);
+		const FEValuesExtractors::Scalar pressure (2);
 
 		vector<double> values;
 		double domain_mean_val_p=0;
 		// double measure_domain=0;
-		typename hp::DoFHandler<dim>::active_cell_iterator
+		typename hp::DoFHandler<2>::active_cell_iterator
 			cell = dof_handler.begin_active(),
 			endc = dof_handler.end();
 		for (; cell!=endc; ++cell)
 		{
 			hp_fe_values.reinit (cell);
 
-			const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+			const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 			const vector<double>& JxW_values = fe_values.get_JxW_values ();
 			const unsigned int n_q_points = fe_values.n_quadrature_points;
 			values.resize(n_q_points);
@@ -478,36 +451,35 @@ namespace hp_Stokes
 		// return domain_mean_val_p / measure_domain;
 	}
 	/*.................................................................................................*/
-	template <int dim>
-	void StokesProblem <dim>::compute_error ()
+	void StokesProblem <2>::compute_error ()
 	{
-		hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients);
+		hp::FEValues<2> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients);
 		const FEValuesExtractors::Vector velocities (0);
-		const FEValuesExtractors::Scalar pressure (dim);
+		const FEValuesExtractors::Scalar pressure (2);
 
 		vector<double> values;
-		vector<Tensor<2,dim>> gradients;
-		vector<vector<Tensor<1,dim>>> exact_solution_gradients;
+		vector<Tensor<2,2>> gradients;
+		vector<vector<Tensor<1,2>>> exact_solution_gradients;
 		vector<Vector<double>> exact_solution_values;
 
 		Vector<double> error_per_cell(triangulation.n_active_cells());
 
-		typename hp::DoFHandler<dim>::active_cell_iterator
+		typename hp::DoFHandler<2>::active_cell_iterator
 			cell = dof_handler.begin_active(),
 			endc = dof_handler.end();
 		unsigned int cell_index=0;
 		for (; cell!=endc; ++cell,++cell_index)
 		{
 			hp_fe_values.reinit (cell);
-			const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+			const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 			const vector<double>& JxW_values = fe_values.get_JxW_values ();
-			const vector<Point<dim>>& quadrature_points = fe_values.get_quadrature_points();
+			const vector<Point<2>>& quadrature_points = fe_values.get_quadrature_points();
 			const unsigned int n_q_points = fe_values.n_quadrature_points;
 
 			gradients.resize(n_q_points);
 			values.resize(n_q_points);
-			exact_solution_gradients.resize(n_q_points , vector<Tensor<1,dim>> (dim+1));//?
-			exact_solution_values.resize(n_q_points, Vector<double> (dim+1));//?
+			exact_solution_gradients.resize(n_q_points , vector<Tensor<1,2>> (3));
+			exact_solution_values.resize(n_q_points, Vector<double> (3));
 
 			fe_values[velocities].get_function_gradients(solution, gradients);
 			fe_values[pressure].get_function_values(solution, values);
@@ -519,9 +491,9 @@ namespace hp_Stokes
 			double grad_u_vals=0;
 			for (unsigned int q=0; q<n_q_points; ++q)
 			{
-				values[q] -= exact_solution_values[q](dim);//?
+				values[q] -= exact_solution_values[q](2);
 				subtract_p +=values[q]*values[q]* JxW_values[q];
-				for (unsigned int i=0; i<dim; ++i)
+				for (unsigned int i=0; i<2; ++i)
 					gradients[q][i]-=exact_solution_gradients[q][i];	
 				grad_u_vals +=double_contract(gradients[q],gradients[q])* JxW_values[q];
 			} // q
@@ -534,43 +506,41 @@ namespace hp_Stokes
 		cout<< "L2_norm of ERROR is: "<< L2_norm << endl;
 	}
 	/*......................................................................................*/
-	template <int dim>
-	void StokesProblem <dim>::estimate (Vector<double> &est_per_cell) {
-		hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
-		hp::FEFaceValues<dim> hp_fe_face_values(fe_collection, face_quadrature_collection, update_JxW_values|update_gradients|update_normal_vectors);
-		hp::FEFaceValues<dim> hp_neighbor_face_values(fe_collection, face_quadrature_collection, update_gradients);
-		hp::FESubfaceValues<dim> hp_subface_values(fe_collection, face_quadrature_collection, update_JxW_values|update_gradients|update_normal_vectors);
-		hp::FESubfaceValues<dim> hp_neighbor_subface_values(fe_collection, face_quadrature_collection, update_gradients);
+	void StokesProblem <2>::estimate (Vector<double> &est_per_cell) const {
+		hp::FEValues<2> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
+		hp::FEFaceValues<2> hp_fe_face_values(fe_collection, face_quadrature_collection, update_JxW_values|update_gradients|update_normal_vectors);
+		hp::FEFaceValues<2> hp_neighbor_face_values(fe_collection, face_quadrature_collection, update_gradients);
+		hp::FESubfaceValues<2> hp_subface_values(fe_collection, face_quadrature_collection, update_JxW_values|update_gradients|update_normal_vectors);
+		hp::FESubfaceValues<2> hp_neighbor_subface_values(fe_collection, face_quadrature_collection, update_gradients);
 
-		vector<Tensor<1,dim>> gradients_p;
+		vector<Tensor<1,2>> gradients_p;
 		vector<double> divergences;
-		vector<Tensor<1,dim>> laplacians;
+		vector<Tensor<1,2>> laplacians;
 
-		vector<Tensor<2,dim>> gradients;
-		vector<Tensor<2,dim>> neighbor_gradients;
+		vector<Tensor<2,2>> gradients;
+		vector<Tensor<2,2>> neighbor_gradients;
 
 		const FEValuesExtractors::Vector velocities (0);
-		const FEValuesExtractors::Scalar pressure (dim);
+		const FEValuesExtractors::Scalar pressure (2);
 
-		const RightHandSide<dim> rhs_function;
+		const RightHandSide rhs_function;
 		vector<Vector<double> >  rhs_values;
-
-		est_per_cell.reinit (triangulation.n_active_cells());
+		//Vector<double> est_per_cell(triangulation.n_active_cells());
 		Vector<double> res_est_per_cell(triangulation.n_active_cells());
 		Vector<double> Jump_est_per_cell(triangulation.n_active_cells());
 
-		typename hp::DoFHandler<dim>::active_cell_iterator
+		typename hp::DoFHandler<2>::active_cell_iterator
 			cell = dof_handler.begin_active(),
 			endc = dof_handler.end();
 		unsigned int cell_index=0;
 		for (; cell!=endc; ++cell,++cell_index)
 		{
 			hp_fe_values.reinit (cell);
-			const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+			const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 			const vector<double>& JxW_values = fe_values.get_JxW_values ();
 			const unsigned int n_q_points = fe_values.n_quadrature_points;
 
-			rhs_values.resize(n_q_points, Vector<double>(dim+1));
+			rhs_values.resize(n_q_points, Vector<double>(3));
 			rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
 
 
@@ -593,7 +563,7 @@ namespace hp_Stokes
 
 				term1+= contract(gradients_p[q],gradients_p[q])*JxW_values[q];
 			}// q
-			res_est_per_cell(cell_index)= pow((cell->diameter())/(cell->get_fe().degree), 2.0 ) * (term1) + term2;
+			res_est_per_cell(cell_index)=(pow((cell->diameter())/(cell->get_fe().degree), 2.0 ) * (term1) + term2;
 
 			// ******************************************** compute jump_est_per_cell**********************************************************************
 			double term3=0;//jumpped part of the estimator
@@ -620,17 +590,14 @@ namespace hp_Stokes
 					neighbor_face_values[velocities].get_function_gradients(solution, neighbor_gradients);
 					fe_face_values[velocities].get_function_gradients(solution, gradients);
 
-					vector<Tensor<1,dim>> jump_per_face;//?
+					vector<Tensor<1,2>> jump_per_face;//?
 					jump_per_face.resize(n_face_q_points);
 					double jump_val=0;
 					for (unsigned int q=0; q<n_face_q_points; ++q)
 					{
-						for (unsigned int i=0; i<2; ++i)
-							gradients[q][i]-=neighbor_gradients[q][i];
 						for (unsigned int i=0; i<2; ++i){
-							jump_per_face[q][i] = gradients[q][i] *(fe_face_values.normal_vector[q][i]);
-
-						}
+							jump_per_face[q] += (gradients[q][i]- neighbor_gradients[q][i])*(fe_face_values.normal_vector(q));		
+						}// i
 						jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 					}//q_per_face
 					term3 +=(cell->face(face_number)->diameter())/(2.0 * cell->get_fe().degree)*jump_val;
@@ -662,15 +629,14 @@ namespace hp_Stokes
 						neighbor_face_values[velocities].get_function_gradients(solution, neighbor_gradients);
 						fe_subface_values[velocities].get_function_gradients(solution, gradients);
 
-						vector<Tensor<1,dim>> jump_per_subface;
+						vector<Tensor<1,2>> jump_per_subface;
 						jump_per_subface.resize(n_subface_q_points);//?
 
 						double jump_val=0;
 						for (unsigned int q=0; q<n_subface_q_points; ++q)
 						{
 							for (unsigned int i=0; i<2; ++i){
-								jump_per_subface[q] += (gradients[q][i]- neighbor_gradients[q][i])*(fe_subface_values.normal_vector(q));
-
+								jump_per_subface[q] += (gradients[q][i]- neighbor_gradients[q][i])*(fe_subface_values.normal_vector(q));		
 							}// i
 							jump_val += contract(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
 						}//q_per_subface
@@ -687,8 +653,8 @@ namespace hp_Stokes
 					hp_fe_face_values.reinit(cell, face_number,q_index);
 					hp_neighbor_subface_values.reinit(cell->neighbor(face_number),cell->neighbor_of_coarser_neighbor(face_number).first, cell->neighbor_of_coarser_neighbor(face_number).second,q_index);
 
-					const FEFaceValues<dim> &fe_face_values  = hp_fe_face_values.get_present_fe_values ();
-					const FESubfaceValues<dim> &neighbor_subface_values = hp_neighbor_subface_values.get_present_fe_values ();
+					const FEFaceValues<2> &fe_face_values  = hp_fe_face_values.get_present_fe_values ();
+					const FESubfaceValues<2> &neighbor_subface_values = hp_neighbor_subface_values.get_present_fe_values ();
 
 
 					const vector<double>& JxW_values = fe_face_values.get_JxW_values ();
@@ -701,13 +667,13 @@ namespace hp_Stokes
 					neighbor_subface_values[velocities].get_function_gradients(solution, neighbor_gradients);
 					fe_face_values[velocities].get_function_gradients(solution, gradients);
 
-					vector<Tensor<1,dim>> jump_per_face;
+					vector<Tensor<1,2>> jump_per_face;
 					jump_per_face.resize(n_face_q_points);
 					double jump_val=0;
 					for (unsigned int q=0; 
 						q<n_face_q_points; ++q)
 					{
-						for (unsigned int i=0; i<2; ++i){//?
+						for (unsigned int i=0; i<2; ++i){
 							jump_per_face[q] += (gradients[q][i]- neighbor_gradients[q][i])*(fe_face_values.normal_vector(q));		
 						}// i
 						jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
@@ -726,13 +692,11 @@ namespace hp_Stokes
 
 	}// func.estimate ()
 	/*......................................................................................*/
-	/*
-	template <int dim>
-	vector<hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <dim>::get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell)
+	vector<hp::DoFHandler<2>::active_cell_iterator> StokesProblem <2>::get_patch_around_cell(const typename hp::DoFHandler<2>::active_cell_iterator &cell)   
 	{
-		vector<hp::DoFHandler<dim>::active_cell_iterator> patch;
+		vector<hp::DoFHandler<2>::active_cell_iterator> patch;  
 		patch.push_back (cell);
-		for (unsigned int face_number=0; face_number<GeometryInfo<dim>::faces_per_cell; ++face_number)
+		for (unsigned int face_number=0; face_number<GeometryInfo<2>::faces_per_cell; ++face_number)
 			if (cell->face(face_number)->at_boundary()==false)
 			{
 				if (cell->face(face_number)->has_children() == false)
@@ -743,33 +707,32 @@ namespace hp_Stokes
 			}
 			return patch;
 	}
-	*/
 	/*..............................................................................................................................................*/
-	/*
-	template <int dim>
-	vector<hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <dim>::get_cells_at_coarsest_common_level (const vector<hp::DoFHandler<dim>::active_cell_iterator>  &patch)
+	vector<hp::DoFHandler<2>::active_cell_iterator> StokesProblem <2>::get_cells_at_coarsest_common_level (const vector<hp::DoFHandler<2>::active_cell_iterator>  &patch)
 	{
 		Assert (patch.size() > 0, ExcMessage("vector containing patch cells should not be an empty vector!"));//?
 		unsigned int min_level = patch[0]->level();
 		unsigned int max_level = patch[0]->level();
-		for (unsigned int i=0; i<patch.size();++i)
+		typename hp::DoFHandler<2>::active_cell_iterator  patch_c=patch.begin();
+		const typename hp::DoFHandler<2>::active_cell_iterator end_c=patch.end ();
+		for (; patch_c!=end_c ; ++patch_c)
 		{
-			min_level = std::min (min_level, patch[i]->level());
-			max_level = std::max (max_level, patch[i]->level());
+			min_level = std::min (min_level, patch_c->level());
+			max_level = std::max (max_level, patch_c->level());
 		}
 		if (min_level == max_level)
 			return patch;
 		else
 		{
-			set<hp::DoFHandler<dim>::active_cell_iterator>  uniform_cells;
-			typename hp::DoFHandler<dim>::active_cell_iterator  patch_c=patch.begin();
-			const typename hp::DoFHandler<dim>::active_cell_iterator end_c=patch.end ();
+			set<hp::DoFHandler<2>::active_cell_iterator>  uniform_cells;
+			typename hp::DoFHandler<2>::active_cell_iterator  patch_c=patch.begin();
+			const typename hp::DoFHandler<2>::active_cell_iterator end_c=patch.end ();
 			for (; patch_c!=end_c ; ++patch_c){
 				if (patch_c->level() == min_level)
 					uniform_cells.push_back (patch_c);
 				else
 				{
-					hp::DoFHandler<dim>::active_cell_iterator parent = patch_c;
+					hp::DoFHandler<2>::active_cell_iterator parent = patch_c;
 
 					while (parent->level() > min_level)
 						parent = parent->parent();
@@ -777,48 +740,41 @@ namespace hp_Stokes
 				}
 			}
 
-			return vector<hp::DoFHandler<dim>::active_cell_iterator> (uniform_cells.begin(),
+			return vector<hp::DoFHandler<2>::active_cell_iterator> (uniform_cells.begin(),
 				uniform_cells.end());
 		}// else
 	}	//get_cells_at_coarsest_common_level
-	*/
 	/*.....................................................................................................................................*/
-/*
-	template <int dim>
-	void StokesProblem <dim>::build_triangulation_from_patch (const vector<hp::DoFHandler<dim>::active_cell_iterator>  &patch,
-		Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine )
+	void StokesProblem <2>::build_triangulation_from_patch (const vector<hp::DoFHandler<2>::active_cell_iterator>  &patch,
+		Triangulation<2> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine )
 	{
-		const vector<hp::DoFHandler<dim>::active_cell_iterator> uniform_cells = get_cells_at_coarsest_common_level (patch);
+		const vector<hp::DoFHandler<2>::active_cell_iterator> uniform_cells = get_cells_at_coarsest_common_level (patch);
 
 		level_h_refine=patch[0]->level();  //...............................................................................................?
 		level_p_refine=patch[0]->active_fe_index();//............................................................................................?
 
 		tria_patch.clear();
-		vector<Point<dim>> vertices;
+		vector<Point<2>> vertices;
 		const unsigned int n_uniform_cells=uniform_cells.size();
-		vector<CellData<dim> > cells(n_uniform_cells);
+		vector<CellData<2> > cells(n_uniform_cells);
 		unsigned int k=0;// for enumerating cells
 		unsigned int i=0;// for enumerating vertices
-		typename hp::DoFHandler<dim>::active_cell_iterator  uniform_c=uniform_cells.begin();
-		const typename hp::DoFHandler<dim>::active_cell_iterator end_uniform_c=uniform_cells.end();
+		typename hp::DoFHandler<2>::active_cell_iterator  uniform_c=uniform_cells.begin();
+		const typename hp::DoFHandler<2>::active_cell_iterator end_uniform_c=uniform_cells.end();
 
-		for (; uniform_c!=end_uniform_c; ++uniform_c)
-		{
+		for (; uniform_c!=end_uniform_c; ++uniform_c){
 			bool repeat_vertex;
-			for (unsigned int j=0;  j<GeometryInfo<2>::vertices_per_cell; ++j)
-			{
-				Point<dim>& position=uniform_c->vertex (j);//.......................?
+			for (unsigned int j=0;  j<GeometryInfo<2>::vertices_per_cell; ++j){
+				Point<2>& position=uniform_c->vertex (j);//.......................?
 				repeat_vertex=false;
-				for (unsigned int m=0; m<i; ++m)
-				{
-					//double difference= std::sqrt(std::pow((vertices[m][0]-position[0]),2)+std::pow((vertices[m][1]-position[1]),2));
-					//if (difference < 1e-10)
-					//{
-						 if (*position == vertices[m]){ //...............?
-						repeat_vertex=true;
-						cells[k].vertices[j]=m ;
-						break;//.............?
-					}//if
+				for (unsigned int m=0; m<i; ++m){
+					double difference= std::sqrt(std::pow((vertices[m][0]-position[0]),2)+std::pow((vertices[m][1]-position[1]),2))
+						if (difference < 1e-10){
+							// if (*position == vertices[m]){ //...............?
+							repeat_vertex=true;
+							cells[k].vertices[j]=m ;
+							break;//.............?
+						}//if
 				}//for  m
 
 				if (repeat_vertex==false)
@@ -834,9 +790,9 @@ namespace hp_Stokes
 
 		Assert (tria_patch.n_active_cells() == uniform_cells.size(), ExcInternalError());
 
-		std::map<typename Triangulation<dim>::cell_iterator, typename DoFHandler<dim>::cell_iterator> patch_to_global_tria_map;
+		std::map<typename Triangulation<2>::cell_iterator, typename DoFHandler<2>::cell_iterator> patch_to_global_tria_map;
 		unsigned int index=0;
-		for (typename Triangulation<dim>::cell_iterator cell = tria_patch.begin(); cell != tria_patch.end(); ++cell, ++index)
+		for (typename Triangulation<2>::cell_iterator cell = tria_patch.begin(); cell != tria_patch.end(); ++cell, ++index)
 			patch_to_global_tria_map.insert (std::make_pair(cell, uniform_cells[index]));
 
 		bool refinement_necessary;
@@ -844,25 +800,25 @@ namespace hp_Stokes
 		{
 			refinement_necessary = false;
 
-			for (typename Triangulation<dim>::active_cell_iterator cell = tria_patch.begin_active(); cell != tria_patch.end(); ++cell)
+			for (typename Triangulation<2>::active_cell_iterator cell = tria_patch.begin_active(); cell != tria_patch.end(); ++cell)
 				if (patch_to_global_tria_map[cell]->has_children())
 				{
 					cell->set_refine_flag();
 					refinement_necessary = true;
 				}
 
-			if (refinement_necessary)
-			{
-				tria_patch.execute_coarsening_and_refinement ();
+				if (refinement_necessary)
+				{
+					tria_patch.execute_coarsening_and_refinement ();
 
-				for (typename Triangulation<dim>::cell_iterator cell = tria_patch.begin(); cell != tria_patch.end(); ++cell)
-					if (cell->has_children())
-						// these children may not yet be in the map
-						for (unsigned int c=0; c<cell->n_children(); ++c)
-							if (patch_to_global_tria_map.find(cell->child(c)) == patch_to_global_tria_map.end())
-								patch_to_global_tria_map.insert (std::make_pair(cell->child(c),
-											patch_to_global_tria_map[cell]->child(c)));
-			}
+					for (typename Triangulation<2>::cell_iterator cell = tria_patch.begin(); cell != tria_patch.end(); ++cell)
+						if (cell->has_children())
+							// these children may not yet be in the map
+							for (unsigned int c=0; c<cell->n_children(); ++c)
+								if (patch_to_global_tria_map.find(cell->child(c)) == patch_to_global_tria_map.end())
+									patch_to_global_tria_map.insert (std::make_pair(cell->child(c),
+									patch_to_global_tria_map[cell]->child(c)));
+				}
 		}
 		while (refinement_necessary);
 
@@ -870,43 +826,43 @@ namespace hp_Stokes
 		// through all cells in 'tria' and see whether the
 		// corresponding cell in the global triangulation is part of
 		// the 'patch' list of cells
-		for (typename Triangulation<dim>::cell_iterator cell = tria_patch.begin(); cell != tria_patch.end(); ++cell)
+		for (typename Triangulation<2>::cell_iterator cell = tria_patch.begin(); cell != tria_patch.end(); ++cell)
 		{
-			typename DoFHandler<dim>::cell_iterator global_cell = patch_to_global_tria_map[cell];
+			typename DoFHandler<2>::cell_iterator global_cell = patch_to_global_tria_map[cell];
 			bool global_cell_is_in_patch = false;
-			for (vector<hp::DoFHandler<dim>::active_cell_iterator>::const_iterator p=patch.begin();
-					p != patch.end(); ++p)
+			for (const vector<hp::DoFHandler<2>::active_cell_iterator>::iterator p=patch.begin();
+				p != patch.end(); ++p)
 				if (*p == global_cell)
 				{
 					global_cell_is_in_patch = true;
 					break;
 				}
 
-			if (global_cell_is_in_patch)
-				cell->set_material_id (patch_on);
-			else
-				cell->set_material_id (patch_off);		
+				if (global_cell_is_in_patch)
+					cell->set_material_id (patch_on);
+				else
+					cell->set_material_id (patch_off);		
 		}
 
 	} // build_triangulation
-*/
+
 	/*..........................    Compute h_convergence_estimator   &   h_workload_number  for each patch around cell   ..........................*/
 
-/*	template <int dim>
-	void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, typename hp::DoFHandler<dim>::active_cell_iterator const &cell) const
+	void StokesProblem <2>::h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<2>::active_cell_iterator &cell) const
 	{
-		Triangulation<dim> tria_patch;//
-		hp::DoFHandler<dim> dof_handler_patch(tria_patch);//
+		Triangulation<2> tria_patch;//
+		hp::DoFHandler<2> dof_handler_patch;//
 		h_convergence_est_per_cell=0.;
 		double h_solu_norm_per_patch=0.; 
-		vector<hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell(cell);
+		vector<hp::DoFHandler<2>::active_cell_iterator> patch = get_patch_around_cell(cell);
 		//PRINT(tria_patch.n_cells());
 		build_triangulation_from_patch (patch, tria_patch, level_h_refine, level_p_refine);
 		//PRINT(tria_patch.n_cells());
 		//GridOut::write_gnuplot (tria_patch, out);
+		dof_handler_patch(tria_patch);//
 		//................................................set_fe_nothing........................................................................//
 		//set_active_fe_indices...
-		typename hp::DoFHandler<dim>::active_cell_iterator
+		typename hp::DoFHandler<2>::active_cell_iterator
 			cell = dof_handler_patch.begin_active(),//.....................................................tria.begin_active().....................................???
 			endc = dof_handler_patch.end();
 		for (; cell!=endc; ++cell){
@@ -923,7 +879,7 @@ namespace hp_Stokes
 		do
 		{
 			need_to_refine = false;
-			for (typename hp::DoFHandler<dim>::active_cell_iterator
+			for (typename hp::DoFHandler<2>::active_cell_iterator
 				cell = dof_handler_patch.begin_active();
 				cell != dof_handler_patch.end(); ++cell)
 				for (; cell!=endc; ++cell){
@@ -932,34 +888,33 @@ namespace hp_Stokes
 							need_to_refine = true;
 							cell->refine_flag_set();
 						}
-					}
 					}//cell
 					if (need_to_refine == true)
 						tria_patch.execute_coarsening_and_refinement ();
 				}//do
 				while (need_to_refine == true);
-				//..................................................  setup_h_patch_system and  patch_rhs  .......................... //
+				//*..................................................  setup_h_patch_system and  patch_rhs  .......................... *//
 				dof_handler_patch.distribute_dofs (fe_collection);// fe_collection
 				unsigned int h_workload_num = dof_handler_patch. n_dofs();
 				unsigned int local_system_size = dof_handler_patch. n_dofs();
 
-				vector<unsigned int> block_component (dim+1, 0);
-				block_component[dim]=1;
+				vector<unsigned int> block_component (2+1, 0);
+				block_component[2]=1;
 				DoFRenumbering::component_wise(dof_handler_patch, block_component);
 				{
 					constraints.clear ();
 					FEValuesExtractors::Vector velocities(0);
-					DoFTools::make_hanging_node_constraints <hp::DoFHandler<dim>> (dof_handler_patch, constraints);
+					DoFTools::make_hanging_node_constraints <hp::DoFHandler<2>> (dof_handler_patch, constraints);
 
 				}
-				//......................... Zero_Bdry_Condition_on_Patch .......................................//
+				//************ Zero_Bdry_Condition_on_Patch *********************************************************************
 				{
 					std::vector<types::global_dof_index> local_face_dof_indices (fe_collection.dofs_per_face);//stokes_fe
-					for (typename hp::DoFHandler<dim>::active_cell_iterator
+					for (typename hp::DoFHandler<2>::active_cell_iterator
 						cell = dof_handler_patch.begin_active();
 						cell != dof_handler_patch.end(); ++cell)
 						if (cell_is_on_patch (cell)){
-							for (unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
+							for (unsigned int f=0; f<GeometryInfo<2>::faces_per_cell; ++f)
 								if (!cell->at_boundary(f))
 								{
 									bool face_is_on_patch_Bdry = false;
@@ -982,13 +937,13 @@ namespace hp_Stokes
 
 										cell->face(f)->get_dof_indices (local_face_dof_indices, 0);
 										for (unsigned int i=0; i<local_face_dof_indices.size(); ++i)
-											if (fe_collection.face_system_to_component_index(i).first < dim)//stokes_fe
+											if (fe_collection.face_system_to_component_index(i).first < 2)//stokes_fe
 												constraints.add_line (local_face_dof_indices[i]);
 									}
 								}
 						}// if (cell_is_on_patch (cell))
 				}
-				//
+				//************
 
 				constraints.close();
 
@@ -1003,9 +958,9 @@ namespace hp_Stokes
 				BlockVector<double> patch_solution (local_system_size);
 				BlockVector<double> patch_rhs (local_system_size);
 
-				// ..................................................  assemble  patch_system  and patch_rhs .............................. //
+				//* ..................................................  assemble  patch_system  and patch_rhs .............................. *//
 
-				hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
+				hp::FEValues<2> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
 
 				FullMatrix<double> local_matrix;
 				Vector<double> local_rhs;
@@ -1016,22 +971,22 @@ namespace hp_Stokes
 				vector<Vector<double> >  rhs_values;
 
 				const FEValuesExtractors::Vector velocities (0);
-				const FEValuesExtractors::Scalar pressure (dim);
+				const FEValuesExtractors::Scalar pressure (2);
 
-				vector<Tensor<2,dim> > grad_phi_u;
+				vector<Tensor<2,2> > grad_phi_u;
 				vector<double> div_phi_u;
-				vector<Tensor<1,dim> > phi_u;
+				vector<Tensor<1,2> > phi_u;
 				vector<double> phi_p;
 
-				vector<Tensor<1,dim>> gradients_p;
+				vector<Tensor<1,2>> gradients_p;
 				vector<double> divergences;
-				vector<Tensor<1,dim>> laplacians;
+				vector<Tensor<1,2>> laplacians;
 
 				vector<double> values;
-				vector<Tensor<2,dim>> gradients;
+				vector<Tensor<2,2>> gradients;
 
 
-				typename hp::DoFHandler<dim>::active_cell_iterator
+				typename hp::DoFHandler<2>::active_cell_iterator
 					cell = dof_handler_patch.begin_active(),//...................................................which 
 					endc = dof_handler_patch.end();
 				for (; cell!=endc; ++cell){
@@ -1043,11 +998,11 @@ namespace hp_Stokes
 					local_rhs2.reinit (dofs_per_cell);
 
 					hp_fe_values.reinit (cell);
-					const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+					const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 					const vector<double>& JxW_values = fe_values.get_JxW_values ();
 					const unsigned int n_q_points = fe_values.n_quadrature_points;
 
-					rhs_values.resize(n_q_points, Vector<double>(dim+1));
+					rhs_values.resize(n_q_points, Vector<double>(3));
 					rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
 
 					grad_phi_u.resize(dofs_per_cell);
@@ -1098,7 +1053,7 @@ namespace hp_Stokes
 				}// for cell
 
 				// .....................................solve patch_system and patch_rhs ............get  patch_solution ...................... //	
-
+				{
 					SparseDirectUMFPACK A_inverse;
 					A_inverse.initialize (patch_system.block(0,0), SparseDirectUMFPACK::AdditionalData());
 					Vector<double> tmp (patch_solution.block(0).size());
@@ -1132,19 +1087,19 @@ namespace hp_Stokes
 						constraints.distribute (patch_solution);		
 					}
 
-					//.......................................  get the L2 norm of the gradient of velocity solution and pressure value  .....................//
+					//***********************************  get the L2 norm of the gradient of velocity solution and pressure value  .....................
 					fe_values[velocities].get_function_gradients(patch_solution, gradients);
 					fe_values[pressure].get_function_values(patch_solution, values);
 
 					double pressure_val=0;
 					double grad_u_val=0;
-					typename hp::DoFHandler<dim>::active_cell_iterator
+					typename hp::DoFHandler<2>::active_cell_iterator
 						cell = dof_handler_patch.begin_active(),
 						endc = dof_handler_patch.end();
 					for (; cell!=endc; ++cell)
 					{
 					hp_fe_values.reinit (cell);
-					const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+					const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 					const vector<double>& JxW_values = fe_values.get_JxW_values ();
 					const unsigned int n_q_points = fe_values.n_quadrature_points;
 						for (unsigned int q=0; q<n_q_points; ++q)
@@ -1155,30 +1110,28 @@ namespace hp_Stokes
 
 								grad_u_val += contract(gradients[q][i],gradients[q][i])* JxW_values[q];
 						} // q
-						h_solu_norm_per_patch +=(sqrt(pressure_val) + sqrt(grad_u_val));//?
+
 					}// cells on patch
+					h_solu_norm_per_patch +=(sqrt(pressure_val) + sqrt(grad_u_val));
 
-
+				}// solve
 				h_convergence_est_per_cell = h_solu_norm_per_patch ;
-
 		}// function h_patch_con_loadnum
-*/
+
 		/*..........................    Compute p_convergence_estimator   &   p_workload_number  for each patch around cell   ..........................*/
-/*
-	template <int dim>
-		void StokesProblem <dim>::p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell ) const
+		void StokesProblem <2>::p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<2>::active_cell_iterator &cell ) const
 		{
-			Triangulation<dim> tria_patch;//
-			hp::DoFHandler<dim> dof_handler_patch;//
+			Triangulation<2> tria_patch;//
+			hp::DoFHandler<2> dof_handler_patch;//
 
 			p_convergence_est_per_cell=0.;
 			p_solu_norm_per_patch=0.; 
 
-			vector<hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell (cell);
+			vector<hp::DoFHandler<2>::active_cell_iterator> patch = get_patch_around_cell (cell);
 			build_triangulation_from_patch (patch, tria_patch,level_h_refine, level_p_refine);
 			dof_handler_patch(tria_patch);//
 			//................................................set_fe_nothing........................................................................//
-			typename DoFHandler<dim>::active_cell_iterator
+			typename DoFHandler<2>::active_cell_iterator
 				cell = dof_handler_patch.begin_active(),
 				endc = dof_handler_patch.end();
 			for (; cell!=endc; ++cell){
@@ -1191,7 +1144,7 @@ namespace hp_Stokes
 					Assert (false, ExcNotImplemented());
 			}//cell
 			//......................................................................................................................................//
-			typename DoFHandler<dim>::active_cell_iterator
+			typename DoFHandler<2>::active_cell_iterator
 				cell = dof_handler_patch.begin_active(),
 				endc = dof_handler_patch.end();
 			for (; cell!=endc; ++cell){
@@ -1200,30 +1153,30 @@ namespace hp_Stokes
 						cell->set_active_fe_index (cell->active_fe_index() + 1);
 				}
 			}//cell
-			//..................................................  setup   p_patch_system and  patch_rhs  .......................... //
+			//*..................................................  setup   p_patch_system and  patch_rhs  .......................... *//
 			dof_handler_patch.distribute_dofs (fe_collection);
 			unsigned int h_workload_num = dof_handler_patch. n_dofs();//
 			unsigned int local_system_size = dof_handler_patch . n_dofs();//
 
-			vector<unsigned int> block_component (dim+1, 0);
-			block_component[dim]=1;
+			vector<unsigned int> block_component (2+1, 0);
+			block_component[2]=1;
 			DoFRenumbering::component_wise(dof_handler_patch, block_component);
 
 			{
 				constraints.clear ();
 				FEValuesExtractors::Vector velocities(0);
-				DoFTools::make_hanging_node_constraints <hp::DoFHandler<dim>> (dof_handler_patch, constraints);
+				DoFTools::make_hanging_node_constraints <hp::DoFHandler<2>> (dof_handler_patch, constraints);
 
 			}
 
-			//...................... Zero_Bdry_Condition_on_Patch ................................................//
+			//************ Zero_Bdry_Condition_on_Patch *********************************************************************
 			{
 				std::vector<types::global_dof_index> local_face_dof_indices (stokes_fe.dofs_per_face);
-				for (typename hp::DoFHandler<dim>::active_cell_iterator
+				for (typename hp::DoFHandler<2>::active_cell_iterator
 					cell = dof_handler_patch.begin_active();
 					cell != dof_handler_patch.end(); ++cell)
 					if (cell_is_on_patch (cell)){
-						for (unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
+						for (unsigned int f=0; f<GeometryInfo<2>::faces_per_cell; ++f)
 							if (!cell->at_boundary(f))
 							{
 								bool face_is_on_patch_Bdry = false;
@@ -1251,7 +1204,7 @@ namespace hp_Stokes
 							}
 					}//  if (cell_is_on_patch (cell))
 			}
-			//
+			//*********************************
 
 			constraints.close();
 
@@ -1266,8 +1219,8 @@ namespace hp_Stokes
 			BlockVector<double> patch_solution (local_system_size);
 			BlockVector<double> patch_rhs (local_system_size);
 
-			// ..................................................  assemble  patch_system  and patch_rhs .............................. //
-			hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
+			//* ..................................................  assemble  patch_system  and patch_rhs .............................. *//
+			hp::FEValues<2> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
 
 			FullMatrix<double> local_matrix;
 			Vector<double> local_rhs;
@@ -1278,21 +1231,21 @@ namespace hp_Stokes
 			vector<Vector<double> >  rhs_values;
 
 			const FEValuesExtractors::Vector velocities (0);
-			const FEValuesExtractors::Scalar pressure (dim);
+			const FEValuesExtractors::Scalar pressure (2);
 
-			vector<Tensor<2,dim> > grad_phi_u;
+			vector<Tensor<2,2> > grad_phi_u;
 			vector<double> div_phi_u;
-			vector<Tensor<1,dim> > phi_u;
+			vector<Tensor<1,2> > phi_u;
 			vector<double> phi_p;
 
-			vector<Tensor<1,dim>> gradients_p;
+			vector<Tensor<1,2>> gradients_p;
 			vector<double> divergences;
-			vector<Tensor<1,dim>> laplacians;
+			vector<Tensor<1,2>> laplacians;
 
 			vector<double> values;
-			vector<Tensor<2,dim>> gradients;
+			vector<Tensor<2,2>> gradients;
 
-			typename hp::DoFHandler<dim>::active_cell_iterator
+			typename hp::DoFHandler<2>::active_cell_iterator
 				cell = dof_handler_patch.begin_active(),
 				endc = dof_handler_patch.end();
 			for (; cell!=endc; ++cell)
@@ -1305,11 +1258,11 @@ namespace hp_Stokes
 				local_rhs2.reinit (dofs_per_cell);
 
 				hp_fe_values.reinit (cell);
-				const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+				const FEValues<2> &fe_values = hp_fe_values.get_present_fe_values ();
 				const vector<double>& JxW_values = fe_values.get_JxW_values ();
 				const unsigned int n_q_points = fe_values.n_quadrature_points;
 
-				rhs_values.resize(n_q_points, Vector<double>(dim+1));
+				rhs_values.resize(n_q_points, Vector<double>(3));
 				rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
 
 				grad_phi_u.resize(dofs_per_cell);
@@ -1349,9 +1302,9 @@ namespace hp_Stokes
 								* JxW_values[q];
 						} // end of loop over 'j'
 
-						local_rhs1(i)+= ((rhs_values[q](0)+laplacians[q][0]-gradients_p[q][0])*(phi_u[i][0])+ (rhs_values[q](1)+laplacians[q][1]-gradients_p[q][1])*(phi_u[i][1]))* JxW_values[q];//?
-						local_rhs2(i)+= (phi_p[i]*divergences[q])*JxW_values[q];//?
-						local_rhs(i)= local_rhs1(i)-local_rhs2(i);//?
+						local_rhs1(i)+= ((rhs_values[q](0)+laplacians[q][0]-gradients_p[q][0])*(phi_u[i][0])+ (rhs_values[q](1)+laplacians[q][1]-gradients_p[q][1])*(phi_u[i][1]))* JxW_values[q];
+						local_rhs2(i)+= (phi_p[i]*divergences[q])*JxW_values[q];
+						local_rhs(i)= local_rhs1(i)-local_rhs2(i);
 					}// i
 				}//q
 
@@ -1396,7 +1349,7 @@ namespace hp_Stokes
 					constraints.distribute (patch_solution);		
 				}
 
-				//.........................  get the L2 norm of the gradient of velocity solution and pressure value  .....................//
+				//***********************************  get the L2 norm of the gradient of velocity solution and pressure value  .....................
 
 				fe_values[velocities].get_function_gradients(patch_solution, gradients);
 				fe_values[pressure].get_function_values(patch_solution, values);
@@ -1424,20 +1377,17 @@ namespace hp_Stokes
 					} // q				
 
 				}// cells on patch
-				p_solu_norm_per_patch +=(sqrt(pressure_val) + sqrt(grad_u_val));  //?
-			}// solve//......................................................................?
+				p_solu_norm_per_patch +=(sqrt(pressure_val) + sqrt(grad_u_val));
+			}// solve
 			p_convergence_est_per_cell = p_solu_norm_per_patch ;
 
 		} // function p_patch_conv_load_no
-		*/
 		/*..................................................................POSTPROCESS()....................................................*/
-	/*
-	template <int dim>
-	void StokesProblem <dim>:: postprocess (const unsigned int cycle){
+		void StokesProblem <2>:: postprocess (const unsigned int cycle){
 
 			const double theta= 0.5;
 
-			vector<pair<double, hp::DoFHandler<dim>::active_cell_iterator> > to_be_sorted;
+			vector<pair<double, hp::DoFHandler<2>::active_cell_iterator> > to_be_sorted;
 
 			Vector<double> est_per_cell (triangulation.n_active_cells());
 			estimate(est_per_cell);
@@ -1446,7 +1396,7 @@ namespace hp_Stokes
 			bool need_to_p_refine = false;
 			bool need_to_h_refine = false;
 			unsigned int cell_index=0;
-			typename hp::DoFHandler<dim>::active_cell_iterator
+			typename hp::DoFHandler<2>::active_cell_iterator
 				cell = dof_handler.begin_active(),
 				endc = dof_handler.end();
 			for (; cell!=endc; ++cell,++cell_index)
@@ -1481,14 +1431,14 @@ namespace hp_Stokes
 
 				}
 
-				to_be_sorted.push_back(pair<double, hp::DoFHandler<dim>::active_cell_iterator> > (indicator_per_cell,cell));//.............?
+				to_be_sorted.push_back(pair<double, hp::DoFHandler<2>::active_cell_iterator> > (indicator_per_cell,cell));//.............?
 			}// cell
 			sort (to_be_sorted.first.begin(), to_be_sorted.first.end(), decreasing);
 
 
-			vector<hp::DoFHandler<dim>::active_cell_iterator> candidate_cell_set;
+			vector<hp::DoFHandler<2>::active_cell_iterator> candidate_cell_set;
 			double L2_norm=est_per_cell.l2_norm();
-			typename hp::DoFHandler<dim>::active_cell_iterator  cell_sort=to_be_sorted.second.begin(), endc_sort=to_be_sorted.second.end(); //...............?
+			typename hp::DoFHandler<2>::active_cell_iterator  cell_sort=to_be_sorted.second.begin(), endc_sort=to_be_sorted.second.end(); //...............?
 			double sum=0;
 			unsigned int index_cell=0;
 			for (; cell_sort!=endc_sort; ++cell_sort,++index_cell)
@@ -1498,8 +1448,8 @@ namespace hp_Stokes
 					candidate_cell_set.push_back (cell_sort);
 			}// cell_sort
 
-			//......................................  Output results ....................................................//
-				{
+			//***********************************************  Output results ***************************************************************
+			/*	{
 			std::vector<std::string> solution_names (dim, "velocity");
 			solution_names.push_back ("pressure");
 
@@ -1528,23 +1478,23 @@ namespace hp_Stokes
 			std::ofstream output (filename.str().c_str());
 			data_out.write_vtk (output);
 			}
+			*/
+			//************************************************************************************************************************************
 
-			//............................................................................................................//
 
-
-			typename hp::DoFHandler<dim>::active_cell_iterator  cell_candidate=candidate_cell_set.begin(), endc_candidate=candidate_cell_set.end();
+			typename hp::DoFHandler<2>::active_cell_iterator  cell_candidate=candidate_cell_set.begin(), endc_candidate=candidate_cell_set.end();
 			for (; cell_candidate!=endc_candidate; ++ cell_candidate)
 			{
-				Triangulation<dim> tria_patch;//
-				hp::DoFHandler<dim> dof_handler_patch;//
+				Triangulation<2> tria_patch;//
+				hp::DoFHandler<2> dof_handler_patch;//
 				dof_handler_patch(tria_patch);//
-
+				/*.........................................................................................................................................................*/
 				if (need_to_h_refine == true){
 
-					vector<hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell (cell_candidate);
+					vector<hp::DoFHandler<2>::active_cell_iterator> patch = get_patch_around_cell (cell_candidate);
 					build_triangulation_from_patch (patch, tria_patch,level_h_refine, level_p_refine);
 					//................................................set_fe_nothing...........................................//
-					typename DoFHandler<dim>::active_cell_iterator
+					typename DoFHandler<2>::active_cell_iterator
 
 						cell_p = dof_handler_patch.begin_active(),
 						endc_p = dof_handler_patch.end();
@@ -1579,14 +1529,14 @@ namespace hp_Stokes
 				while (need_to_refine == true);
 
 			}//if    need_to_h_refine	
-			//......................................................................................................................................................//
+			/*......................................................................................................................................................*/
 			if(need_to_p_refine == true){
 
-				vector<hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell (cell_candidate);
+				vector<hp::DoFHandler<2>::active_cell_iterator> patch = get_patch_around_cell (cell_candidate);
 				build_triangulation_from_patch (patch, tria_patch,level_h_refine, level_p_refine);
 
 				//................................................set_fe_nothing...........................................//
-				typename DoFHandler<dim>::active_cell_iterator
+				typename DoFHandler<2>::active_cell_iterator   
 					cell_p = dof_handler_patch.begin_active(),
 					endc_p = dof_handler_patch.end();
 				for (; cell_p!=endc_p; ++cell_p){
@@ -1599,7 +1549,7 @@ namespace hp_Stokes
 						Assert (false, ExcNotImplemented());
 				}//cell
 				//.........................................................................................................//
-				typename DoFHandler<dim>::active_cell_iterator
+				typename DoFHandler<2>::active_cell_iterator
 					cell_p = dof_handler_patch.begin_active(),
 					endc_p = dof_handler_patch.end();
 				for (; cell_p!=endc_p; ++cell_p){
@@ -1609,14 +1559,14 @@ namespace hp_Stokes
 					}//if
 				}//cell_p
 			}// if  need_to_p_refine
-			//......................................................................................................................................................//
+			/*......................................................................................................................................................*/
 		}// candidate_cells
 
 	}// postprocess
-*/
+
 	/*......................................................................................................................................................*/
-template <int dim>
-	void StokesProblem <dim>::run(){
+
+	void StokesProblem <2>::run(){
 
 		for (unsigned int cycle=0; cycle<6; ++cycle)
 		{
@@ -1628,14 +1578,10 @@ template <int dim>
 			setup_system ();
 			assemble_system();
 			solve ();
-			compute_error ();
-			estimate(est_per_cell);
 			L2_norm_est= est_per_cell.l2_norm();
 			cout<< "L2_norm Estimate is: "<< L2_norm_est << endl;
-
-			//if (L2_norm_est < Tolerance) break;
-
-			//postprocess(cycle);
+			if (L2_norm_est < Tolerance) break;
+			postprocess(cycle);
 		}
 	}//run
 }//  namespace hp-Stokes
@@ -1645,7 +1591,7 @@ int main ()
 	try
 	{
 		using namespace dealii;
-		using namespace hp_Stokes;
+		using namespace hp-Stokes;
 		deallog.depth_console (0);
 		StokesProblem<2> stokesproblem;
 		stokesproblem.run();
