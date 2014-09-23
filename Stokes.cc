@@ -439,7 +439,8 @@ namespace hp_Stokes
 		system_matrix.block(0,1).vmult (tmp, solution.block(1));
 		tmp *= -1.0;
 		tmp += system_rhs.block(0);
-		A_inverse.vmult (solution.block(0), tmp);
+
+
 		constraints.distribute (solution);
 		solution.block (1).add (-1.0 * pressure_mean_value ());
 		constraints.distribute (solution);
@@ -625,11 +626,10 @@ namespace hp_Stokes
 					double jump_val=0;
 					for (unsigned int q=0; q<n_face_q_points; ++q)
 					{
-						for (unsigned int i=0; i<2; ++i)
-							gradients[q][i]-=neighbor_gradients[q][i];
 						for (unsigned int i=0; i<2; ++i){
-							jump_per_face[q][i] = gradients[q][i] *(fe_face_values.normal_vector[q][i]);
-
+							for (unsigned int j=0; j<2; ++j){
+							jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *(fe_face_values.normal_vector(q)[j]);
+							}
 						}
 						jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 					}//q_per_face
@@ -669,8 +669,9 @@ namespace hp_Stokes
 						for (unsigned int q=0; q<n_subface_q_points; ++q)
 						{
 							for (unsigned int i=0; i<2; ++i){
-								jump_per_subface[q] += (gradients[q][i]- neighbor_gradients[q][i])*(fe_subface_values.normal_vector(q));
-
+								for (unsigned int j=0; j<2; ++j){
+								jump_per_subface[q][j] += (gradients[q][i][j]- neighbor_gradients[q][i][j])*(fe_subface_values.normal_vector(q)[j]);
+								}//j
 							}// i
 							jump_val += contract(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
 						}//q_per_subface
@@ -707,8 +708,10 @@ namespace hp_Stokes
 					for (unsigned int q=0; 
 						q<n_face_q_points; ++q)
 					{
-						for (unsigned int i=0; i<2; ++i){//?
-							jump_per_face[q] += (gradients[q][i]- neighbor_gradients[q][i])*(fe_face_values.normal_vector(q));		
+						for (unsigned int i=0; i<2; ++i){
+							for (unsigned int j=0; j<2; ++j){
+							jump_per_face[q][i] += (gradients[q][i][j]- neighbor_gradients[q][i][j])*(fe_face_values.normal_vector(q)[j]);
+							}//j
 						}// i
 						jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 					}//q_per_face
