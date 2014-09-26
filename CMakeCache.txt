@@ -27,7 +27,7 @@ CMAKE_COLOR_MAKEFILE:BOOL=ON
 CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
 
 //Flags used by the compiler during all build types.
-CMAKE_CXX_FLAGS:STRING=-pedantic -fpic -Wall -Wpointer-arith -Wwrite-strings -Wsynth -Wsign-compare -Wswitch   -std=c++0x -Wno-unused -Wno-extra -Wno-overloaded-virtual
+CMAKE_CXX_FLAGS:STRING=-pedantic -fpic -Wall -Wpointer-arith -Wwrite-strings -Wsynth -Wsign-compare -Wswitch -Wno-long-long   -std=c++0x -Wno-unused -Wno-extra -Wno-overloaded-virtual
 
 //Flags used by the compiler during debug builds.
 CMAKE_CXX_FLAGS_DEBUG:STRING=-O0 -ggdb -Wa,--compress-debug-sections
@@ -36,7 +36,7 @@ CMAKE_CXX_FLAGS_DEBUG:STRING=-O0 -ggdb -Wa,--compress-debug-sections
 CMAKE_CXX_FLAGS_MINSIZEREL:STRING=-Os -DNDEBUG
 
 //Flags used by the compiler during release builds.
-CMAKE_CXX_FLAGS_RELEASE:STRING=-O2 -funroll-loops -funroll-all-loops -fstrict-aliasing -felide-constructors -Wno-unused
+CMAKE_CXX_FLAGS_RELEASE:STRING=-O2 -funroll-loops -funroll-all-loops -fstrict-aliasing -Wno-unused
 
 //Flags used by the compiler during Release with Debug Info builds.
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g

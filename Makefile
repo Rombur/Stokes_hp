@@ -154,6 +154,19 @@ help/fast:
 .PHONY : help/fast
 
 #=============================================================================
+# Target rules for targets named info
+
+# Build rule for target.
+info: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 info
+.PHONY : info
+
+# fast build rule for target.
+info/fast:
+	$(MAKE) -f CMakeFiles/info.dir/build.make CMakeFiles/info.dir/build
+.PHONY : info/fast
+
+#=============================================================================
 # Target rules for targets named release
 
 # Build rule for target.

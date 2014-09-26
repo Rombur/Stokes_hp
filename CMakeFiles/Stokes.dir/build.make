@@ -84,7 +84,10 @@ Stokes_EXTERNAL_OBJECTS =
 
 Stokes: CMakeFiles/Stokes.dir/Stokes.cc.o
 Stokes: CMakeFiles/Stokes.dir/build.make
-Stokes: /w/aghesmati/dealII_install/lib/libdeal_II.g.so.8.0.0
+Stokes: /w/aghesmati/dealII_install/lib/libdeal_II.g.so.8.1.0
+Stokes: /w/aghesmati/p4est/DEBUG/lib/libp4est.so
+Stokes: /w/aghesmati/p4est/DEBUG/lib/libsc.so
+Stokes: /usr/lib/libtbb.so
 Stokes: /w/bangerth/share/software/trilinos-11.4.1-mpi/lib/libstratimikos.so
 Stokes: /w/bangerth/share/software/trilinos-11.4.1-mpi/lib/libstratimikosbelos.so
 Stokes: /w/bangerth/share/software/trilinos-11.4.1-mpi/lib/libstratimikosaztecoo.so
@@ -128,15 +131,17 @@ Stokes: /w/bangerth/share/software/trilinos-11.4.1-mpi/lib/libteuchosparameterli
 Stokes: /w/bangerth/share/software/trilinos-11.4.1-mpi/lib/libteuchoscore.so
 Stokes: /usr/lib/libblas.so
 Stokes: /apps/openmpi/1.6.5/lib64/libmpi_cxx.so
+Stokes: /usr/lib/libboost_serialization-mt.so
+Stokes: /usr/lib/libboost_system-mt.so
+Stokes: /usr/lib/libboost_thread-mt.so
 Stokes: /usr/lib/libnetcdf_c++.so
 Stokes: /usr/lib/libnetcdf.so
-Stokes: /w/aghesmati/p4est/FAST/lib/libp4est.so
-Stokes: /w/aghesmati/p4est/FAST/lib/libsc.so
 Stokes: /usr/lib/liblapack.so
 Stokes: /usr/lib/libf77blas.so.3gf
 Stokes: /usr/lib/libatlas.so.3gf
 Stokes: /usr/lib/gcc/x86_64-linux-gnu/4.6/libgfortran.so
 Stokes: /usr/lib/gcc/x86_64-linux-gnu/4.6/libquadmath.so
+Stokes: /usr/lib/x86_64-linux-gnu/libc.so
 Stokes: /apps/openmpi/1.6.5/lib64/libmpi.so
 Stokes: /usr/lib/x86_64-linux-gnu/librt.so
 Stokes: /usr/lib/x86_64-linux-gnu/libnsl.so
@@ -144,10 +149,6 @@ Stokes: /usr/lib/x86_64-linux-gnu/libutil.so
 Stokes: /usr/lib/x86_64-linux-gnu/libm.so
 Stokes: /usr/lib/x86_64-linux-gnu/libdl.so
 Stokes: /usr/lib/x86_64-linux-gnu/libz.so
-Stokes: /usr/lib/libtbb.so
-Stokes: /usr/lib/libboost_serialization-mt.so
-Stokes: /usr/lib/libboost_system-mt.so
-Stokes: /usr/lib/libboost_thread-mt.so
 Stokes: CMakeFiles/Stokes.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable Stokes"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Stokes.dir/link.txt --verbose=$(VERBOSE)

@@ -52,6 +52,7 @@ CMakeFiles/debug:
 	$(CMAKE_COMMAND) -E cmake_progress_report /u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Switch CMAKE_BUILD_TYPE to Debug"
 	/w/bangerth/share/software/bin/cmake -DCMAKE_BUILD_TYPE=Debug /u/aghesmati/Documents/Spring2014/Implementation_Stokes
+	/w/bangerth/share/software/bin/cmake --build /u/aghesmati/Documents/Spring2014/Implementation_Stokes --target all
 
 debug: CMakeFiles/debug
 debug: CMakeFiles/debug.dir/build.make
