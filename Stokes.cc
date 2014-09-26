@@ -1,4 +1,5 @@
-﻿// FOR TEST GITHUB
+﻿// This code works up to function estimate ()
+
 
 #include <fstream>
 #include <iostream>
@@ -57,7 +58,7 @@ namespace hp_Stokes
 	using namespace dealii;
 	using namespace std;
 
-	  template <int dim>
+	 template <int dim>
 	class ExactSolution : public Function<dim>
 	{
 	public:
@@ -112,31 +113,32 @@ namespace hp_Stokes
 	template <int dim>
 	class StokesProblem
 	{
-	public:  
+	public:
 		StokesProblem ();
-		~StokesProblem(); 
+		~StokesProblem();
 		void run();
 
 	private:
-		enum
-		{
-			patch_on,
-			patch_off
-		};
+		//enum
+		//{
+		//	patch_on,
+		//	patch_off
+		//};
 
 		//static bool cell_is_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
 		//static bool cell_is_NOT_on_patch (const typename hp::DoFHandler<2>::cell_iterator &cell);
 
 		const RightHandSide<dim> rhs_function;
 		const ExactSolution<dim> exact_solution;
-		double pressure_mean_value () const;
+
 		void generate_mesh ();
 		void setup_system ();
 		void assemble_system ();
 		void solve ();
-
+		double pressure_mean_value () const;
 		void compute_error ();
-		void estimate (Vector<double> &est_per_cell);
+		//void estimate (Vector<double> &est_per_cell);
+
 		//void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell) const;
 		//void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell ) const;
 
@@ -148,7 +150,7 @@ namespace hp_Stokes
 
 		//void postprocess (const unsigned int cycle);
 
-		const double Tolerance;
+		//const double Tolerance;
 		const unsigned int max_degree;
 
 		Triangulation<dim> triangulation;
@@ -173,9 +175,9 @@ namespace hp_Stokes
 		double L1_norm_est;
 		Vector<double> est_per_cell;
 
-	}; 
+	};
 	/*......................................................................................*/
-// here A_inverse is of class SparseDirectUMFPACK, compare to for example step-22, which is of type Preconditioner
+
 	class SchurComplement : public Subscriptor
 	{
 	public:
@@ -206,8 +208,10 @@ namespace hp_Stokes
 	}
 	/*......................................................................................*/
 	// constructor and destructor
+	//Tolerance (0.0001),
+
 	template <int dim>
-	StokesProblem<dim>::StokesProblem(): Tolerance (0.00001), max_degree (5), dof_handler(triangulation)
+	StokesProblem<dim>::StokesProblem(): dof_handler(triangulation),  max_degree (5)
 
 
 		//stokes_fe (FE_Q<2>(QGaussLobatto<1> (unsigned int degree + 2)), 2, FE_Q<2> (QGaussLobatto<1> (unsigned int degree + 1)), 1),
@@ -216,14 +220,14 @@ namespace hp_Stokes
 		for (unsigned int degree=1; degree<=max_degree; ++degree)
 		{
 
-			fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree + 2)), 2, FE_Q<dim> (QGaussLobatto<1> (degree + 1)), 1));//QGaussLobatto<1>?
+			fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree + 2)), dim, FE_Q<dim> (QGaussLobatto<1> (degree + 1)), 1));//QGaussLobatto<1>?
 			quadrature_collection.push_back(QGauss<dim> (degree+2));
 			face_quadrature_collection.push_back (QGauss<dim-1> (degree+1));
 		}
-		fe_collection.push_back(FESystem<dim> (FE_Nothing<dim>(), 3) );
-		quadrature_collection.push_back(QGauss<dim>(0));
-		face_quadrature_collection.push_back (QGauss<dim-1>(0));
-	} 
+		//fe_collection.push_back(FESystem<dim> (FE_Nothing<dim>(), dim+1) );
+		//quadrature_collection.push_back(QGauss<dim>(0));
+		//face_quadrature_collection.push_back (QGauss<dim-1>(0));
+	}
 	/*.....................................................................................*/
 	template <int dim>
 	StokesProblem <dim>::~StokesProblem() {
@@ -287,13 +291,13 @@ namespace hp_Stokes
 		cell[2].vertices[3]=7;
 
 		triangulation.create_triangulation(vertices,cell,SubCellData());
-		triangulation.refine_global (1);
+		triangulation.refine_global (5);
 		ofstream out ("grid-L-Shape.eps");
 		GridOut grid_out;
 		grid_out.write_eps (triangulation, out);
 		cout<<"Number of active cells: "<< triangulation.n_active_cells() << endl;
 		cout<<"Total number of cells: " << triangulation.n_cells() << endl ;
-	} 
+	}
 	/*......................................................................................*/
 	// setup system()
 	template <int dim>
@@ -327,7 +331,7 @@ namespace hp_Stokes
 
 		system_matrix.reinit (sparsity_pattern);
 		solution.reinit (dofs_per_block);
-		system_rhs.reinit (dofs_per_block);                                                                                                                                                                    
+		system_rhs.reinit (dofs_per_block);
 
 	}// End of function setup_system()
 	/*......................................................................................*/
@@ -350,7 +354,7 @@ namespace hp_Stokes
 		vector<double> div_phi_u;
 		vector<Tensor<1,dim> > phi_u;
 		vector<double> phi_p;
-		//abort();
+
 		typename hp::DoFHandler<dim>::active_cell_iterator
 			cell = dof_handler.begin_active(),
 			endc = dof_handler.end();
@@ -405,7 +409,7 @@ namespace hp_Stokes
 			cell->get_dof_indices (local_dof_indices);
 			constraints.distribute_local_to_global (local_matrix, local_rhs, local_dof_indices, system_matrix, system_rhs);
 		} // end of iteration for cells
-	} 
+	}
 	/*......................................................................................*/
 	template <int dim>
 	void StokesProblem <dim>::solve ()
@@ -422,14 +426,17 @@ namespace hp_Stokes
 
 			SchurComplement schur_complement (system_matrix, A_inverse);
 			SolverControl solver_control (solution.block(1).size(),
-				1e-6);
+					1e-4);
+
 			SolverCG<>    cg (solver_control);
+
 			SparseDirectUMFPACK preconditioner;
 			preconditioner.initialize (system_matrix.block(1,1),
-				SparseDirectUMFPACK::AdditionalData());
+					SparseDirectUMFPACK::AdditionalData());
 
 			cg.solve (schur_complement, solution.block(1), schur_rhs,
 				preconditioner);
+			//cout<<" residuals of each step " << solver_control.enable_history_data() << endl;
 			constraints.distribute (solution);
 			cout << "  "
 				<< solver_control.last_step()
@@ -439,7 +446,7 @@ namespace hp_Stokes
 		system_matrix.block(0,1).vmult (tmp, solution.block(1));
 		tmp *= -1.0;
 		tmp += system_rhs.block(0);
-
+		A_inverse.vmult (solution.block(0), tmp);
 
 		constraints.distribute (solution);
 		solution.block (1).add (-1.0 * pressure_mean_value ());
@@ -523,7 +530,7 @@ namespace hp_Stokes
 				values[q] -= exact_solution_values[q](dim);//?
 				subtract_p +=values[q]*values[q]* JxW_values[q];
 				for (unsigned int i=0; i<dim; ++i)
-					gradients[q][i]-=exact_solution_gradients[q][i];	
+					gradients[q][i]-=exact_solution_gradients[q][i];
 				grad_u_vals +=double_contract(gradients[q],gradients[q])* JxW_values[q];
 			} // q
 			error_per_cell(cell_index) =(sqrt(subtract_p) + sqrt(grad_u_vals));
@@ -535,6 +542,7 @@ namespace hp_Stokes
 		cout<< "L2_norm of ERROR is: "<< L2_norm << endl;
 	}
 	/*......................................................................................*/
+	/*
 	template <int dim>
 	void StokesProblem <dim>::estimate (Vector<double> &est_per_cell) {
 		hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
@@ -705,7 +713,7 @@ namespace hp_Stokes
 					vector<Tensor<1,dim>> jump_per_face;
 					jump_per_face.resize(n_face_q_points);
 					double jump_val=0;
-					for (unsigned int q=0; 
+					for (unsigned int q=0;
 						q<n_face_q_points; ++q)
 					{
 						for (unsigned int i=0; i<2; ++i){
@@ -728,6 +736,7 @@ namespace hp_Stokes
 		cout<< "L2_norm of ERROR Estimate is: "<< L1_norm_est << endl;
 
 	}// func.estimate ()
+	*/
 	/*......................................................................................*/
 	/*
 	template <int dim>
@@ -888,7 +897,7 @@ namespace hp_Stokes
 			if (global_cell_is_in_patch)
 				cell->set_material_id (patch_on);
 			else
-				cell->set_material_id (patch_off);		
+				cell->set_material_id (patch_off);
 		}
 
 	} // build_triangulation
@@ -901,7 +910,7 @@ namespace hp_Stokes
 		Triangulation<dim> tria_patch;//
 		hp::DoFHandler<dim> dof_handler_patch(tria_patch);//
 		h_convergence_est_per_cell=0.;
-		double h_solu_norm_per_patch=0.; 
+		double h_solu_norm_per_patch=0.;
 		vector<hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell(cell);
 		//PRINT(tria_patch.n_cells());
 		build_triangulation_from_patch (patch, tria_patch, level_h_refine, level_p_refine);
@@ -931,7 +940,7 @@ namespace hp_Stokes
 				cell != dof_handler_patch.end(); ++cell)
 				for (; cell!=endc; ++cell){
 					if (cell_is_on_patch(cell)){  //.....................................................?
-						if ( (cell_is_on_patch(cell)) && (cell->level() <  level_h_refine+1 ))  {  
+						if ( (cell_is_on_patch(cell)) && (cell->level() <  level_h_refine+1 ))  {
 							need_to_refine = true;
 							cell->refine_flag_set();
 						}
@@ -1035,7 +1044,7 @@ namespace hp_Stokes
 
 
 				typename hp::DoFHandler<dim>::active_cell_iterator
-					cell = dof_handler_patch.begin_active(),//...................................................which 
+					cell = dof_handler_patch.begin_active(),//...................................................which
 					endc = dof_handler_patch.end();
 				for (; cell!=endc; ++cell){
 
@@ -1071,7 +1080,7 @@ namespace hp_Stokes
 
 
 					for (unsigned int q=0; q<n_q_points; ++q)
-					{   
+					{
 						for (unsigned int k=0; k<dofs_per_cell; ++k)
 						{
 							grad_phi_u[k] = fe_values[velocities].gradient (k, q);
@@ -1100,7 +1109,7 @@ namespace hp_Stokes
 					constraints.distribute_local_to_global (local_matrix, local_rhs, local_dof_indices, patch_system, patch_rhs);
 				}// for cell
 
-				// .....................................solve patch_system and patch_rhs ............get  patch_solution ...................... //	
+				// .....................................solve patch_system and patch_rhs ............get  patch_solution ...................... //
 
 					SparseDirectUMFPACK A_inverse;
 					A_inverse.initialize (patch_system.block(0,0), SparseDirectUMFPACK::AdditionalData());
@@ -1132,7 +1141,7 @@ namespace hp_Stokes
 						tmp *= -1.0;
 						tmp += patch_rhs.block(0);
 						A_inverse.vmult (patch_solution.block(0), tmp);
-						constraints.distribute (patch_solution);		
+						constraints.distribute (patch_solution);
 					}
 
 					//.......................................  get the L2 norm of the gradient of velocity solution and pressure value  .....................//
@@ -1175,7 +1184,7 @@ namespace hp_Stokes
 			hp::DoFHandler<dim> dof_handler_patch;//
 
 			p_convergence_est_per_cell=0.;
-			p_solu_norm_per_patch=0.; 
+			p_solu_norm_per_patch=0.;
 
 			vector<hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell (cell);
 			build_triangulation_from_patch (patch, tria_patch,level_h_refine, level_p_refine);
@@ -1333,7 +1342,7 @@ namespace hp_Stokes
 
 
 				for (unsigned int q=0; q<n_q_points; ++q)
-				{   
+				{
 					for (unsigned int k=0; k<dofs_per_cell; ++k)
 					{
 						grad_phi_u[k] = fe_values[velocities].gradient (k, q);
@@ -1364,7 +1373,7 @@ namespace hp_Stokes
 				constraints.distribute_local_to_global (local_matrix, local_rhs, local_dof_indices, patch_system, patch_rhs);
 			}// for patch_c
 
-			// .....................................solve patch_system and patch_rhs ............get  patch_solution ...................... //	
+			// .....................................solve patch_system and patch_rhs ............get  patch_solution ...................... //
 			{
 				SparseDirectUMFPACK A_inverse;
 				A_inverse.initialize (patch_system.block(0,0), SparseDirectUMFPACK::AdditionalData());
@@ -1396,7 +1405,7 @@ namespace hp_Stokes
 					tmp *= -1.0;
 					tmp += patch_rhs.block(0);
 					A_inverse.vmult (patch_solution.block(0), tmp);
-					constraints.distribute (patch_solution);		
+					constraints.distribute (patch_solution);
 				}
 
 				//.........................  get the L2 norm of the gradient of velocity solution and pressure value  .....................//
@@ -1424,7 +1433,7 @@ namespace hp_Stokes
 						for (unsigned int i=0; i<2; ++i)
 
 							grad_u_val += contract(gradients[q][i],gradients[q][i])* JxW_values[q];
-					} // q				
+					} // q
 
 				}// cells on patch
 				p_solu_norm_per_patch +=(sqrt(pressure_val) + sqrt(grad_u_val));  //?
@@ -1469,7 +1478,7 @@ namespace hp_Stokes
 				p_convergence_est_per_cell = p_convergence_est_per_cell /est_per_cell(cell_index);
 
 				double h_ratio= h_convergence_est_per_cell /  h_workload_num ;
-				double p_ratio= p_convergence_est_per_cell /  p_workload_num ;    
+				double p_ratio= p_convergence_est_per_cell /  p_workload_num ;
 
 				if (h_ratio < p_ratio) {
 					convergence_est_per_cell(cell_index)=p_convergence_est_per_cell;
@@ -1570,7 +1579,7 @@ namespace hp_Stokes
 							endc_p = dof_handler_patch.end();
 						for (; cell_p!=endc_p; ++cell_p){
 
-							if ( (cell_is_on_patch(cell_p)) &&  (cell_p->level() <  level_h_refine+1) )  {  
+							if ( (cell_is_on_patch(cell_p)) &&  (cell_p->level() <  level_h_refine+1) )  {
 								need_to_refine = true;
 								cell_p->refine_flag_set(); ///..........................?
 							}
@@ -1581,7 +1590,7 @@ namespace hp_Stokes
 				}//do
 				while (need_to_refine == true);
 
-			}//if    need_to_h_refine	
+			}//if    need_to_h_refine
 			//......................................................................................................................................................//
 			if(need_to_p_refine == true){
 
@@ -1621,10 +1630,10 @@ namespace hp_Stokes
 template <int dim>
 	void StokesProblem <dim>::run(){
 
-		for (unsigned int cycle=0; cycle<6; ++cycle)
-		{
-			cout << "Cycle " << cycle << ':' << endl;
-			if (cycle == 0)
+		//for (unsigned int cycle=0; cycle<6; ++cycle)
+		//{
+			//cout << "Cycle " << cycle << ':' << endl;
+			//if (cycle == 0)
 
 				generate_mesh();
 
@@ -1632,19 +1641,20 @@ template <int dim>
 			assemble_system();
 			solve ();
 			compute_error ();
-			estimate(est_per_cell);
-			L2_norm_est= est_per_cell.l2_norm();
-			cout<< "L2_norm Estimate is: "<< L2_norm_est << endl;
+			//estimate(est_per_cell);
+			//L2_norm_est= est_per_cell.l2_norm();
+			//cout<< "L2_norm Estimate is: "<< L2_norm_est << endl;
 
 			//if (L2_norm_est < Tolerance) break;
 
 			//postprocess(cycle);
-		}
+		//}
 	}//run
 }//  namespace hp-Stokes
 /*......................................................................................*/
 int main ()
 {
+
 	try
 	{
 		using namespace dealii;
@@ -1677,4 +1687,5 @@ int main ()
 		return 1;
 	}
 	return 0;
+
 }
