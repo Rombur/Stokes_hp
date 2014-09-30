@@ -1,4 +1,4 @@
-﻿// This code works up to function estimate ()
+// This code works up to function estimate ()
 
 
 #include <fstream>
@@ -137,7 +137,7 @@ namespace hp_Stokes
 		void solve ();
 		double pressure_mean_value () const;
 		void compute_error ();
-		//void estimate (Vector<double> &est_per_cell);
+		void estimate (Vector<double> &est_per_cell);
 
 		//void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell) const;
 		//void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell ) const;
@@ -151,7 +151,7 @@ namespace hp_Stokes
 		//void postprocess (const unsigned int cycle);
 
 		//const double Tolerance;
-		const unsigned int max_degree;
+		
 
 		Triangulation<dim> triangulation;
 		hp::DoFHandler<dim> dof_handler;
@@ -171,6 +171,9 @@ namespace hp_Stokes
 
 		BlockVector<double> solution;
 		BlockVector<double> system_rhs;
+
+                const unsigned int max_degree;
+
 		double L2_norm_est;
 		double L1_norm_est;
 		Vector<double> est_per_cell;
@@ -291,7 +294,7 @@ namespace hp_Stokes
 		cell[2].vertices[3]=7;
 
 		triangulation.create_triangulation(vertices,cell,SubCellData());
-		triangulation.refine_global (5);
+		triangulation.refine_global (1);
 		ofstream out ("grid-L-Shape.eps");
 		GridOut grid_out;
 		grid_out.write_eps (triangulation, out);
@@ -536,15 +539,16 @@ namespace hp_Stokes
 			error_per_cell(cell_index) =(sqrt(subtract_p) + sqrt(grad_u_vals));
 
 		}// cell
+		cout<< "Vector of Compute Error per Cell: " << error_per_cell<< endl ;
 		double L1_norm=error_per_cell.l1_norm();
 		cout<< "L1_norm of ERROR is: "<< L1_norm << endl;
 		double L2_norm=error_per_cell.l2_norm();
 		cout<< "L2_norm of ERROR is: "<< L2_norm << endl;
 	}
 	/*......................................................................................*/
-	/*
+	
 	template <int dim>
-	void StokesProblem <dim>::estimate (Vector<double> &est_per_cell) {
+	void StokesProblem <dim>::estimate (Vector<double> &est_per_cell)  {
 		hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
 		hp::FEFaceValues<dim> hp_fe_face_values(fe_collection, face_quadrature_collection, update_JxW_values|update_gradients|update_normal_vectors);
 		hp::FEFaceValues<dim> hp_neighbor_face_values(fe_collection, face_quadrature_collection, update_gradients);
@@ -564,7 +568,7 @@ namespace hp_Stokes
 		const RightHandSide<dim> rhs_function;
 		vector<Vector<double> >  rhs_values;
 
-		est_per_cell.reinit (triangulation.n_active_cells());
+		//est_per_cell.reinit (triangulation.n_active_cells());
 		Vector<double> res_est_per_cell(triangulation.n_active_cells());
 		Vector<double> Jump_est_per_cell(triangulation.n_active_cells());
 
@@ -604,7 +608,7 @@ namespace hp_Stokes
 			}// q
 			res_est_per_cell(cell_index)= pow((cell->diameter())/(cell->get_fe().degree), 2.0 ) * (term1) + term2;
 
-			// ******************************************** compute jump_est_per_cell**********************************************************************
+			// ........................................... compute jump_est_per_cell..............................................................
 			double term3=0;//jumpped part of the estimator
 			for (unsigned int face_number=0; face_number<GeometryInfo<2>::faces_per_cell; ++face_number)
 
@@ -730,13 +734,16 @@ namespace hp_Stokes
 				Jump_est_per_cell(cell_index) = term3;
 				est_per_cell(cell_index)=sqrt(Jump_est_per_cell(cell_index)+res_est_per_cell(cell_index));
 		}//cell
-		L2_norm_est= est_per_cell.l2_norm();
-		cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << endl;
+		
+		cout<< "Vector of Error Estimate: "<< est_per_cell << endl;
 		L1_norm_est= est_per_cell.l1_norm();
-		cout<< "L2_norm of ERROR Estimate is: "<< L1_norm_est << endl;
+		cout<< "L1_norm of ERROR Estimate is: "<< L1_norm_est << endl;
+		L2_norm_est= est_per_cell.l2_norm();	
+		cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << endl;
+		
 
 	}// func.estimate ()
-	*/
+	
 	/*......................................................................................*/
 	/*
 	template <int dim>
@@ -942,7 +949,7 @@ namespace hp_Stokes
 					if (cell_is_on_patch(cell)){  //.....................................................?
 						if ( (cell_is_on_patch(cell)) && (cell->level() <  level_h_refine+1 ))  {
 							need_to_refine = true;
-							cell->refine_flag_set();
+							cell->set_refine_flag();
 						}
 					}
 					}//cell
@@ -1454,6 +1461,32 @@ namespace hp_Stokes
 			Vector<double> est_per_cell (triangulation.n_active_cells());
 			estimate(est_per_cell);
 
+//............................................................................................................................
+{
+			Vector<float> fe_degrees (triangulation.n_active_cells());
+  	    {
+  			      typename hp::DoFHandler<dim>::active_cell_iterator
+  			      cell = dof_handler.begin_active(),
+   				     endc = dof_handler.end();
+				        for (unsigned int index=0; cell!=endc; ++cell, ++index)
+  				        fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
+            }
+
+
+      DataOut<dim,hp::DoFHandler<dim> > data_out;
+      data_out.attach_dof_handler (dof_handler);
+      data_out.add_data_vector (solution, "solution");
+      data_out.add_data_vector (est_per_cell, "error");
+      data_out.add_data_vector (fe_degrees, "fe_degree");
+      data_out.build_patches ();
+      const std::string filename = "solution-" +
+                                   Utilities::int_to_string (cycle, 2) +
+                                   ".vtk";
+      std::ofstream output (filename.c_str());
+      data_out.write_vtk (output);
+    }
+
+//..............................................................................................................................
 			Vector<double> convergence_est_per_cell (triangulation.n_active_cells());
 			bool need_to_p_refine = false;
 			bool need_to_h_refine = false;
@@ -1581,8 +1614,8 @@ namespace hp_Stokes
 
 							if ( (cell_is_on_patch(cell_p)) &&  (cell_p->level() <  level_h_refine+1) )  {
 								need_to_refine = true;
-								cell_p->refine_flag_set(); ///..........................?
-							}
+								cell_p->set_refine_flag(); ///..........................?
+							
 						}
 					}//cell_p
 					if (need_to_refine == true)
@@ -1622,7 +1655,11 @@ namespace hp_Stokes
 				}//cell_p
 			}// if  need_to_p_refine
 			//......................................................................................................................................................//
-		}// candidate_cells
+		}// for... candidate_cells
+
+
+
+
 
 	}// postprocess
 */
@@ -1641,7 +1678,8 @@ template <int dim>
 			assemble_system();
 			solve ();
 			compute_error ();
-			//estimate(est_per_cell);
+                        Vector<double> est_per_cell (triangulation.n_active_cells());
+			estimate(est_per_cell);
 			//L2_norm_est= est_per_cell.l2_norm();
 			//cout<< "L2_norm Estimate is: "<< L2_norm_est << endl;
 
@@ -1689,3 +1727,4 @@ int main ()
 	return 0;
 
 }
+

@@ -534,3 +534,30 @@ Parsed CXX implicit link information from above output:
   implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/4.6;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
 
 
+The system is: Linux - 3.8.0-44-generic - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /usr/bin/c++ 
+Build flags: -pedantic;-fpic;-Wall;-Wpointer-arith;-Wwrite-strings;-Wsynth;-Wsign-compare;-Wswitch;-Wno-long-long;;;-std=c++0x;-Wno-unused;-Wno-extra;-Wno-overloaded-virtual
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/u/aghesmati/Documents/Spring2014/Implementation_Stokes/CMakeFiles/CompilerIdCXX/a.out"
+
