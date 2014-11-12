@@ -5,6 +5,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
+
 #include <complex>
 #include <cmath>
 #include <set>
@@ -900,7 +903,7 @@ namespace hp_Stokes
 		{
 			typename hp::DoFHandler<dim>::cell_iterator global_cell = patch_to_global_tria_map[cell_tttt];
 			bool global_cell_is_in_patch = false;
-
+                        global_cell->clear_user_flag ();
 			//typename std::vector<typename hp::DoFHandler<dim>::cell_iterator>::iterator  p;
 			
 			//for (p=patch.begin() ; p!=patch.end (); ++p){
@@ -909,6 +912,7 @@ namespace hp_Stokes
                         for (unsigned int i=0; i<patch.size(); ++i){
                              if (patch[i]==global_cell)
 				{
+					
 					global_cell->set_user_flag();
 					global_cell_is_in_patch = true;
 					     
@@ -917,7 +921,7 @@ namespace hp_Stokes
 			}					
 			if (global_cell_is_in_patch==true)
 				{
-				global_cell->user_flag_set() == true;
+				//global_cell->user_flag_set() == true;
 				global_cell->set_active_fe_index (0);
 				}
 			else if (global_cell_is_in_patch==false)
@@ -1573,8 +1577,9 @@ candidate_cell_set.push_back (cell_sort);
 
 //............................................................................................................................
 // Output
+/*
+{
 
-/*{
 			Vector<float> fe_degrees (triangulation.n_active_cells());
   	    {
   			      typename hp::DoFHandler<dim>::active_cell_iterator
@@ -1583,6 +1588,8 @@ candidate_cell_set.push_back (cell_sort);
 				        for (unsigned int index=0; cell!=endc; ++cell, ++index)
   				        fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
             }
+
+
 
 				std::vector<std::string> solution_names (dim, "velocity");
 				solution_names.push_back ("pressure");
@@ -1595,20 +1602,20 @@ candidate_cell_set.push_back (cell_sort);
  				DataOut<dim,hp::DoFHandler<dim> > data_out;
       				data_out.attach_dof_handler (dof_handler);
       				data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
-      				data_out.add_data_vector (est_per_cell, "error");
+      				//data_out.add_data_vector (est_per_cell, "error");
 				//.... data_out.add_data_vector (error_per_cell, "error");
       				data_out.add_data_vector (fe_degrees, "fe_degree");
       				data_out.build_patches ();
      			 	std::string filename = "solution-" +
-                                Utilities::int_to_string (cycle, 2) +".vtk";
+                                Utilities::int_to_string (cycle, 2) +".vtu";
 
 				std::ofstream output (filename.str().c_str());
-  				data_out.write_vtk (output);
+  				data_out.write_vtu (output);
     }
-*/
+
 
 	}// postprocess
-
+*/
 	/*......................................................................................................................................................*/
 template <int dim>
 	void StokesProblem <dim>::run(){
