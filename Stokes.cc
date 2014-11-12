@@ -302,6 +302,9 @@ namespace hp_Stokes
 	// setup system()
 	template <int dim>
 	void StokesProblem <dim>::setup_system(){
+    
+		system_matrix.clear();
+
 		dof_handler.distribute_dofs (fe_collection);
 
     std::vector<unsigned int> block_component (dim+1, 0);
@@ -1645,8 +1648,7 @@ template <int dim>
 		{
       std::cout << "Cycle " << cycle << ':' << std::endl;
 			if (cycle == 0)
-
-			generate_mesh();
+  			generate_mesh();
 
 			setup_system ();
 			assemble_system();
