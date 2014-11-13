@@ -1293,7 +1293,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & 
 
   std::vector<std::pair<double, typename hp::DoFHandler<dim>::active_cell_iterator> > to_be_sorted;
 
-  Vector<double> est_per_cell (triangulation.n_active_cells());
+  //Vector<double> est_per_cell (triangulation.n_active_cells());
   estimate(est_per_cell);
 
   Vector<double> convergence_est_per_cell (triangulation.n_active_cells());
@@ -1353,7 +1353,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & 
       candidate_cell_set.push_back (cell_sort);
   }
   //..............................................................................................................................
-  Vector<int> marked_cells(triangulation.n_active_cells());
+ 
   unsigned int index=0;
   typename hp::DoFHandler<dim>::active_cell_iterator
     celll = dof_handler.begin_active(),
@@ -1363,7 +1363,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & 
   typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
   for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); ++ cell_candidate)
   {
-  if (celll= *cell_candidate)
+  if (celll == *cell_candidate)
   marked_cells(index)=1;
   else 
   marked_cells(index)=0; 
@@ -1441,12 +1441,14 @@ void StokesProblem <dim>:: output_results (const unsigned int cycle)
 
 
   DataOut<dim,hp::DoFHandler<dim> > data_out;
+
   data_out.attach_dof_handler (dof_handler);
   data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
-  data_out.add_data_vector (marked_cells, "cells which are marked to be refined");
+
   //data_out.add_data_vector (est_per_cell, "error");
   //.... data_out.add_data_vector (error_per_cell, "error");
   data_out.add_data_vector (fe_degrees, "fe_degree");
+  data_out.add_data_vector (marked_cells, "marked_cells");
   data_out.build_patches ();
   std::string filename = "solution-" +
     Utilities::int_to_string (cycle, 2) +".vtu";
@@ -1474,7 +1476,7 @@ void StokesProblem <dim>::run(){
     compute_error ();
     Vector<double> est_per_cell (triangulation.n_active_cells());
     estimate(est_per_cell);
-
+ 
     //  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
     L1_norm_est= est_per_cell.l1_norm();
     std::cout<< "L1_norm of ERROR Estimate is: "<< L1_norm_est << std::endl;
@@ -1483,6 +1485,7 @@ void StokesProblem <dim>::run(){
 
 
     if (L2_norm_est < Tolerance) break;
+    Vector<int> marked_cells(triangulation.n_active_cells());
     postprocess(cycle,  marked_cells);
     output_results(cycle);
    
