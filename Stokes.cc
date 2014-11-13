@@ -146,7 +146,7 @@ namespace hp_Stokes
 		void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
 
 		bool decreasing (const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator> &i, const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator > &j);
-
+                void output_results (const unsigned int cycle);
 		void postprocess (const unsigned int cycle);
 
 		Triangulation<dim> triangulation;
@@ -435,10 +435,10 @@ namespace hp_Stokes
 				preconditioner);
 			//cout<<" residuals of each step " << solver_control.enable_history_data() << endl;
 			constraints.distribute (solution);
-      std::cout << "  "
-				<< solver_control.last_step()
-				<< " outer CG Schur complement iterations for pressure"
-				<< std::endl;
+    //  std::cout << "  "
+				//<< solver_control.last_step()
+				//<< " outer CG Schur complement iterations for pressure"
+				//<< std::endl;
 		}
 		system_matrix.block(0,1).vmult (tmp, solution.block(1));
 		tmp *= -1.0;
@@ -538,7 +538,7 @@ namespace hp_Stokes
 			error_per_cell(cell_index) =(sqrt(subtract_p) + sqrt(grad_u_vals));
 
 		}// cell
-    std::cout<< "Vector of Compute Error per Cell: " << error_per_cell<< std::endl ;
+  //  std::cout<< "Vector of Compute Error per Cell: " << error_per_cell<< std::endl ;
 		double L1_norm=error_per_cell.l1_norm();
     std::cout<< "L1_norm of ERROR is: "<< L1_norm << std::endl;
 		double L2_norm=error_per_cell.l2_norm();
@@ -742,27 +742,52 @@ namespace hp_Stokes
 
 
 /*......................................................................................*/
-	// get_patch_around_cell
+	// get_layers_of_patch_around_cell
 
 	
-	template <int dim>
-	std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <dim>::get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell)
-	{
+    template <int dim>
+    std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <dim>::get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell)
+    {
+
     std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> patch;
-		patch.push_back (cell);
-		for (unsigned int face_number=0; face_number< GeometryInfo<dim>::faces_per_cell; ++face_number){
-			if (cell->face(face_number)->at_boundary()==false)
-			{
-				if (cell->face(face_number)->has_children() == false)
-					patch.push_back (cell->neighbor(face_number));
-				else
-					for (unsigned int subface=0; subface< cell->face(face_number)->n_children(); ++subface)
-						patch.push_back (cell->neighbor_child_on_subface (face_number, subface));
-			}
-		}// face_number
-			return patch;
-	}
-	
+    std::set<typename hp::DoFHandler<dim>::active_cell_iterator> cells_done;
+
+    patch.push_back (cell);
+    cells_done.insert(cell);
+    //  i counter for the number of patch layers ... n_layers
+    for (unsigned int i=0; i<1; ++i)
+    {
+      for (unsigned int j=0; j<patch.size(); ++j)
+       { 
+        for (unsigned int face_number=0; face_number< GeometryInfo<dim>::faces_per_cell; ++face_number)
+         {
+            if (patch[j]->face(face_number)->at_boundary()==false)
+            {
+                if (patch[j]->face(face_number)->has_children() == false)
+               {
+          typename hp::DoFHandler<dim>::active_cell_iterator celll = patch[j]->neighbor(face_number);
+          if (cells_done.count(celll)==0)
+          {
+            patch.push_back(celll);
+            cells_done.insert(celll);
+          }
+                }
+                else
+                    for (unsigned int subface=0; subface< patch[j]->face(face_number)->n_children(); ++subface)
+                      {                
+                        typename hp::DoFHandler<dim>::active_cell_iterator child_cell = patch[j]->neighbor_child_on_subface (face_number, subface);
+                        if (cells_done.count(child_cell)==0)
+                        {
+                         patch.push_back(child_cell);
+                         cells_done.insert(child_cell);
+                        }
+                      }// for subface             
+            } // if at_boundary()==false
+        }// face_number
+    } // for j
+    } // for i
+            return patch;
+    }
 
 
 /*......................................................................................*/
@@ -860,8 +885,10 @@ namespace hp_Stokes
 			k=k+1;
 		}//uniform_c
 		tria_patch.create_triangulation(vertices,cells,SubCellData());
-
 		Assert (tria_patch.n_active_cells() == uniform_cells.size(), ExcInternalError());
+
+		tria_patch.clear_user_flags ();
+
 
 		std::map<typename Triangulation<dim>::cell_iterator, typename hp::DoFHandler<dim>::cell_iterator> patch_to_global_tria_map;
 		unsigned int index=0;
@@ -903,12 +930,7 @@ namespace hp_Stokes
 		{
 			typename hp::DoFHandler<dim>::cell_iterator global_cell = patch_to_global_tria_map[cell_tttt];
 			bool global_cell_is_in_patch = false;
-                        global_cell->clear_user_flag ();
-			//typename std::vector<typename hp::DoFHandler<dim>::cell_iterator>::iterator  p;
-			
-			//for (p=patch.begin() ; p!=patch.end (); ++p){
 
-				//if (*p == global_cell)
                         for (unsigned int i=0; i<patch.size(); ++i){
                              if (patch[i]==global_cell)
 				{
@@ -921,7 +943,7 @@ namespace hp_Stokes
 			}					
 			if (global_cell_is_in_patch==true)
 				{
-				//global_cell->user_flag_set() == true;
+				
 				global_cell->set_active_fe_index (0);
 				}
 			else if (global_cell_is_in_patch==false)
@@ -1145,10 +1167,10 @@ namespace hp_Stokes
 						cg.solve (schur_complement, patch_solution.block(1), schur_rhs,
 							preconditioner);
 						constraints_patch.distribute (patch_solution);
-            std::cout << "  "
-							<< solver_control.last_step()
-							<< " outer CG Schur complement iterations for pressure"
-							<< std::endl;
+        //    std::cout << "  "
+							//<< solver_control.last_step()
+							//<< " outer CG Schur complement iterations for pressure"
+							//<< std::endl;
 					}
 
 					{
@@ -1408,10 +1430,10 @@ namespace hp_Stokes
 //					cg.solve (schur_complement, patch_solution.block(1), schur_rhs,
 //						preconditioner);
 //					constraints_patch.distribute (patch_solution);
-//          std::cout << "  "
-//						<< solver_control.last_step()
-//						<< " outer CG Schur complement iterations for pressure"
-//						<< std::endl;
+//        //  std::cout << "  "
+//						//<< solver_control.last_step()
+//						//<< " outer CG Schur complement iterations for pressure"
+//						//<< std::endl;
 //				}
 //
 //				{
@@ -1459,6 +1481,51 @@ namespace hp_Stokes
 
 
 
+
+
+
+//............................................................................................................................
+// Output results
+
+
+template <int dim>
+	void StokesProblem <dim>:: output_results (const unsigned int cycle)
+{
+
+			Vector<float> fe_degrees (triangulation.n_active_cells());
+  	    {
+  			      typename hp::DoFHandler<dim>::active_cell_iterator
+  			      cell = dof_handler.begin_active(),
+   				     endc = dof_handler.end();
+				        for (unsigned int index=0; cell!=endc; ++cell, ++index)
+  				        fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
+            }
+
+
+
+				std::vector<std::string> solution_names (dim, "velocity");
+				solution_names.push_back ("pressure");
+
+ 				std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
+				(dim, DataComponentInterpretation::component_is_part_of_vector);
+				data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
+
+
+ 				DataOut<dim,hp::DoFHandler<dim> > data_out;
+      				data_out.attach_dof_handler (dof_handler);
+      				data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
+      				//data_out.add_data_vector (est_per_cell, "error");
+				//.... data_out.add_data_vector (error_per_cell, "error");
+      				data_out.add_data_vector (fe_degrees, "fe_degree");
+      				data_out.build_patches ();
+     			 	std::string filename = "solution-" +
+                                Utilities::int_to_string (cycle, 2) +".vtu";
+
+				std::ofstream output (filename.c_str());
+  				data_out.write_vtu (output);
+    }
+
+
 /*..............................................................................................................*/
 //POSTPROCESS()
 
@@ -1467,7 +1534,7 @@ namespace hp_Stokes
 	template <int dim>
 	void StokesProblem <dim>:: postprocess (const unsigned int cycle){
 
-			const double theta= 1.;
+			const double theta= 0.5;
 
       std::vector<std::pair<double, typename hp::DoFHandler<dim>::active_cell_iterator> > to_be_sorted;
 
@@ -1573,49 +1640,8 @@ candidate_cell_set.push_back (cell_sort);
 		  triangulation.execute_coarsening_and_refinement();
 
 
-
-
-//............................................................................................................................
-// Output
-/*
-{
-
-			Vector<float> fe_degrees (triangulation.n_active_cells());
-  	    {
-  			      typename hp::DoFHandler<dim>::active_cell_iterator
-  			      cell = dof_handler.begin_active(),
-   				     endc = dof_handler.end();
-				        for (unsigned int index=0; cell!=endc; ++cell, ++index)
-  				        fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
-            }
-
-
-
-				std::vector<std::string> solution_names (dim, "velocity");
-				solution_names.push_back ("pressure");
-
- 				std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
-				(dim, DataComponentInterpretation::component_is_part_of_vector);
-				data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
-
-
- 				DataOut<dim,hp::DoFHandler<dim> > data_out;
-      				data_out.attach_dof_handler (dof_handler);
-      				data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
-      				//data_out.add_data_vector (est_per_cell, "error");
-				//.... data_out.add_data_vector (error_per_cell, "error");
-      				data_out.add_data_vector (fe_degrees, "fe_degree");
-      				data_out.build_patches ();
-     			 	std::string filename = "solution-" +
-                                Utilities::int_to_string (cycle, 2) +".vtu";
-
-				std::ofstream output (filename.str().c_str());
-  				data_out.write_vtu (output);
-    }
-
-
 	}// postprocess
-*/
+
 	/*......................................................................................................................................................*/
 template <int dim>
 	void StokesProblem <dim>::run(){
@@ -1633,7 +1659,7 @@ template <int dim>
                         Vector<double> est_per_cell (triangulation.n_active_cells());
 			estimate(est_per_cell);
 
-      std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
+    //  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
 			L1_norm_est= est_per_cell.l1_norm();
       std::cout<< "L1_norm of ERROR Estimate is: "<< L1_norm_est << std::endl;
 			L2_norm_est= est_per_cell.l2_norm();	
@@ -1641,8 +1667,9 @@ template <int dim>
 			
 
 			if (L2_norm_est < Tolerance) break;
-
+                        output_results(cycle);
 			postprocess(cycle);
+			
 		}
 	}//run
 }//  namespace hp-Stokes
