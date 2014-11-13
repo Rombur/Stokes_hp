@@ -79,8 +79,8 @@ class StokesProblem
     void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
 
     bool decreasing (const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator> &i, const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator > &j);
-    void output_results (const unsigned int cycle);
-    void postprocess (const unsigned int cycle);
+    void output_results (const unsigned int cycle, Vector<float> &marked_cells);
+    void postprocess (const unsigned int cycle, Vector<float> &marked_cells);
 
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
@@ -98,11 +98,6 @@ class StokesProblem
 
     const unsigned int max_degree;
     const double Tolerance;
-
-    double L2_norm_est;
-    double L1_norm_est;
-    Vector<double> est_per_cell;
-
 };
 
 #endif

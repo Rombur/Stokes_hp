@@ -1287,7 +1287,7 @@ void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_ce
 //POSTPROCESS()
 
 template <int dim>
-void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & marked_cells){
+void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> & marked_cells){
 
   const double theta= 0.3;
 
@@ -1353,21 +1353,19 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & 
       candidate_cell_set.push_back (cell_sort);
   }
   //..............................................................................................................................
-  Vector<int> marked_cells(triangulation.n_active_cells());
   unsigned int index=0;
-  typename hp::DoFHandler<dim>::active_cell_iterator
-    celll = dof_handler.begin_active(),
+  typename hp::DoFHandler<dim>::active_cell_iterator  celll = dof_handler.begin_active(),
          endcl = dof_handler.end();
   for (; celll!=endcl; ++celll,++index)
   {
-  typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
-  for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); ++ cell_candidate)
-  {
-  if (celll= *cell_candidate)
-  marked_cells(index)=1;
-  else 
-  marked_cells(index)=0; 
-  }
+    typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
+    for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); ++ cell_candidate)
+    {
+      if (celll== *cell_candidate)
+        marked_cells(index)=1;
+      else 
+        marked_cells(index)=0; 
+    }
   }
   //..............................................................................................................................
   bool need_to_h_refine=false;
@@ -1418,7 +1416,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & 
 // Output results
 
   template <int dim>
-void StokesProblem <dim>:: output_results (const unsigned int cycle)
+void StokesProblem <dim>:: output_results (const unsigned int cycle, Vector<float> &marked_cells)
 {
 
   Vector<float> fe_degrees (triangulation.n_active_cells());
@@ -1476,17 +1474,18 @@ void StokesProblem <dim>::run(){
     estimate(est_per_cell);
 
     //  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
-    L1_norm_est= est_per_cell.l1_norm();
+    double L1_norm_est= est_per_cell.l1_norm();
     std::cout<< "L1_norm of ERROR Estimate is: "<< L1_norm_est << std::endl;
-    L2_norm_est= est_per_cell.l2_norm();	
+    double L2_norm_est= est_per_cell.l2_norm();	
     std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;	
 
 
-    if (L2_norm_est < Tolerance) break;
-    postprocess(cycle,  marked_cells);
-    output_results(cycle);
-   
+    Vector<float> marked_cells(triangulation.n_active_cells());
+    postprocess(cycle, marked_cells);
+    output_results(cycle, marked_cells);
 
+    if (L2_norm_est < Tolerance) 
+      break;
   }
 }//run
 
