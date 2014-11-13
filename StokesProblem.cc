@@ -1283,54 +1283,13 @@ void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_ce
 //
 
 
-//............................................................................................................................
-// Output results
-
-  template <int dim>
-void StokesProblem <dim>:: output_results (const unsigned int cycle)
-{
-
-  Vector<float> fe_degrees (triangulation.n_active_cells());
-  {
-    typename hp::DoFHandler<dim>::active_cell_iterator
-      cell = dof_handler.begin_active(),
-           endc = dof_handler.end();
-    for (unsigned int index=0; cell!=endc; ++cell, ++index)
-      fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
-  }
-
-
-
-  std::vector<std::string> solution_names (dim, "velocity");
-  solution_names.push_back ("pressure");
-
-  std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
-    (dim, DataComponentInterpretation::component_is_part_of_vector);
-  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
-
-
-  DataOut<dim,hp::DoFHandler<dim> > data_out;
-  data_out.attach_dof_handler (dof_handler);
-  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
-  //data_out.add_data_vector (est_per_cell, "error");
-  //.... data_out.add_data_vector (error_per_cell, "error");
-  data_out.add_data_vector (fe_degrees, "fe_degree");
-  data_out.build_patches ();
-  std::string filename = "solution-" +
-    Utilities::int_to_string (cycle, 2) +".vtu";
-
-  std::ofstream output (filename.c_str());
-  data_out.write_vtu (output);
-}
-
-
 /*..............................................................................................................*/
 //POSTPROCESS()
 
 template <int dim>
-void StokesProblem <dim>:: postprocess (const unsigned int cycle){
+void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<int> & marked_cells){
 
-  const double theta= 0.5;
+  const double theta= 0.3;
 
   std::vector<std::pair<double, typename hp::DoFHandler<dim>::active_cell_iterator> > to_be_sorted;
 
@@ -1393,7 +1352,23 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle){
     if (sum < (theta*(L2_norm))*(theta*(L2_norm)))
       candidate_cell_set.push_back (cell_sort);
   }
-
+  //..............................................................................................................................
+  Vector<int> marked_cells(triangulation.n_active_cells());
+  unsigned int index=0;
+  typename hp::DoFHandler<dim>::active_cell_iterator
+    celll = dof_handler.begin_active(),
+         endcl = dof_handler.end();
+  for (; celll!=endcl; ++celll,++index)
+  {
+  typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
+  for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); ++ cell_candidate)
+  {
+  if (celll= *cell_candidate)
+  marked_cells(index)=1;
+  else 
+  marked_cells(index)=0; 
+  }
+  }
   //..............................................................................................................................
   bool need_to_h_refine=false;
   typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
@@ -1430,7 +1405,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle){
       }//for i
       }// if 
       */
-    //......................................................................................................................................................//
+ 
   }// for... candidate_cells
   if ( need_to_h_refine==true)
     triangulation.execute_coarsening_and_refinement();
@@ -1439,11 +1414,55 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle){
 }// postprocess
 
 
+//............................................................................................................................
+// Output results
+
+  template <int dim>
+void StokesProblem <dim>:: output_results (const unsigned int cycle)
+{
+
+  Vector<float> fe_degrees (triangulation.n_active_cells());
+  {
+    typename hp::DoFHandler<dim>::active_cell_iterator
+      cell = dof_handler.begin_active(),
+           endc = dof_handler.end();
+    for (unsigned int index=0; cell!=endc; ++cell, ++index)
+      fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
+  }
+
+
+
+  std::vector<std::string> solution_names (dim, "velocity");
+  solution_names.push_back ("pressure");
+
+  std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
+    (dim, DataComponentInterpretation::component_is_part_of_vector);
+  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
+
+
+  DataOut<dim,hp::DoFHandler<dim> > data_out;
+  data_out.attach_dof_handler (dof_handler);
+  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
+  data_out.add_data_vector (marked_cells, "cells which are marked to be refined");
+  //data_out.add_data_vector (est_per_cell, "error");
+  //.... data_out.add_data_vector (error_per_cell, "error");
+  data_out.add_data_vector (fe_degrees, "fe_degree");
+  data_out.build_patches ();
+  std::string filename = "solution-" +
+    Utilities::int_to_string (cycle, 2) +".vtu";
+
+  std::ofstream output (filename.c_str());
+  data_out.write_vtu (output);
+}
+
+
+
+
 /*......................................................................................................................................................*/
 template <int dim>
 void StokesProblem <dim>::run(){
 
-  for (unsigned int cycle=0; cycle<6; ++cycle)
+  for (unsigned int cycle=0; cycle<3; ++cycle)
   {
     std::cout << "Cycle " << cycle << ':' << std::endl;
     if (cycle == 0)
@@ -1464,8 +1483,9 @@ void StokesProblem <dim>::run(){
 
 
     if (L2_norm_est < Tolerance) break;
+    postprocess(cycle,  marked_cells);
     output_results(cycle);
-    postprocess(cycle);
+   
 
   }
 }//run
