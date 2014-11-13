@@ -8,6 +8,10 @@ SET(TARGET "Stokes")
 # Declare all source files the target consists of:
 SET(TARGET_SRC
   ${TARGET}.cc
+  StokesProblem.cc
+  ExactSolution.cc
+  SchurComplement.cc
+  RightHandSide.cc
   # You can specify additional files here!
   )
 
