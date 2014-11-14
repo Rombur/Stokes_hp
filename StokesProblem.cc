@@ -564,7 +564,8 @@ std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <d
   //  i counter for the number of patch layers ... n_layers
   for (unsigned int i=0; i<1; ++i)
   {
-    for (unsigned int j=0; j<patch.size(); ++j)
+    const unsigned int patch_size = patch.size();
+    for (unsigned int j=0; j<patch_size; ++j)
     { 
       for (unsigned int face_number=0; face_number< GeometryInfo<dim>::faces_per_cell; ++face_number)
       {

@@ -8,3 +8,4 @@ CMakeFiles
 cmake_install.cmake
 Test_Stokes_dim2
 *.un~
+triangulation_test
