@@ -81,8 +81,13 @@ class StokesProblem
     std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> get_cells_at_coarsest_common_level ( const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch);
 
     bool decreasing (const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator> &i, const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator > &j);
-    void output_results (const unsigned int cycle, Vector<float> &marked_cells);
-    void postprocess (const unsigned int cycle, Vector<float> &marked_cells);
+   
+    
+    void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map);
+    void output_results (const unsigned int cycle,Vector<float> & marked_cells);
+    void refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
 
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
