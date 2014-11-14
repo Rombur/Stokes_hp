@@ -1285,10 +1285,12 @@ void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_ce
 
 
 /*..............................................................................................................*/
-//POSTPROCESS()
+//marking_cells()
 
 template <int dim>
-void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> & marked_cells){
+void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map)
+{
 
   const double theta= 0.3;
 
@@ -1299,7 +1301,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> 
 
   Vector<double> convergence_est_per_cell (triangulation.n_active_cells());
 
-  std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > p_ref_map;
+  //std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > p_ref_map;
 
   unsigned int cell_index=0;
   typename hp::DoFHandler<dim>::active_cell_iterator
@@ -1307,8 +1309,6 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> 
          endc = dof_handler.end();
   for (; cell!=endc; ++cell,++cell_index)
   {
-    //need_to_p_refine = false;
-    //need_to_h_refine = false;
 
     double indicator_per_cell =0.0;
 
@@ -1343,7 +1343,6 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> 
   }// cell
   std::sort (to_be_sorted.begin(), to_be_sorted.end(), std_cxx1x::bind(&StokesProblem<dim>::decreasing,this,std_cxx1x::_1,std_cxx1x::_2));
 
-  std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> candidate_cell_set;
   double L2_norm=est_per_cell.l2_norm();
 
   double sum=0;
@@ -1354,21 +1353,78 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> 
       candidate_cell_set.push_back (cell_sort);
   }
   //..............................................................................................................................
+ 
+ 
   unsigned int index=0;
   typename hp::DoFHandler<dim>::active_cell_iterator  celll = dof_handler.begin_active(),
          endcl = dof_handler.end();
   for (; celll!=endcl; ++celll,++index)
   {
-    typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
-    for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); ++ cell_candidate)
-    {
-      if (celll== *cell_candidate)
-        marked_cells(index)=1;
-      else 
-        marked_cells(index)=0; 
-    }
+  typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  mark_candidate;
+  for (mark_candidate=candidate_cell_set.begin(); mark_candidate!=candidate_cell_set.end(); ++ mark_candidate)
+  {
+  if (celll == (*mark_candidate))
+  marked_cells(index)=1;
+  else 
+  marked_cells(index)=0; 
   }
-  //..............................................................................................................................
+  }
+
+}// postprocess1
+
+//.................................................................................................................................
+//Output_result
+template <int dim>
+void StokesProblem <dim>:: output_results (const unsigned int cycle, Vector<float> &marked_cells)
+{
+
+  Vector<float> fe_degrees (triangulation.n_active_cells());
+  {
+    typename hp::DoFHandler<dim>::active_cell_iterator
+      cell = dof_handler.begin_active(),
+           endc = dof_handler.end();
+    for (unsigned int index=0; cell!=endc; ++cell, ++index)
+      fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
+  }
+
+
+
+  std::vector<std::string> solution_names (dim, "velocity");
+  solution_names.push_back ("pressure");
+
+  std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
+    (dim, DataComponentInterpretation::component_is_part_of_vector);
+  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
+
+
+  DataOut<dim,hp::DoFHandler<dim> > data_out;
+
+  data_out.attach_dof_handler (dof_handler);
+
+
+  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
+  
+  //Vector<float> marked_cells(triangulation.n_active_cells());
+  //data_out.add_data_vector (est_per_cell, "error");
+  //.... data_out.add_data_vector (error_per_cell, "error");
+ data_out.add_data_vector (marked_cells, "marked_cells");
+  data_out.add_data_vector (fe_degrees, "fe_degree");
+ 
+  data_out.build_patches ();
+  std::string filename = "solution-" +
+    Utilities::int_to_string (cycle, 2) +".vtu";
+  std::ofstream output (filename.c_str());
+  data_out.write_vtu (output);
+}
+
+/*..............................................................................................................*/
+//refine_in_h_p()
+
+template <int dim>
+void StokesProblem <dim>:: refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map )
+
+{
   bool need_to_h_refine=false;
   typename std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>::iterator  cell_candidate;
   for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); ++ cell_candidate)
@@ -1410,51 +1466,7 @@ void StokesProblem <dim>:: postprocess (const unsigned int cycle, Vector<float> 
     triangulation.execute_coarsening_and_refinement();
 
 
-}// postprocess
-
-
-//............................................................................................................................
-// Output results
-
-  template <int dim>
-void StokesProblem <dim>:: output_results (const unsigned int cycle, Vector<float> &marked_cells)
-{
-
-  Vector<float> fe_degrees (triangulation.n_active_cells());
-  {
-    typename hp::DoFHandler<dim>::active_cell_iterator
-      cell = dof_handler.begin_active(),
-           endc = dof_handler.end();
-    for (unsigned int index=0; cell!=endc; ++cell, ++index)
-      fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
-  }
-
-
-
-  std::vector<std::string> solution_names (dim, "velocity");
-  solution_names.push_back ("pressure");
-
-  std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
-    (dim, DataComponentInterpretation::component_is_part_of_vector);
-  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
-
-
-  DataOut<dim,hp::DoFHandler<dim> > data_out;
-  data_out.attach_dof_handler (dof_handler);
-  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
-  data_out.add_data_vector (marked_cells, "cells which are marked to be refined");
-  //data_out.add_data_vector (est_per_cell, "error");
-  //.... data_out.add_data_vector (error_per_cell, "error");
-  data_out.add_data_vector (fe_degrees, "fe_degree");
-  data_out.build_patches ();
-  std::string filename = "solution-" +
-    Utilities::int_to_string (cycle, 2) +".vtu";
-
-  std::ofstream output (filename.c_str());
-  data_out.write_vtu (output);
-}
-
-
+}// refine_in_h_p
 
 
 /*......................................................................................................................................................*/
@@ -1473,7 +1485,7 @@ void StokesProblem <dim>::run(){
     compute_error ();
     Vector<double> est_per_cell (triangulation.n_active_cells());
     estimate(est_per_cell);
-
+ 
     //  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
     double L1_norm_est= est_per_cell.l1_norm();
     std::cout<< "L1_norm of ERROR Estimate is: "<< L1_norm_est << std::endl;
@@ -1481,9 +1493,13 @@ void StokesProblem <dim>::run(){
     std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;	
 
 
+ 
     Vector<float> marked_cells(triangulation.n_active_cells());
-    postprocess(cycle, marked_cells);
+    std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> candidate_cell_set; 
+    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > p_ref_map;
+    marking_cells(cycle,  marked_cells, candidate_cell_set, p_ref_map);
     output_results(cycle, marked_cells);
+    refine_in_h_p(cycle,  candidate_cell_set, p_ref_map);
 
     if (L2_norm_est < Tolerance) 
       break;
