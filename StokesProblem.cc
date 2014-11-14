@@ -644,7 +644,7 @@ std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <d
 //build_triangulation_from_patch
   template <int dim>
 void StokesProblem <dim>::build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch,
-    Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine )
+    Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine)
 {
   std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> uniform_cells = get_cells_at_coarsest_common_level (patch); // uniform_cells as const vector?
 
@@ -697,7 +697,7 @@ void StokesProblem <dim>::build_triangulation_from_patch (const std::vector<type
   tria_patch.clear_user_flags ();
 
 
-  std::map<typename Triangulation<dim>::cell_iterator, typename hp::DoFHandler<dim>::cell_iterator> patch_to_global_tria_map;
+ std::map<typename Triangulation<dim>::cell_iterator, typename hp::DoFHandler<dim>::cell_iterator> patch_to_global_tria_map;
   unsigned int index=0;
   for (typename Triangulation<dim>::cell_iterator cell_t = tria_patch.begin(); cell_t != tria_patch.end(); ++cell_t, ++index)
     patch_to_global_tria_map.insert (std::make_pair(cell_t, uniform_cells[index]));
@@ -714,7 +714,12 @@ void StokesProblem <dim>::build_triangulation_from_patch (const std::vector<type
         cell_tt -> set_refine_flag();
         refinement_necessary = true;
       }
-    }//for tria_patch.begin...
+    else for (unsigned int i=0; i<patch.size(); ++i){
+     if (patch_to_global_tria_map[cell_tt]==patch[i])
+      cell_tt->set_user_flag();
+     }
+ }//for tria_patch.begin...
+
     if (refinement_necessary)
     {
       tria_patch.execute_coarsening_and_refinement ();
@@ -729,42 +734,41 @@ void StokesProblem <dim>::build_triangulation_from_patch (const std::vector<type
   }
   while (refinement_necessary);
 
+} // build_triangulation
+/*......................................................................................................................................*/
+//set_active_fe_indices for cells on and out of each patch
+
+
   // mark the cells in 'tria' that exist in the patch: go
   // through all cells in 'tria' and see whether the
   // corresponding cell in the global triangulation is part of
   // the 'patch' list of cells
-  for (typename Triangulation<dim>::cell_iterator cell_tttt = tria_patch.begin(); cell_tttt != tria_patch.end(); ++cell_tttt)
-  {
-    typename hp::DoFHandler<dim>::cell_iterator global_cell = patch_to_global_tria_map[cell_tttt];
-    bool global_cell_is_in_patch = false;
 
-    for (unsigned int i=0; i<patch.size(); ++i){
-      if (patch[i]==global_cell)
-      {
 
-        global_cell->set_user_flag();
-        global_cell_is_in_patch = true;
+template <int dim>
+void StokesProblem <dim>::set_active_fe_indices (hp::DoFHandler<dim> &dof_handler_patch)
+{
+  typename hp::DoFHandler<dim>::active_cell_iterator patch_c= dof_handler_patch.begin_active(), end_patch_c = dof_handler_patch.end();
+    for (; patch_c!=end_patch_c; ++patch_c){
+   
 
-        break;
-      }
-    }					
-    if (global_cell_is_in_patch==true)
+				
+    if (patch_c->user_flag_set()==true)
     {
 
-      global_cell->set_active_fe_index (0);
+      patch_c->set_active_fe_index (0);
     }
-    else if (global_cell_is_in_patch==false)
+    else if (patch_c->user_flag_set()==false)
     {	
-      global_cell->set_active_fe_index (max_degree);
+      patch_c->set_active_fe_index (max_degree);
     }
     else
       Assert (false, ExcNotImplemented());
   }
 
-} // build_triangulation
+}
 
-
-/*......................................................................................*/
+/*......................................................................................................................................*/
 //Compute h_convergence_estimator   &   h_workload_number  for each patch around cell   
 
   template <int dim>
@@ -775,19 +779,16 @@ void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_ce
   unsigned int level_h_refine;
   unsigned int level_p_refine;
   build_triangulation_from_patch (patch, tria_patch, level_h_refine, level_p_refine);
-
   hp::DoFHandler<dim> dof_handler_patch(tria_patch);
+  set_active_fe_indices (dof_handler_patch);
 
   h_convergence_est_per_cell=0.;
   double h_solu_norm_per_patch=0.;		
   ConstraintMatrix constraints_patch;		
   BlockSparsityPattern sparsity_pattern_patch;		
-  //PRINT(tria_patch.n_cells());
-  //GridOut::write_gnuplot (tria_patch, out);
 
   //....................  h_refinement of patch cells ...............//
   bool need_to_refine = false;
-
 
   for (unsigned int i=0; i<patch.size(); ++i){
     if (static_cast<unsigned int> (patch[i]->level()) <  (level_h_refine+1) )  {
@@ -798,11 +799,11 @@ void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_ce
   }//patch[i]
   if (need_to_refine == true)
     tria_patch.execute_coarsening_and_refinement ();
-
   //......................  setup_h_patch_system and  patch_rhs .............. //
   dof_handler_patch.distribute_dofs (fe_collection);// fe_collection
   h_workload_num = dof_handler_patch. n_dofs();
   unsigned int local_system_size = dof_handler_patch. n_dofs();
+
   std::vector<unsigned int> block_component_patch (dim+1, 0);
   block_component_patch[dim]=1;
   DoFRenumbering::component_wise(dof_handler_patch, block_component_patch);
@@ -986,7 +987,6 @@ void StokesProblem <dim>::h_patch_conv_load_no (double &h_convergence_est_per_ce
   }
 
   //.......................................  get the L2 norm of the gradient of velocity solution and pressure value  .....................//
-
 
   double pressure_val=0;
   double grad_u_val=0;
@@ -1349,12 +1349,13 @@ std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map)
   for (unsigned int i=0; i< to_be_sorted. size(); ++i) {
     typename hp::DoFHandler<dim>::active_cell_iterator  cell_sort=to_be_sorted[i].second;
     sum+= (to_be_sorted[i].first)*(to_be_sorted[i].first);
+std::cout<<to_be_sorted[i].first<<std::endl;
     if (sum < (theta*(L2_norm))*(theta*(L2_norm)))
       candidate_cell_set.push_back (cell_sort);
   }
   //..............................................................................................................................
  
- 
+ marked_cells =0.;
   unsigned int index=0;
   typename hp::DoFHandler<dim>::active_cell_iterator  celll = dof_handler.begin_active(),
          endcl = dof_handler.end();
@@ -1365,8 +1366,7 @@ std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map)
   {
   if (celll == (*mark_candidate))
   marked_cells(index)=1;
-  else 
-  marked_cells(index)=0; 
+   
   }
   }
 
