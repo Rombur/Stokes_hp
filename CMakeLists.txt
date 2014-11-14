@@ -15,6 +15,14 @@ SET(TARGET_SRC
   # You can specify additional files here!
   )
 
+ADD_EXECUTABLE(tests/triangulation_test
+  tests/triangulation_test.cc
+  StokesProblem.cc
+  ExactSolution.cc
+  SchurComplement.cc
+  RightHandSide.cc
+  )
+
 # Usually, you will not need to modify anything beyond this point...
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
@@ -32,4 +40,5 @@ ENDIF()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
+DEAL_II_SETUP_TARGET(tests/triangulation_test)
 DEAL_II_INVOKE_AUTOPILOT()
