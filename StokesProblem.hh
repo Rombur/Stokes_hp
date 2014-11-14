@@ -58,6 +58,10 @@ class StokesProblem
     ~StokesProblem();
     void run();
 
+    std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
+
+    void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
+
   private:
 
     const RightHandSide<dim> rhs_function;
@@ -74,9 +78,7 @@ class StokesProblem
     void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
     void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell );
 
-    std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
     std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> get_cells_at_coarsest_common_level ( const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch);
-    void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
 
     bool decreasing (const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator> &i, const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator > &j);
    
@@ -103,13 +105,6 @@ class StokesProblem
 
     const unsigned int max_degree;
     const double Tolerance;
-
-    double L2_norm_est;
-    double L1_norm_est;
-    Vector<double> est_per_cell;
-    Vector<float> marked_cells;
-    
-
 };
 
 #endif

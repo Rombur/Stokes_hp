@@ -564,7 +564,8 @@ std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> StokesProblem <d
   //  i counter for the number of patch layers ... n_layers
   for (unsigned int i=0; i<1; ++i)
   {
-    for (unsigned int j=0; j<patch.size(); ++j)
+    const unsigned int patch_size = patch.size();
+    for (unsigned int j=0; j<patch_size; ++j)
     { 
       for (unsigned int face_number=0; face_number< GeometryInfo<dim>::faces_per_cell; ++face_number)
       {
@@ -1355,8 +1356,7 @@ std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map)
  
  
   unsigned int index=0;
-  typename hp::DoFHandler<dim>::active_cell_iterator
-    celll = dof_handler.begin_active(),
+  typename hp::DoFHandler<dim>::active_cell_iterator  celll = dof_handler.begin_active(),
          endcl = dof_handler.end();
   for (; celll!=endcl; ++celll,++index)
   {
@@ -1487,12 +1487,11 @@ void StokesProblem <dim>::run(){
     estimate(est_per_cell);
  
     //  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
-    L1_norm_est= est_per_cell.l1_norm();
+    double L1_norm_est= est_per_cell.l1_norm();
     std::cout<< "L1_norm of ERROR Estimate is: "<< L1_norm_est << std::endl;
-    L2_norm_est= est_per_cell.l2_norm();	
+    double L2_norm_est= est_per_cell.l2_norm();	
     std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;	
 
-    if (L2_norm_est < Tolerance) break;
 
  
     Vector<float> marked_cells(triangulation.n_active_cells());
@@ -1502,6 +1501,8 @@ void StokesProblem <dim>::run(){
     output_results(cycle, marked_cells);
     refine_in_h_p(cycle,  candidate_cell_set, p_ref_map);
 
+    if (L2_norm_est < Tolerance) 
+      break;
   }
 }//run
 

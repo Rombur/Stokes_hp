@@ -10,3 +10,4 @@ Test_Stokes_dim2
 *.un~
 *.vtu
 *.swp
+triangulation_test
