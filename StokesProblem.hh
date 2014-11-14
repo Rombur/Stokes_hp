@@ -74,6 +74,7 @@ class StokesProblem
     double pressure_mean_value () const;
     void compute_error ();
     void estimate (Vector<double> &est_per_cell);
+    void set_active_fe_indices (hp::DoFHandler<dim> &dof_handler_patch);
 
     void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
     void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell );
