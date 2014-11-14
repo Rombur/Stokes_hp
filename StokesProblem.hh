@@ -79,8 +79,13 @@ class StokesProblem
     void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
 
     bool decreasing (const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator> &i, const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator > &j);
-    void output_results (const unsigned int cycle);
-    void postprocess (const unsigned int cycle);
+   
+    
+    void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map);
+    void output_results (const unsigned int cycle,Vector<float> & marked_cells);
+    void refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
 
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
@@ -102,6 +107,8 @@ class StokesProblem
     double L2_norm_est;
     double L1_norm_est;
     Vector<double> est_per_cell;
+    Vector<float> marked_cells;
+    
 
 };
 
