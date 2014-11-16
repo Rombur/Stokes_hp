@@ -60,7 +60,7 @@ class StokesProblem
 
     std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
 
-    void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine);
+    void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &tria_patch, unsigned int &level_h_refine, unsigned int &level_p_refine, std::map<typename Triangulation<dim>::active_cell_iterator, typename hp::DoFHandler<dim>::active_cell_iterator> & patch_to_global_tria_map);
 
   private:
 
