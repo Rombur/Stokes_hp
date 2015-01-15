@@ -63,7 +63,7 @@ class StokesProblem
 
     std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> get_patch_around_cell(const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
 
-    void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &local_triangulation, unsigned int &level_h_refine, unsigned int &level_p_refine, std::map<typename Triangulation<dim>::cell_iterator, typename hp::DoFHandler<dim>::cell_iterator> & patch_to_global_tria_map);
+    void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &local_triangulation, unsigned int &level_h_refine, unsigned int &level_p_refine, std::map<typename Triangulation<dim>::active_cell_iterator, typename hp::DoFHandler<dim>::active_cell_iterator> & patch_to_global_tria_map);
 
   private:
 
@@ -76,11 +76,13 @@ class StokesProblem
     void assemble_system ();
     void solve ();
     double pressure_mean_value () const;
-    void compute_error ();
+    void compute_error (Vector<double> &error_per_cell);
     void estimate (Vector<double> &est_per_cell);
     void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler);
+    void patch_output (unsigned int patch_number ,const unsigned int cycle, hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
 
-    void h_patch_conv_load_no (double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell);
+    void h_patch_conv_load_no (const unsigned int cycle , double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell, unsigned int & patch_number);
+    
     void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell );
 
     std::vector<typename hp::DoFHandler<dim>::cell_iterator> get_cells_at_coarsest_common_level ( const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch);
@@ -91,7 +93,7 @@ class StokesProblem
     void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
     std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map);
 
-    void output_results (const unsigned int cycle,Vector<float> & marked_cells);
+    void output_results (const unsigned int cycle,Vector<float> & marked_cells, Vector<double> &est_per_cell , Vector<double> &error_per_cell);
 
     void refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
     std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
