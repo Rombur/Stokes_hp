@@ -82,8 +82,6 @@ void StokesProblem <dim>::generate_mesh(){
   triangulation.create_triangulation(vertices,cell,SubCellData());
   triangulation.refine_global (1);
 
-
-
   std::ofstream out ("grid-L-Shape.eps");
   GridOut grid_out;
   grid_out.write_eps (triangulation, out);
@@ -120,7 +118,7 @@ void StokesProblem <dim>::setup_system(){
     constraints.clear ();
     FEValuesExtractors::Vector velocities(0);
     DoFTools::make_hanging_node_constraints (dof_handler, constraints);
-    VectorTools::interpolate_boundary_values (dof_handler,0,exact_solution,constraints, fe_collection.component_mask(velocities));
+   // VectorTools::interpolate_boundary_values (dof_handler,0,exact_solution,constraints, fe_collection.component_mask(velocities));
   }
   constraints.close();
 
@@ -130,6 +128,8 @@ void StokesProblem <dim>::setup_system(){
 
   std::cout<< "Number of degrees of freedom: " << dof_handler. n_dofs()<<
     "(" << n_u << "+" << n_p << ")" << std::endl;
+
+
   {
     BlockCompressedSetSparsityPattern csp (dofs_per_block,dofs_per_block);
 
@@ -195,24 +195,35 @@ void StokesProblem <dim>::assemble_system () {
 	phi_p[k] = fe_values[pressure].value (k, q);
       }
       for (unsigned int i=0; i<dofs_per_cell; ++i)
-      {
-	for (unsigned int j=0; j<dofs_per_cell; ++j)
-	{
-	  local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
-	      - div_phi_u[i] * phi_p[j]
-	      - phi_p[i] * div_phi_u[j]
-	      + phi_p[i] * phi_p[j])
-	    * JxW_values[q];
-	} // end of loop over 'j'
-	local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];//?
-      } // end of loop 'i'
+				{
+					for (unsigned int j=0; j<=i; ++j)
+					{
+						local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
+							- div_phi_u[i] * phi_p[j]
+						- phi_p[i] * div_phi_u[j]
+						+ phi_p[i] * phi_p[j])
+							* JxW_values[q];
+					} // end of loop over 'j'
+					local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];//?
+				} // end of loop 'i'
     } // end of loop 'q'
-    
+  // to create the upper triangle of local_matrix
+
+     for (unsigned int i=0; i<dofs_per_cell; ++i)
+       for (unsigned int j=i+1; j<dofs_per_cell; ++j)
+	 local_matrix(i,j) = local_matrix(j,i);    
+
+
     //local system to global system
     local_dof_indices.resize (dofs_per_cell);
     cell->get_dof_indices (local_dof_indices);
     constraints.distribute_local_to_global (local_matrix, local_rhs, local_dof_indices, system_matrix, system_rhs);
   } // end of iteration for cells
+for (unsigned int l=0; l< dof_handler.n_dofs() ; ++l)
+  for (unsigned int m=0; m< dof_handler.n_dofs() ; ++m)
+  //std::cout<<  "[" << l<< " , "  << m << "]= "  << patch_system.el (l,m) << "............." <<std::endl;
+   
+ std::cout << "[" << l << " , "  << m << "]= " << system_matrix.el (l,m) << std::endl;
 }
 
 /*......................................................................................*/
@@ -249,7 +260,7 @@ void StokesProblem <dim>::solve ()
     //<< solver_control.last_step()
     //<< " outer CG Schur complement iterations for pressure"
     //<< std::endl;
-  }k
+  }
   system_matrix.block(0,1).vmult (tmp, solution.block(1));
   tmp *= -1.0;
   tmp += system_rhs.block(0);
@@ -293,8 +304,6 @@ double StokesProblem <dim>::pressure_mean_value () const
  // return domain_mean_val_p/3.0;
   return domain_mean_val_p / measure_domain;
 }
-
-
 /*......................................................................................*/
 // compute_error
 
@@ -911,7 +920,9 @@ Vector<double> local_solution_values(dofs_per_cl);
 
   {
   constraints_patch.clear ();
-  DoFTools::make_hanging_node_constraints < hp::DoFHandler<dim> > (local_dof_handler, constraints_patch);  
+  DoFTools::make_hanging_node_constraints(local_dof_handler, constraints_patch);  
+  //DoFTools::make_hanging_node_constraints < hp::DoFHandler<dim> > (local_dof_handler, constraints_patch);  
+
   
   //......................... Zero_Bdry_Condition_on_Patch .......................................//
 {	
@@ -1042,7 +1053,7 @@ Vector<double> local_solution_values(dofs_per_cl);
       }
       for (unsigned int i=0; i<dofs_per_cell; ++i)
       {
-	for (unsigned int j=0; j<dofs_per_cell; ++j)
+	for (unsigned int j=0; j<=i; ++j)
 	{
 	  local_matrix_patch(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
 	      - div_phi_u[i] * phi_p[j]
@@ -1057,13 +1068,17 @@ Vector<double> local_solution_values(dofs_per_cl);
       }// i
     }//q
  
+  for (unsigned int i=0; i<dofs_per_cell; ++i)
+       for (unsigned int j=i+1; j<dofs_per_cell; ++j)
+	local_matrix_patch(i,j) = local_matrix_patch(j,i);    
+
     local_dof_indices.resize (dofs_per_cell);
     patch_cll->get_dof_indices (local_dof_indices);
     constraints_patch.distribute_local_to_global (local_matrix_patch, local_rhs_patch, local_dof_indices, patch_system, patch_rhs);
 }
   }// for patch_cll
 
-//  ................................................  symmericity check  ...........................................................
+//  ................................................  symmetricity check  ...........................................................
 {
 BlockVector<double> temp1 (dofs_per_block_patch);
 BlockVector<double> temp2 (dofs_per_block_patch);
@@ -1660,16 +1675,32 @@ void StokesProblem <dim>::run(){
     std::cout << "Cycle " << cycle << ':' << std::endl;
     if (cycle == 0)
       generate_mesh();
+/*
+    {
+      std::vector<unsigned int> subdivisions (dim, 1);
+      subdivisions[0] = 1;
+      const Point<dim> bottom_left = (dim == 2 ?
+                                      Point<dim>(-2,-1) :
+                                      Point<dim>(-2,0,-1));
+      const Point<dim> top_right   = (dim == 2 ?
+                                      Point<dim>(2,0) :
+                                      Point<dim>(2,1,0));
+      GridGenerator::subdivided_hyper_rectangle (triangulation,
+                                                 subdivisions,
+                                                 bottom_left,
+                                                 top_right);
+    }
 
-    //GridGenerator::hyper_cube (triangulation);
-    //triangulation.refine_global (2);
+    triangulation.refine_global (1);
+*/
      std::cout<<"Number of active cells: "<< triangulation.n_active_cells() << std::endl;
+    
      std::cout<<"Total number of cells: " << triangulation.n_cells() << std::endl ;
     setup_system ();
     assemble_system();
-
+/*
     solve ();
-std::cout<<" *****************************SOLVE global System "<< std::endl;
+    std::cout<<" *****************************SOLVE global System "<< std::endl;
     Vector<double> error_per_cell (triangulation.n_active_cells());
     compute_error (error_per_cell);
     Vector<double> est_per_cell (triangulation.n_active_cells());
@@ -1691,7 +1722,7 @@ std::cout<<" *****************************SOLVE global System "<< std::endl;
 
     if (L2_norm_est < Tolerance) 
       break;
-
+*/
   }
 
 
