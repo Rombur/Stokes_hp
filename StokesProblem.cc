@@ -109,6 +109,7 @@ void StokesProblem <dim>::setup_system(){
 
   set_global_active_fe_indices(dof_handler);
   dof_handler.distribute_dofs (fe_collection);
+  DoFRenumbering::Cuthill_McKee (dof_handler);
 
   std::vector<unsigned int> block_component (dim+1, 0);
   block_component[dim]=1;
@@ -118,7 +119,7 @@ void StokesProblem <dim>::setup_system(){
     constraints.clear ();
     FEValuesExtractors::Vector velocities(0);
     DoFTools::make_hanging_node_constraints (dof_handler, constraints);
-   // VectorTools::interpolate_boundary_values (dof_handler,0,exact_solution,constraints, fe_collection.component_mask(velocities));
+    VectorTools::interpolate_boundary_values (dof_handler,0,exact_solution,constraints, fe_collection.component_mask(velocities));
   }
   constraints.close();
 
@@ -158,7 +159,9 @@ void StokesProblem <dim>::assemble_system () {
   const FEValuesExtractors::Vector velocities (0);
   const FEValuesExtractors::Scalar pressure (dim);
 
-  std::vector<Tensor<2,dim> > grad_phi_u;
+
+  std::vector<SymmetricTensor<2,dim> > symgrad_phi_u; 
+ // std::vector<Tensor<2,dim> > grad_phi_u;
   std::vector<double> div_phi_u;
   std::vector<Tensor<1,dim> > phi_u;
   std::vector<double> phi_p;
@@ -171,6 +174,8 @@ void StokesProblem <dim>::assemble_system () {
     const unsigned int   dofs_per_cell = cell->get_fe().dofs_per_cell;
     local_matrix.reinit (dofs_per_cell, dofs_per_cell);
     local_rhs.reinit (dofs_per_cell);
+    local_matrix=0;
+    local_rhs=0;
 
     hp_fe_values.reinit (cell);
     const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
@@ -179,8 +184,9 @@ void StokesProblem <dim>::assemble_system () {
 
     rhs_values.resize(n_q_points, Vector<double>(dim+1));
     rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
-
-    grad_phi_u.resize(dofs_per_cell);
+    
+    symgrad_phi_u.resize(dofs_per_cell);
+    //grad_phi_u.resize(dofs_per_cell);
     div_phi_u.resize(dofs_per_cell);
     phi_u.resize (dofs_per_cell);
     phi_p.resize(dofs_per_cell);
@@ -189,20 +195,31 @@ void StokesProblem <dim>::assemble_system () {
     {
       for (unsigned int k=0; k<dofs_per_cell; ++k)
       {
-	grad_phi_u[k] = fe_values[velocities].gradient (k, q);
+        symgrad_phi_u[k] = fe_values[velocities].symmetric_gradient (k, q);
+	//grad_phi_u[k] = fe_values[velocities].gradient (k, q);
 	div_phi_u[k] = fe_values[velocities].divergence (k, q);
 	phi_u[k] = fe_values[velocities].value (k, q);
 	phi_p[k] = fe_values[pressure].value (k, q);
       }
       for (unsigned int i=0; i<dofs_per_cell; ++i)
-				{
-					for (unsigned int j=0; j<=i; ++j)
+		{
+                   for (unsigned int j=0; j<=i; ++j)
 					{
+
+                                          local_matrix(i,j) += (symgrad_phi_u[i] * symgrad_phi_u[j]
+                                          - div_phi_u[i] * phi_p[j]
+                                          - phi_p[i] * div_phi_u[j]
+                                          + phi_p[i] * phi_p[j])
+                                          * fe_values.JxW(q);
+                                           
+
+/*
 						local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
 							- div_phi_u[i] * phi_p[j]
 						- phi_p[i] * div_phi_u[j]
 						+ phi_p[i] * phi_p[j])
-							* JxW_values[q];
+  							* JxW_values[q];
+  */ 
 					} // end of loop over 'j'
 					local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];//?
 				} // end of loop 'i'
@@ -1698,8 +1715,9 @@ void StokesProblem <dim>::run(){
      std::cout<<"Total number of cells: " << triangulation.n_cells() << std::endl ;
     setup_system ();
     assemble_system();
-/*
+
     solve ();
+/*
     std::cout<<" *****************************SOLVE global System "<< std::endl;
     Vector<double> error_per_cell (triangulation.n_active_cells());
     compute_error (error_per_cell);
