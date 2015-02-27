@@ -237,7 +237,7 @@ void StokesProblem <dim>::assemble_system () {
         		   * JxW_values[q];
         		   */
         	  } // end of loop over 'j'
-        	  local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];//?
+        	  local_rhs(i) += (phi_u[i][0] * rhs_values[q](0) + phi_u[i][1] * rhs_values [q](1)) * JxW_values[q];
           } // end of loop 'i'
         } // end of loop 'q'
       // to create the upper triangle of local_matrix
@@ -263,6 +263,20 @@ void StokesProblem <dim>::assemble_system () {
 /*......................................................................................*/
 // Solve
 
+// pressure mass matrix to precondition the Schur complement
+//  Later, when solving, we then precondition the Schur complement with M^{−1}_p by doing a
+//few CG iterations on the well-conditioned pressure mass matrix Mp stored in the (1,1) block.
+
+// For the Stokes equation we consider here, the Schur complement is BA^{−1}B^{T} where the matrix
+//A is related to the Laplace operator
+// Thus, solving with A is a lot more complicated: the matrix is badly conditioned and we know that we
+//need many iterations unless we have a very good preconditioner
+
+//in 2d, we use the ultimate preconditioner, namely a direct sparse LU decomposition of the matrix.
+//This is implemented using the SparseDirectUMFPACK class that uses the UMFPACK direct solver to compute the decomposition.
+
+
+
 template <int dim>
 void StokesProblem <dim>::solve ()
 {
@@ -281,6 +295,16 @@ void StokesProblem <dim>::solve ()
 				1e-6*schur_rhs.l2_norm());
 
 		SolverCG<>    cg (solver_control);
+
+
+		//  Now to the preconditioner to the Schur complement. As explained in the introduction, the preconditioning is
+		//done by a mass matrix in the pressure variable.
+
+		//   the inversion of a mass matrix is a rather cheap and straight-forward
+		//operation (compared to, e.g., a Laplace matrix). The CG method with ILU preconditioning converges in 5-10 steps, independently on the mesh size.
+		//This is precisely what we do here: We choose another ILU preconditioner and take it along to the InverseMatrix object via the corresponding
+		//template parameter. A CG solver is then called within the vmult operation of the inverse matrix.
+
 
 		SparseDirectUMFPACK preconditioner;
 		preconditioner.initialize (system_matrix.block(1,1),
@@ -865,9 +889,8 @@ void StokesProblem <dim>:: patch_output (unsigned int patch_number, const unsign
 //Compute h_convergence_estimator   &   h_workload_number  for each patch around cell   
 
 template <int dim>
-void StokesProblem <dim>:: h_patch_conv_load_no ( const unsigned int cycle , double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell, unsigned int & patch_number)
+void StokesProblem <dim>::h_patch_conv_load_no ( const unsigned int cycle , double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell, unsigned int & patch_number)
 {
-
   std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> patch = get_patch_around_cell(cell);
   Triangulation<dim> local_triangulation;
   unsigned int level_h_refine;
@@ -879,19 +902,20 @@ void StokesProblem <dim>:: h_patch_conv_load_no ( const unsigned int cycle , dou
 
   std::cout<< "patch_number is :" << " " << patch_number << std:: endl ;
 
-
-
   set_active_fe_indices (local_dof_handler);
   local_dof_handler.distribute_dofs (fe_collection);
 
-  DoFRenumbering::Cuthill_McKee (local_dof_handler);
+  //DoFRenumbering::Cuthill_McKee (local_dof_handler);
   std::cout<< "number of dofs on the current patch " << local_dof_handler.n_dofs() << std::endl ;
 
   h_convergence_est_per_cell=0.;
   double h_solu_norm_per_patch=0.;
 
-  ConstraintMatrix constraints_patch;
-  BlockSparsityPattern sparsity_pattern_patch;
+  ConstraintMatrix constraints_patch_1;
+  SparsityPattern     sparsity_pattern_patch_1;
+
+  ConstraintMatrix constraints_patch_2;
+  SparsityPattern     sparsity_pattern_patch_2;
 
   std::vector<unsigned int> block_component_patch (dim+1, 0);
   block_component_patch[dim]=1;
@@ -899,7 +923,6 @@ void StokesProblem <dim>:: h_patch_conv_load_no ( const unsigned int cycle , dou
 
   std::vector<types::global_dof_index> dofs_per_block_patch (2);
   DoFTools::count_dofs_per_block (local_dof_handler, dofs_per_block_patch, block_component_patch);
-
 
 //......................................................................................................
   BlockVector<double> local_solu (dofs_per_block_patch);
@@ -960,186 +983,256 @@ void StokesProblem <dim>:: h_patch_conv_load_no ( const unsigned int cycle , dou
   }
 
 //......................  setup_h_patch_system and  patch_rhs .............. //
+  SparseMatrix<double> patch_system_1;
+  Vector<double>       patch_solution_1;
+  Vector<double>      patch_rhs_1;
+
+
+  SparseMatrix<double> patch_system_2;
+  Vector<double>       patch_solution_2;
+  Vector<double>      patch_rhs_2;
 
   unsigned int local_system_size = local_dof_handler. n_dofs();
   h_workload_num = local_dof_handler. n_dofs();
 
   //patch_output (patch_number , cycle, local_dof_handler, local_solu);
 
-  {
-    constraints_patch.clear ();
-    DoFTools::make_hanging_node_constraints(local_dof_handler, constraints_patch);
-   // VectorTools::interpolate_boundary_values (local_dof_handler,0,exact_solution,constraints, fe_collection.component_mask(velocities));
-
-    //......................... Zero_Bdry_Condition_on_Patch .......................................//
-    {
-      typename hp::DoFHandler<dim>::active_cell_iterator patch_cl= local_dof_handler.begin_active(), end_patch_cl = local_dof_handler.end();
-      for (; patch_cl !=end_patch_cl; ++patch_cl){
-          std::vector<types::global_dof_index> local_face_dof_indices ((patch_cl->get_fe()).dofs_per_face);
-          if (patch_cl->user_flag_set() == true)
-            {
-              for (unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
-                {
-                  bool face_is_on_patch_Bdry = false;
-                  if ((patch_cl->face(f)->at_boundary()) ||  ((patch_cl->neighbor(f)->has_children() == false)
-                      &&
-                      (patch_cl->neighbor(f)->user_flag_set() == false)))
-                    face_is_on_patch_Bdry = true;
-                  else if ((patch_cl->face(f)->at_boundary()) || (patch_cl->neighbor(f)->has_children() == true))
-                    {
-                      for (unsigned int sf=0; sf< patch_cl->face(f)->n_children(); ++sf)
-                        if (patch_cl->neighbor_child_on_subface (f, sf) -> user_flag_set() == false)
-                          {
-                            face_is_on_patch_Bdry = true;
-                            break;
-                          }
-                    }// else if
-
-                  if (face_is_on_patch_Bdry)
-                    {
-                      patch_cl->face(f)->get_dof_indices (local_face_dof_indices, patch_cl->active_fe_index());
-                      for (unsigned int i=0; i<local_face_dof_indices.size(); ++i)
-                        // system_to_component_index: "Compute vector component and index of this shape function within the shape functions
-                        // corresponding to this component from the index of a shape function within this finite element"
-                        if ((patch_cl->get_fe()).face_system_to_component_index(i).first < dim)
-                          constraints_patch.add_line (local_face_dof_indices[i]);
-                    }
-                }// face f
-            }// if user_flag_true
-
-      }// patch_cl
-    }
-
-    // to make the solution be unique, we need to add additional constraint for pressure, as follows:
-    typename hp::DoFHandler<dim>::active_cell_iterator
-    first_patch_cl = local_dof_handler.begin_active();
-    std::vector<types::global_dof_index> patch_local_dof_indices (first_patch_cl->get_fe().dofs_per_cell);
-    first_patch_cl->get_dof_indices(patch_local_dof_indices);
-    types::global_dof_index first_pressure_patch_dof = patch_local_dof_indices[first_patch_cl->get_fe().component_to_system_index(dim,0)];
-    constraints_patch.add_line (first_pressure_patch_dof);
-
-  }
-  constraints_patch.close();
-
-
-  DoFTools::count_dofs_per_block (local_dof_handler, dofs_per_block_patch, block_component_patch);
-  const unsigned int n_u=dofs_per_block_patch[0], n_p=dofs_per_block_patch[1];
 
   {
-    BlockCompressedSetSparsityPattern csp (dofs_per_block_patch, dofs_per_block_patch);
+	  constraints_patch_1.clear ();
+	  FEValuesExtractors::Vector velocities(0);
+	  DoFTools::make_hanging_node_constraints (local_dof_handler, constraints_patch_1);
 
-    DoFTools::make_sparsity_pattern (local_dof_handler, csp, constraints_patch, false);
-    sparsity_pattern_patch.copy_from(csp);
+	  constraints_patch_2.clear ();
+	  DoFTools::make_hanging_node_constraints (local_dof_handler, constraints_patch_2);
+
+	  //......................... Zero_Bdry_Condition_on_Patch .......................................//
+	  {
+		  typename hp::DoFHandler<dim>::active_cell_iterator patch_cl= local_dof_handler.begin_active(), end_patch_cl = local_dof_handler.end();
+		  for (; patch_cl !=end_patch_cl; ++patch_cl)
+		  {
+			  std::vector<types::global_dof_index> local_face_dof_indices ((patch_cl->get_fe()).dofs_per_face);
+			  if (patch_cl->user_flag_set() == true)
+			  {
+				  for (unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
+				  {
+					  bool face_is_on_patch_Bdry = false;
+					  if ((patch_cl->face(f)->at_boundary()) ||  ((patch_cl->neighbor(f)->has_children() == false)
+							  &&
+							  (patch_cl->neighbor(f)->user_flag_set() == false)))
+						  face_is_on_patch_Bdry = true;
+					  else if (patch_cl->neighbor(f)->has_children() == true)
+					  {
+						  for (unsigned int sf=0; sf< patch_cl->face(f)->n_children(); ++sf)
+							  if (patch_cl->neighbor_child_on_subface (f, sf) -> user_flag_set() == false)
+							  {
+								  face_is_on_patch_Bdry = true;
+								  break;
+							  }
+					  }// else if
+
+					  if (face_is_on_patch_Bdry)
+					  {
+
+						  patch_cl->face(f)->get_dof_indices (local_face_dof_indices, patch_cl->active_fe_index());
+						  for (unsigned int i=0; i<local_face_dof_indices.size(); ++i)
+							  if ((patch_cl->get_fe()).face_system_to_component_index(i).first < dim)
+								  constraints_patch_1.add_line (local_face_dof_indices[i]);
+					  }
+
+				  }// face f
+			  }// if user_flag_true
+
+		  }// patch_cl
+	  }
+
+
   }
-  BlockSparseMatrix<double> patch_system (sparsity_pattern_patch);
-  BlockVector<double> patch_solution (dofs_per_block_patch);
-  BlockVector<double> patch_rhs (dofs_per_block_patch);
+  constraints_patch_1.close();
+  constraints_patch_2.close();
+
+
+
+// for stiffness in velocity space matrix
+  {
+	  CompressedSetSparsityPattern csp_1 (local_dof_handler.n_dofs(), local_dof_handler.n_dofs());
+
+	  DoFTools::make_sparsity_pattern (local_dof_handler, csp_1, constraints_patch_1, false);
+	  sparsity_pattern_patch_1.copy_from(csp_1);
+  }
+
+  patch_system_1.reinit (sparsity_pattern_patch_1);
+  patch_solution_1.reinit (local_dof_handler.n_dofs());
+  patch_rhs_1.reinit (local_dof_handler.n_dofs());
+
+// for mass in pressure space matrix
+  {
+	  CompressedSetSparsityPattern csp_2 (local_dof_handler.n_dofs(), local_dof_handler.n_dofs());
+
+	  DoFTools::make_sparsity_pattern (local_dof_handler, csp_2, constraints_patch_2, false);
+	  sparsity_pattern_patch_1.copy_from(csp_2);
+  }
+  patch_system_2.reinit (sparsity_pattern_patch_2);
+  patch_solution_2.reinit (local_dof_handler.n_dofs());
+  patch_rhs_2.reinit (local_dof_handler.n_dofs());
+
   // .........................................  assemble  patch_system  and patch_rhs .............................. //
 
   hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
 
-  FullMatrix<double> local_matrix_patch;
-  Vector<double> local_rhs_patch;
-  Vector<double> local_rhs1;
-  Vector<double> local_rhs2;
-  std::vector<types::global_dof_index> local_dof_indices;
+  FullMatrix<double> local_matrix_patch_1;
+  Vector<double> local_rhs_patch_1;
+
+  FullMatrix<double> local_matrix_patch_2;
+  Vector<double> local_rhs_patch_2;
+
+  std::vector<types::global_dof_index> local_dof_indices_1;
+  std::vector<types::global_dof_index> local_dof_indices_2;
+
+  // we need to access the velocities and pressure as components of the global solution...In order to build the rhs which is of residual form.
+  const FEValuesExtractors::Vector velocities (0);
+  const FEValuesExtractors::Scalar pressure (dim);
 
   std::vector<Vector<double> >  rhs_values;
   const RightHandSide<dim> rhs_function;
 
-  const FEValuesExtractors::Vector velocities (0);
-  const FEValuesExtractors::Scalar pressure (dim);
-
-  std::vector<SymmetricTensor<2,dim> > symgrad_phi_u;
-  // std::vector<Tensor<2,dim> > grad_phi_u;
-  std::vector<double> div_phi_u;
-  std::vector<Tensor<1,dim> > phi_u;
-  std::vector<double> phi_p;
-
+  // for residual term in RHS of the first laplacian system of equations _ stiffness system in velocity space
   std::vector<Tensor<1,dim> > gradients_p;
-  std::vector<double> divergences;
   std::vector<Tensor<1,dim> > laplacians;
 
+  // for residual term in RHS of the second system of equations _ mass system in presssure space
+  std::vector<double> divergences;
+
+  //These are used once we calculated the solution of the Suprimum problem (which in fact are equal to solution of two variational problems)
+
+
+  //  to calculate the gradient of the velocity as solution of the first system
+  std::vector<Tensor<2,dim> > gradients_u;
+
+// to calculate the values of pressure as solution of the second system
   std::vector<double> values;
-  std::vector<Tensor<2,dim> > gradients;
+
+   std::vector<Tensor<2,dim> > grad_phi_u;
+   std::vector<double> div_phi_u;
+   std::vector<Tensor<1,dim> > phi_u;
+   std::vector<double> phi_p;
 
 
-  typename hp::DoFHandler<dim>::active_cell_iterator patch_cll= local_dof_handler.begin_active(), end_patch_cll = local_dof_handler.end();
-  for (; patch_cll!=end_patch_cll; ++patch_cll){
+   typename hp::DoFHandler<dim>::active_cell_iterator patch_cll= local_dof_handler.begin_active(), end_patch_cll = local_dof_handler.end();
+   for (; patch_cll!=end_patch_cll; ++patch_cll)
+   {
 
-      const unsigned int   dofs_per_cell = patch_cll->get_fe().dofs_per_cell;
-      if (dofs_per_cell!=0) {
-          local_matrix_patch.reinit (dofs_per_cell, dofs_per_cell);
-          local_rhs_patch.reinit (dofs_per_cell);
-          local_rhs1.reinit (dofs_per_cell);
-          local_rhs2.reinit (dofs_per_cell);
+	   const unsigned int   dofs_per_cell = patch_cll->get_fe().dofs_per_cell;
+	   if (dofs_per_cell!=0)
+	   {
 
-          hp_fe_values.reinit (patch_cll);
-          const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
-          const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
-          const unsigned int n_q_points = fe_values.n_quadrature_points;
+		   local_matrix_patch_1.reinit (dofs_per_cell, dofs_per_cell);
+		   local_matrix_patch_1=0;
+		   local_rhs_patch_1.reinit (dofs_per_cell);
+		   local_rhs_patch_1=0;
 
-          rhs_values.resize(n_q_points, Vector<double>(dim+1));
-          rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
-
-         // grad_phi_u.resize(dofs_per_cell);
-          symgrad_phi_u.resize(dofs_per_cell);
-          div_phi_u.resize(dofs_per_cell);
-          phi_u.resize (dofs_per_cell);
-          phi_p.resize(dofs_per_cell);
-
-          divergences.resize(n_q_points);
-          gradients_p.resize(n_q_points) ;
-          laplacians.resize(n_q_points);
-
-          fe_values[pressure].get_function_gradients(local_solu, gradients_p);
-          fe_values[velocities].get_function_divergences(local_solu, divergences);
-          fe_values[velocities].get_function_laplacians(local_solu, laplacians);
+		   local_matrix_patch_2.reinit (dofs_per_cell, dofs_per_cell);
+		   local_matrix_patch_2=0;
+		   local_rhs_patch_2.reinit (dofs_per_cell);
+		   local_rhs_patch_2=0;
 
 
-          for (unsigned int q=0; q<n_q_points; ++q)
-            {
-              for (unsigned int k=0; k<dofs_per_cell; ++k)
-                {
-                  //grad_phi_u[k] = fe_values[velocities].gradient (k, q);
-                  symgrad_phi_u[k] = fe_values[velocities].symmetric_gradient (k, q);
-                  div_phi_u[k] = fe_values[velocities].divergence (k, q);
-                  phi_u[k] = fe_values[velocities].value (k, q);
-                  phi_p[k] = fe_values[pressure].value (k, q);
-                }
-              for (unsigned int i=0; i<dofs_per_cell; ++i)
-              {
-            	  for (unsigned int j=0; j<=i; ++j)
-            	  {
-            		  local_matrix_patch(i,j) += ((symgrad_phi_u[i] * symgrad_phi_u[j])
-            				  - (div_phi_u[i] * phi_p[j])
-            				  - (phi_p[i] * div_phi_u[j])
-            				  + (phi_p[i] * phi_p[j]))
-            				  * JxW_values[q];
-            	  } // end of loop over 'j'
+		   hp_fe_values.reinit (patch_cll);
+		   const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+		   const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
+		   const unsigned int n_q_points = fe_values.n_quadrature_points;
 
-                  local_rhs1(i)+= ((rhs_values[q](0)+laplacians[q][0]-gradients_p[q][0])*(phi_u[i][0])+ (rhs_values[q](1)+laplacians[q][1]-gradients_p[q][1])*(phi_u[i][1]))* JxW_values[q];
-                  local_rhs2(i)+= (phi_p[i]*divergences[q])*JxW_values[q];
-                  local_rhs_patch(i)= local_rhs1(i)-local_rhs2(i);
-                }// i
-            }//q
+		   rhs_values.resize(n_q_points, Vector<double>(dim));
+		   rhs_function.vector_value_list (fe_values.get_quadrature_points(), rhs_values);
 
-          for (unsigned int i=0; i<dofs_per_cell; ++i)
-            for (unsigned int j=i+1; j<dofs_per_cell; ++j)
-              local_matrix_patch(i,j) = local_matrix_patch(j,i);
 
-          local_dof_indices.resize (dofs_per_cell);
-          patch_cll->get_dof_indices (local_dof_indices);
-          constraints_patch.distribute_local_to_global (local_matrix_patch, local_rhs_patch, local_dof_indices, patch_system, patch_rhs);
-      }
-  }// for patch_cll
-/*
+		   // we need f as the rhs function, laplacians of velocity and also the gradient of pressure to calculate
+		   //the residual term, as the rhs of local system (which is of the form stiffness in velocity) on each patch
+		   gradients_p.resize(n_q_points) ;
+		   laplacians.resize(n_q_points);
+		   fe_values[pressure].get_function_gradients(local_solu, gradients_p);
+		   fe_values[velocities].get_function_laplacians(local_solu, laplacians);
+
+		   // is going to be used as the rhs of the second system which is of the form mass in pressure space
+		   divergences.resize(n_q_points);
+		   fe_values[velocities].get_function_divergences(local_solu, divergences);
+
+
+		   // grad_phi_u.resize(dofs_per_cell);
+		   //  div_phi_u.resize(dofs_per_cell);
+		   phi_u.resize (dofs_per_cell);
+		   phi_p.resize(dofs_per_cell);
+
+
+		   for (unsigned int q=0; q<n_q_points; ++q)
+		   {
+			   for (unsigned int k=0; k<dofs_per_cell; ++k)
+			   {
+				   // grad_phi_u[k] = fe_values[velocities].gradient (k, q);
+				   // div_phi_u[k] = fe_values[velocities].divergence (k, q);
+				   phi_u[k] = fe_values[velocities].value (k, q);
+				   phi_p[k] = fe_values[pressure].value (k, q);
+			   }
+		   }
+
+
+		   for (unsigned int i=0; i<dofs_per_cell; ++i)
+		   {
+			   const unsigned int component_i = patch_cll->get_fe().system_to_component_index(i).first;
+
+			   for (unsigned int j=0; j<dofs_per_cell; ++j)
+			   {
+				   const unsigned int component_j = patch_cll->get_fe().system_to_component_index(j).first;
+
+				   for (unsigned int q=0; q<n_q_points; ++q)
+				   {
+					   local_matrix_patch_1(i,j)
+    	                    										 +=
+    	                    												 (
+    	                    														 (fe_values.shape_grad(i,q)[component_i] *
+    	                    																 fe_values.shape_grad(j,q)[component_j] ) )*JxW_values[q];
+				   }
+			   }
+		   }
+
+		   for (unsigned int i=0; i<dofs_per_cell; ++i)
+		   {
+			   const unsigned int component_i = patch_cll->get_fe().system_to_component_index(i).first;
+			   for (unsigned int q=0; q<n_q_points; ++q)
+				   local_rhs_patch_1(i) += (phi_u[i][component_i] *
+						   (rhs_values[q](component_i)+ laplacians[q][component_i]-gradients_p[q][component_i]))*
+						   JxW_values[q];
+		   }
+
+		   local_dof_indices_1.resize (dofs_per_cell);
+		   patch_cll->get_dof_indices (local_dof_indices_1);
+		   constraints_patch_1.distribute_local_to_global (local_matrix_patch_1, local_rhs_patch_1, local_dof_indices_1, patch_system_1, patch_rhs_1);
+
+		   for (unsigned int q=0; q<n_q_points; ++q)
+		   {
+			   for (unsigned int i=0; i<dofs_per_cell; ++i)
+			   {
+				   for (unsigned int j=0; j<dofs_per_cell; ++j)
+					   local_matrix_patch_2(i,j)+=phi_p[i] * phi_p[j]) * JxW_values[q];
+
+					   local_rhs_patch_2(i)+= (phi_p[i]*divergences[q])*JxW_values[q];
+			   }
+		   }
+		   local_dof_indices_2.resize (dofs_per_cell);
+		   patch_cll->get_dof_indices (local_dof_indices_2);
+		   constraints_patch_1.distribute_local_to_global (local_matrix_patch_2, local_rhs_patch_2, local_dof_indices_2, patch_system_2, patch_rhs_2);
+
+	   }// if  dofs_per_cell!=0
+   }// patch_cll
+
+  /*
   for (unsigned int l=0; l< local_dof_handler.n_dofs() ; ++l)
     for (unsigned int m=0; m< local_dof_handler.n_dofs() ; ++m)
   //std::cout<<  " [" << l<< " , "  << m << "]= "  << patch_system.el (l,m) <<std::endl;
   std::cout<<  " [" << l<< " , "  << m << "]= "  << system_matrix.el (l,m) <<std::endl;
 */
 //  ................................................  symmetry check  ...........................................................
+  /*
   {
     BlockVector<double> temp1 (dofs_per_block_patch);
     BlockVector<double> temp2 (dofs_per_block_patch);
@@ -1171,102 +1264,66 @@ void StokesProblem <dim>:: h_patch_conv_load_no ( const unsigned int cycle , dou
 
       }// for i
   }
-  // .....................................solve patch_system and patch_rhs ............get  patch_solution ...................... //
-  /*
-SparseDirectUMFPACK  A_direct;
-A_direct.initialize(patch_system);
-A_direct.vmult (patch_solution, patch_rhs);
-   */
+  */
+  // .....................................SOLVE on the patch ...................... //
 
 
-  // pressure mass matrix to precondition the Schur complement
-  //  Later, when solving, we then precondition the Schur complement with M^{−1}_p by doing a few CG iterations on the well-conditioned pressure mass matrix Mp stored in the (1,1) block.
 
-  // For the Stokes equation we consider here, the Schur complement is BA^{−1}B^{T} where the matrix A is related to the Laplace operator
-  // Thus, solving with A is a lot more complicated: the matrix is badly conditioned and we know that we need many iterations unless we have a very good preconditioner
-
-  //in 2d, we use the ultimate preconditioner, namely a direct sparse LU decomposition of the matrix. This is implemented using the SparseDirectUMFPACK class that uses the UMFPACK direct solver to compute the decomposition.
-
-
-  SparseDirectUMFPACK A_inverse;
-  A_inverse.initialize (patch_system.block(0,0), SparseDirectUMFPACK::AdditionalData());
-  Vector<double> tmp (patch_solution.block(0).size());
-  {
-	  Vector<double> schur_rhs (patch_solution.block(1).size());
-	  A_inverse.vmult (tmp, patch_rhs.block(0));
-	  patch_system.block(1,0).vmult (schur_rhs, tmp);
-	  schur_rhs -= patch_rhs.block(1);
-
-	  SchurComplement schur_complement (patch_system, A_inverse);
-	  SolverControl solver_control (patch_solution.block(1).size(), 1e-6*schur_rhs.l2_norm());
-
-	  SolverCG<>    cg (solver_control);
-
-	  //  Now to the preconditioner to the Schur complement. As explained in the introduction, the preconditioning is done by a mass matrix in the pressure variable.
-
-	  //   the inversion of a mass matrix is a rather cheap and straight-forward operation (compared to, e.g., a Laplace matrix). The CG method with ILU preconditioning converges in 5-10 steps, independently on the mesh size. This is precisely what we do here: We choose another ILU preconditioner and take it along to the InverseMatrix object via the corresponding template parameter. A CG solver is then called within the vmult operation of the inverse matrix.
+// solving the first system which is stiffness for velocity
+   SolverControl           solver_control (patch_rhs_1.size(),
+		   1e-8*patch_rhs_1.l2_norm());
+   SolverCG<>              cg (solver_control);
+   PreconditionSSOR<> preconditioner;
+   preconditioner.initialize(patch_system_1, 1.2);
+   cg.solve (patch_system_1, patch_solution_1, patch_rhs_1,
+		   preconditioner);
+   constraints_patch_1.distribute (patch_solution_1);
 
 
-	  SparseDirectUMFPACK preconditioner;
-	  preconditioner.initialize (patch_system.block(1,1),
-			  SparseDirectUMFPACK::AdditionalData());
-
-
-	  cg.solve (schur_complement, patch_solution.block(1), schur_rhs,
-			  preconditioner);
-	  constraints_patch.distribute (patch_solution);
-	  //    std::cout << "  "
-	  //<< solver_control.last_step()
-	  //<< " outer CG Schur complement iterations for pressure"
-	  //<< std::endl;
-  }
-
-  {
-	  patch_system.block(0,1).vmult (tmp, patch_solution.block(1));
-	  tmp *= -1.0;
-	  tmp += patch_rhs.block(0);
-	  A_inverse.vmult (patch_solution.block(0), tmp);
-	  constraints_patch.distribute (patch_solution);
-
-  }
+ // solving the second system which is mass in pressure
+   SparseDirectUMFPACK  A_direct;
+   A_direct.initialize(patch_system_2);
+   A_direct.vmult (patch_solution_2, patch_rhs_2);
 
 //.......................................  get the L2 norm of the gradient of velocity solution and pressure value  .....................//
 
-  double pressure_val=0;
-  double grad_u_val=0;
-  typename hp::DoFHandler<dim>::active_cell_iterator patch_cel= local_dof_handler.begin_active(), end_patch_cel = local_dof_handler.end();
-  for (; patch_cel!=end_patch_cel; ++patch_cel)
-  {
-	  const unsigned int   dofs_per_cel = patch_cel->get_fe().dofs_per_cell;
-	  if (dofs_per_cel!=0)
-	  {
-		  hp_fe_values.reinit (patch_cel);
-		  const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
-		  const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
-		  const unsigned int n_q_points = fe_values.n_quadrature_points;
-		  gradients.resize(n_q_points);
-		  values.resize(n_q_points);
+   double pressure_val_on_patch=0;
+   double grad_U_on_patch=0;
+   typename hp::DoFHandler<dim>::active_cell_iterator patch_cel= local_dof_handler.begin_active(), end_patch_cel = local_dof_handler.end();
+   for (; patch_cel!=end_patch_cel; ++patch_cel)
+   {
+	   const unsigned int   dofs_per_cel = patch_cel->get_fe().dofs_per_cell;
+	   if (dofs_per_cel!=0)
+	   {
+		   hp_fe_values.reinit (patch_cel);
+		   const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+		   const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
+		   const unsigned int n_q_points = fe_values.n_quadrature_points;
+		   gradients_u.resize(n_q_points);
+		   values.resize(n_q_points);
 
-		  fe_values[velocities].get_function_gradients(patch_solution, gradients);
-		  fe_values[pressure].get_function_values(patch_solution, values);
+		   fe_values[velocities].get_function_gradients(patch_solution_1, gradients_u);
+		   fe_values[pressure].get_function_values(patch_solution_2, values);
 
-		  for (unsigned int q=0; q<n_q_points; ++q)
-		  {
-			  pressure_val +=values[q]*values[q]* JxW_values[q];
 
-			  // for (unsigned int i=0; i<dim; ++i)
 
-			  //  grad_u_val += contract(gradients[q][i],gradients[q][i])* JxW_values[q];//.... double contract?
-			  grad_u_val +=double_contract(gradients[q],gradients[q])* JxW_values[q];
-		  } // q
-		  h_solu_norm_per_patch +=(sqrt(pressure_val) + sqrt(grad_u_val));// ?
-	  }
-  }// cells on patch
+		   for (unsigned int q=0; q<n_q_points; ++q)
+		   {
+			   pressure_val_on_patch +=values[q]*values[q]* JxW_values[q];
 
-  h_convergence_est_per_cell = h_solu_norm_per_patch ;
+
+			   // for (unsigned int i=0; i<dim; ++i)
+
+			   //  grad_u_val += contract(gradients[q][i],gradients[q][i])* JxW_values[q];//.... double contract?
+			   grad_U_on_patch +=double_contract(gradients_u[q],gradients_u[q])* JxW_values[q];
+		   } // q
+		   h_solu_norm_per_patch +=(sqrt(pressure_val_on_patch) + sqrt( grad_U_on_patch));
+	   }
+   }// cells on patch
+
+   h_convergence_est_per_cell = h_solu_norm_per_patch ;
 
 }  // function h_patch_con_load_num
-
 
 /*......................................................................................*/
 
@@ -1556,18 +1613,13 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
   endc = dof_handler.end();
   for (; cell!=endc; ++cell , ++cell_index, ++patch_number)
     {
-
 	  double indicator_per_cell =0.0;
 
 	  double h_convergence_est_per_cell;
 	  unsigned int h_workload_num;
 	  h_patch_conv_load_no (cycle ,h_convergence_est_per_cell,h_workload_num, cell, patch_number);
 
-	  /*
-	  //convergence_est_per_cell(cell_index)=h_convergence_est_per_cell;
-	  //std::cout << "convergence_est_per_cell: "<< convergence_est_per_cell(cell_index) << std::endl;
-	  //indicator_per_cell=convergence_est_per_cell(cell_index);
-	   */
+
 	  h_convergence_est_per_cell = h_convergence_est_per_cell /est_per_cell(cell_index);
 	  //std::cout << "error_est_per_cell: "<< est_per_cell(cell_index) << std::endl;
 
@@ -1753,7 +1805,7 @@ void StokesProblem <dim>::run(){
       double L2_norm_est= est_per_cell.l2_norm();
       std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
 
-
+/*
       Vector<float> marked_cells(triangulation.n_active_cells());
       std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> candidate_cell_set;
       std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > p_ref_map;
@@ -1763,11 +1815,10 @@ void StokesProblem <dim>::run(){
 
       if (L2_norm_est < Tolerance)
         break;
-
+*/
     }
 
 }//run
-
 
 //Explicit initialization
 
