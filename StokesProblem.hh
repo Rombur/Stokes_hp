@@ -14,8 +14,15 @@
 
 #include <deal.II/lac/block_sparse_matrix.h>
 #include <deal.II/lac/solver_cg.h>
+#include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/constraint_matrix.h>
+#include <deal.II/lac/precondition_block.h>
+
+#include <deal.II/lac/sparse_ilu.h>
+#include <deal.II/lac/full_matrix.h>
+#include <deal.II/lac/sparse_matrix.h>
+#include <deal.II/lac/compressed_sparsity_pattern.h>
 
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/grid_generator.h>
@@ -45,10 +52,10 @@
 #include <deal.II/hp/fe_values.h>
 
 #include <deal.II/base/std_cxx1x/bind.h>
-
-#include "ExactSolution.hh"
+#include "ExactSolution1.hh"
+#include "ExactSolution2.hh"
 #include "RightHandSide.hh"
-
+//#include "RightHandSideLocal.hh"
 
 
 using namespace dealii;
@@ -68,7 +75,9 @@ class StokesProblem
   private:
 
     const RightHandSide<dim> rhs_function;
-    const ExactSolution<dim> exact_solution;
+    //const ExactSolution<dim> exact_solution;
+    Function<dim>* exact_solution;
+    //const RightHandSideLocal<dim> rhs_function_local;
 
     void generate_mesh ();
     void set_global_active_fe_indices (hp::DoFHandler<dim> &dof_handler);
@@ -76,14 +85,29 @@ class StokesProblem
     void assemble_system ();
     void solve ();
     double pressure_mean_value () const;
-    void compute_error (Vector<double> &error_per_cell);
+    double exact_pressure_mean_value () const;
+   
+    void compute_error (Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err);
     void estimate (Vector<double> &est_per_cell);
-    void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler);
+    
+    void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler, std::map<typename Triangulation<dim>::active_cell_iterator, typename hp::DoFHandler<dim>::active_cell_iterator> & patch_to_global_tria_map);
+      
+  
     void patch_output (unsigned int patch_number ,const unsigned int cycle, hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
 
-    void h_patch_conv_load_no (const unsigned int cycle , double &h_convergence_est_per_cell, unsigned int &h_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell, unsigned int & patch_number);
+    void solution_on_patch_system_1 (const unsigned int cycle, double &h_gradient_velocity_solution,
+    		const typename hp::DoFHandler<dim>::active_cell_iterator &cell, hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
+    void solution_on_patch_system_2 (const unsigned int cycle, double &h_pressure_solution,
+        		const typename hp::DoFHandler<dim>::active_cell_iterator &cell, hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
+
+    void h_patch_conv_load_no (const unsigned int cycle ,
+    		double &h_convergence_est_per_cell, unsigned int &h_workload_num,
+    		const typename hp::DoFHandler<dim>::active_cell_iterator &cell, unsigned int & patch_number);
     
-    void p_patch_conv_load_no (double &p_convergence_est_per_cell, unsigned int &p_workload_num, const typename hp::DoFHandler<dim>::active_cell_iterator &cell );
+    void p_patch_conv_load_no (const unsigned int cycle ,
+        		double &p_convergence_est_per_cell, unsigned int &p_workload_num,
+        		const typename hp::DoFHandler<dim>::active_cell_iterator &cell, unsigned int & patch_number);
+
 
     std::vector<typename hp::DoFHandler<dim>::cell_iterator> get_cells_at_coarsest_common_level ( const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch);
 
@@ -91,9 +115,10 @@ class StokesProblem
    
     
     void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
-    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map);
+    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map,  Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est , Vector<double> &hp_Conv_Est);
 
-    void output_results (const unsigned int cycle,Vector<float> & marked_cells, Vector<double> &est_per_cell , Vector<double> &error_per_cell);
+    void output_results (const unsigned int cycle , Vector<float> & marked_cells , Vector<double> &est_per_cell , Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
+    		Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est );
 
     void refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
     std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
@@ -104,6 +129,9 @@ class StokesProblem
     hp::FECollection<dim> fe_collection;
     hp::QCollection<dim> quadrature_collection;
     hp::QCollection<dim-1> face_quadrature_collection;
+    
+    hp::QCollection<dim> quadrature_collection_Err;
+    hp::QCollection<dim-1> face_quadrature_collection_Err;
 
     ConstraintMatrix constraints;
     BlockSparsityPattern sparsity_pattern;

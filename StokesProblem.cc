@@ -1,5 +1,9 @@
 
-
+//find the best (optimum) theta
+// give the error-ErrEstimator plot for the optimum theta
+// give the error-theta graph, for different theta's
+// give the h- , p- and hp- error-dofs plot for the optimum theta which you found.
+//test the code with the new example in Houston's paper
 
 #include "StokesProblem.hh"
 #include <cmath>
@@ -16,10 +20,13 @@
 // constructor
 
 template <int dim>
-StokesProblem<dim>::StokesProblem(): dof_handler(triangulation),  max_degree (10), Tolerance (1e-16)
+StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max_degree (10), Tolerance (1e-16)
 
 {
-
+	if (example==1)
+		exact_solution = new ExactSolutionEx1<dim>();
+	else
+		exact_solution = new ExactSolutionEx2<dim>();
 	for (unsigned int degree=1; degree<=max_degree; ++degree)
 	{
 
@@ -54,10 +61,10 @@ StokesProblem<dim>::StokesProblem(): dof_handler(triangulation),  max_degree (10
 
 /*.....................................................................................*/
 template <int dim>
-StokesProblem <dim>::~StokesProblem()
+StokesProblem <dim>::~StokesProblem(int exemple)
 {
  dof_handler.clear();
-
+ delete exact_solution;
 }
 
 /*......................................................................................*/
@@ -159,7 +166,7 @@ void StokesProblem <dim>::setup_system(){
 		constraints.clear ();
 		FEValuesExtractors::Vector velocities(0);
 		DoFTools::make_hanging_node_constraints (dof_handler, constraints);
-		VectorTools::interpolate_boundary_values (dof_handler,0,exact_solution,constraints , fe_collection.component_mask(velocities));
+		VectorTools::interpolate_boundary_values (dof_handler,0,(* exact_solution),constraints , fe_collection.component_mask(velocities));
 
 
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -182,7 +189,7 @@ void StokesProblem <dim>::setup_system(){
 		// component_to_system_index: "Compute the shape function for the given vector component and index."
 		constraints.add_line (first_pressure_dof);
 		Vector<double> values(3);
-		exact_solution.vector_value(Pnt_in_real,values);
+		(* exact_solution).vector_value(Pnt_in_real,values);
 		// std::cout<< "Pnt_in_real :" << Pnt_in_real<<" "<<values[2]<< std::endl;
 		constraints.set_inhomogeneity (first_pressure_dof,values[dim]);
 
@@ -456,7 +463,7 @@ double StokesProblem <dim>::exact_pressure_mean_value () const
 	typename hp::DoFHandler<dim>::active_cell_iterator
 	cell = dof_handler.begin_active(),
 	endc = dof_handler.end();
-	ExactSolution<dim> exact_solution;
+	//ExactSolution<dim> exact_solution;
 	for (; cell!=endc; ++cell)
 	{
 		hp_fe_values.reinit (cell);
@@ -465,7 +472,7 @@ double StokesProblem <dim>::exact_pressure_mean_value () const
 		const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
 		const unsigned int n_q_points = fe_values.n_quadrature_points;
 		values.resize(n_q_points,Vector<double>(dim+1));
-		exact_solution.vector_value_list(fe_values.get_quadrature_points(), values);
+		(*exact_solution).vector_value_list(fe_values.get_quadrature_points(), values);
 		for (unsigned int q=0; q<n_q_points; ++q)
 		{
 			domain_mean_val_p += values[q][dim]*JxW_values[q];
@@ -518,8 +525,8 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<
 		fe_values[velocities].get_function_gradients(solution, gradients);
 		fe_values[pressure].get_function_values(solution, values);
 
-		exact_solution.vector_gradient_list(quadrature_points, exact_solution_gradients);
-		exact_solution.vector_value_list(quadrature_points, exact_solution_values);
+		(*exact_solution).vector_gradient_list(quadrature_points, exact_solution_gradients);
+		(*exact_solution).vector_value_list(quadrature_points, exact_solution_values);
 
 
 
