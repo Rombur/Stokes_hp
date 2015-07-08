@@ -7,7 +7,7 @@ int main ()
 	try
 	{
 		deallog.depth_console (0);
-	  StokesProblem<2> stokesproblem;
+	  StokesProblem<2> stokesproblem(1);
 	  stokesproblem.run();
 	}
 	catch (std::exception &exc)

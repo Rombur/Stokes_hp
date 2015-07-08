@@ -52,8 +52,8 @@
 #include <deal.II/hp/fe_values.h>
 
 #include <deal.II/base/std_cxx1x/bind.h>
-#include "ExactSolution1.hh"
-#include "ExactSolution2.hh"
+#include "ExactSolutionEx1.hh"
+#include "ExactSolutionEx2.hh"
 #include "RightHandSide.hh"
 //#include "RightHandSideLocal.hh"
 
@@ -64,7 +64,7 @@ template <int dim>
 class StokesProblem
 {
   public:
-    StokesProblem ();
+    StokesProblem (int exemple);
     ~StokesProblem();
     void run();
 

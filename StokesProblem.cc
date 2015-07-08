@@ -23,7 +23,7 @@ template <int dim>
 StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max_degree (10), Tolerance (1e-16)
 
 {
-	if (example==1)
+	if (exemple==1)
 		exact_solution = new ExactSolutionEx1<dim>();
 	else
 		exact_solution = new ExactSolutionEx2<dim>();
@@ -61,7 +61,7 @@ StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max
 
 /*.....................................................................................*/
 template <int dim>
-StokesProblem <dim>::~StokesProblem(int exemple)
+StokesProblem <dim>::~StokesProblem()
 {
  dof_handler.clear();
  delete exact_solution;
@@ -189,7 +189,7 @@ void StokesProblem <dim>::setup_system(){
 		// component_to_system_index: "Compute the shape function for the given vector component and index."
 		constraints.add_line (first_pressure_dof);
 		Vector<double> values(3);
-		(* exact_solution).vector_value(Pnt_in_real,values);
+		 exact_solution->vector_value(Pnt_in_real,values);
 		// std::cout<< "Pnt_in_real :" << Pnt_in_real<<" "<<values[2]<< std::endl;
 		constraints.set_inhomogeneity (first_pressure_dof,values[dim]);
 
@@ -454,7 +454,7 @@ double StokesProblem <dim>::exact_pressure_mean_value () const
 {
 
 	// get pressure such that satisfies mean value property:
-	hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_JxW_values);
+	hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values | update_quadrature_points|update_JxW_values);
 	const FEValuesExtractors::Scalar pressure (dim);
 
 	std::vector<Vector<double> > values;
@@ -472,7 +472,7 @@ double StokesProblem <dim>::exact_pressure_mean_value () const
 		const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
 		const unsigned int n_q_points = fe_values.n_quadrature_points;
 		values.resize(n_q_points,Vector<double>(dim+1));
-		(*exact_solution).vector_value_list(fe_values.get_quadrature_points(), values);
+		exact_solution->vector_value_list(fe_values.get_quadrature_points(), values);
 		for (unsigned int q=0; q<n_q_points; ++q)
 		{
 			domain_mean_val_p += values[q][dim]*JxW_values[q];
@@ -525,8 +525,8 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<
 		fe_values[velocities].get_function_gradients(solution, gradients);
 		fe_values[pressure].get_function_values(solution, values);
 
-		(*exact_solution).vector_gradient_list(quadrature_points, exact_solution_gradients);
-		(*exact_solution).vector_value_list(quadrature_points, exact_solution_values);
+		exact_solution->vector_gradient_list(quadrature_points, exact_solution_gradients);
+		exact_solution->vector_value_list(quadrature_points, exact_solution_values);
 
 
 
