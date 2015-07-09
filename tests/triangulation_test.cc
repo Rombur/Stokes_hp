@@ -10,7 +10,7 @@ using namespace dealii;
 
 TEST_CASE("Build triangulation patch","[patch]")
 {
-  StokesProblem<2> stokes_problem;
+  StokesProblem<2> stokes_problem(1);
 
   Triangulation<2> triangulation;
   GridGenerator::hyper_cube(triangulation);
