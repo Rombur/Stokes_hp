@@ -88,7 +88,8 @@ void StokesProblem <dim>::generate_mesh(){
  std::ofstream out ("grid-hyper_cube.eps");
  GridOut grid_out;
  grid_out.write_eps (triangulation, out);
-*/
+ */
+
 
  std::vector<Point<dim> > vertices (8);
 
@@ -119,11 +120,10 @@ void StokesProblem <dim>::generate_mesh(){
  cell[2].vertices[3]=7;
 
  triangulation.create_triangulation(vertices,cell,SubCellData());
- triangulation.refine_global (3);
+ triangulation.refine_global (1);
  std::ofstream out ("grid-L-Shape.eps");
  GridOut grid_out;
  grid_out.write_eps (triangulation, out);
-
 
  // std::cout<<"Number of active cells: "<< triangulation.n_active_cells() << std::endl;
  // std::cout<<"Total number of cells: " << triangulation.n_cells() << std::endl ;
@@ -330,7 +330,6 @@ void StokesProblem <dim>::assemble_system () {
 		//local system to global system
 		local_dof_indices.resize (dofs_per_cell);
 		cell->get_dof_indices (local_dof_indices);
-
 		constraints.distribute_local_to_global (local_matrix, local_rhs, local_dof_indices, system_matrix, system_rhs);
 	} // end of iteration for cells
 
@@ -358,13 +357,22 @@ void StokesProblem <dim>::solve ()
 	A_inverse.initialize (system_matrix,
 			SparseDirectUMFPACK::AdditionalData());
 	A_inverse.vmult (solution, system_rhs);
+
+/*
+for (unsigned int i=0; i<system_rhs.size() ; ++i)
+std::cout<< "system_rhs [ " << i << " ]" <<  system_rhs(i) << std::endl;
+std::cout<<std::endl;
+*/
+
 	constraints.distribute (solution);
 	//note: for square domain even without normalization of zero pressure mean value, the error orders was attained
 	 //basically we did this normalization for L-shaped domains
 
+
+
 	solution.block (1).add (-1.0 * pressure_mean_value ());
 	constraints.distribute (solution);
-
+	
 }
 
 
@@ -2102,8 +2110,7 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 //.................................................................................................................................
 //Output_result
 template <int dim>
-void StokesProblem <dim>:: output_results (const unsigned int cycle , Vector<float> &marked_cells,  Vector<double> &est_per_cell , Vector<double> &error_per_cell,
-Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est , Vector<double> &hp_Conv_Est)
+void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err )
 
 {
 
@@ -2137,21 +2144,22 @@ Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, Vecto
  DataOut<dim,hp::DoFHandler<dim> > data_out;
 
  data_out.attach_dof_handler (dof_handler);
-
+ 
 
  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
 
 
- data_out.add_data_vector (marked_cells, "marked_cells");
+ //data_out.add_data_vector (marked_cells, "marked_cells");
  data_out.add_data_vector (fe_degrees, "fe_degree");
  data_out.add_data_vector (est_per_cell, "Error_Estimator");
  data_out.add_data_vector (error_per_cell, "Error");
  data_out.add_data_vector (Vect_Pressure_Err, "Pressure_Error");
  data_out.add_data_vector (Vect_grad_Velocity_Err, "Grad_Velocity_Error");
+/*
  data_out.add_data_vector (h_Conv_Est, "h_refine_Conv_Est");
  data_out.add_data_vector (p_Conv_Est, "p_refine_Conv_Est");
  data_out.add_data_vector (hp_Conv_Est, "hp_refine_Conv_Est");
-
+*/
 
  data_out.build_patches ();
  std::string filename = "solution-" +
@@ -2292,15 +2300,18 @@ void StokesProblem <dim>::run()
 		Vector<double> est_per_cell (triangulation.n_active_cells());
 		estimate(est_per_cell);
 
-		/*
-     double L2_norm_est= est_per_cell.l2_norm();
-     std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
-     output_results(cycle, est_per_cell, error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err);
-     triangulation.refine_global (1);
-		 */
+
+		// for uniform refinement:
+		double L2_norm_est= est_per_cell.l2_norm();
+		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
+
+		//  output_results (cycle , est_per_cell , error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err );    
+		triangulation.refine_global (1);
 
 		//  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
 
+		/*
+// for adaptive h- and p- refinment:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
 		std::cout<<std::endl;
@@ -2319,6 +2330,8 @@ void StokesProblem <dim>::run()
 
 		if (L2_norm_est < Tolerance)
 			break;
+		 */
+
 
 	}// cycle
 

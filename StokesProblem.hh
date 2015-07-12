@@ -116,9 +116,11 @@ class StokesProblem
     
     void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
     std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map,  Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est , Vector<double> &hp_Conv_Est);
-
+/*
     void output_results (const unsigned int cycle , Vector<float> & marked_cells , Vector<double> &est_per_cell , Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
     		Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est );
+*/
+void output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err );
 
     void refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
     std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
