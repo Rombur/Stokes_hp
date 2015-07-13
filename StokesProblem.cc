@@ -120,7 +120,7 @@ void StokesProblem <dim>::generate_mesh(){
  cell[2].vertices[3]=7;
 
  triangulation.create_triangulation(vertices,cell,SubCellData());
- triangulation.refine_global (1);
+ triangulation.refine_global (3);
  std::ofstream out ("grid-L-Shape.eps");
  GridOut grid_out;
  grid_out.write_eps (triangulation, out);
@@ -349,7 +349,7 @@ void StokesProblem <dim>::assemble_system () {
 //This is implemented using the SparseDirectUMFPACK class that uses the UMFPACK direct solver to compute the decomposition.
 
 
-
+/*
 template <int dim>
 void StokesProblem <dim>::solve ()
 {
@@ -358,25 +358,16 @@ void StokesProblem <dim>::solve ()
 			SparseDirectUMFPACK::AdditionalData());
 	A_inverse.vmult (solution, system_rhs);
 
-/*
-for (unsigned int i=0; i<system_rhs.size() ; ++i)
-std::cout<< "system_rhs [ " << i << " ]" <<  system_rhs(i) << std::endl;
-std::cout<<std::endl;
-*/
 
 	constraints.distribute (solution);
 	//note: for square domain even without normalization of zero pressure mean value, the error orders was attained
 	 //basically we did this normalization for L-shaped domains
 
-
-
 	solution.block (1).add (-1.0 * pressure_mean_value ());
-	constraints.distribute (solution);
-	
+	constraints.distribute (solution);	
 }
+*/
 
-
-/*
 template <int dim>
 void StokesProblem <dim>::solve ()
 {
@@ -392,18 +383,23 @@ void StokesProblem <dim>::solve ()
 
    SchurComplement schur_complement (system_matrix, A_inverse);
    SolverControl solver_control (solution.block(1).size(),
-	1e-6*schur_rhs.l2_norm());
+   1e-6*schur_rhs.l2_norm());
 
-   SolverCG<>    cg (solver_control);
-
+  // SolverCG<>    cg (solver_control);
+   SolverGMRES<>     gmres (solver_control);
    SparseDirectUMFPACK preconditioner;
    preconditioner.initialize (system_matrix.block(1,1),
 	SparseDirectUMFPACK::AdditionalData());
-
-   cg.solve (schur_complement, solution.block(1), schur_rhs,
-	preconditioner);
+   gmres.solve(schur_complement, solution.block(1), schur_rhs,
+			preconditioner);
+  // cg.solve (schur_complement, solution.block(1), schur_rhs, preconditioner);
+   
    //cout<<" residuals of each step " << solver_control.enable_history_data() << endl;
    constraints.distribute (solution);
+   std::cout << "   "
+                << solver_control.last_step()
+                << " GMRES iterations for Stokes subsystem."
+                << std::endl; 
    //  std::cout << "  "
    //<< solver_control.last_step()
    //<< " outer CG Schur complement iterations for pressure"
@@ -413,13 +409,12 @@ void StokesProblem <dim>::solve ()
  tmp *= -1.0;
  tmp += system_rhs.block(0);
  A_inverse.vmult (solution.block(0), tmp);
-
  constraints.distribute (solution);
+ 
+ // Normalized the solution with keeping pressure's mean value=0.
  solution.block (1).add (-1.0 * pressure_mean_value ());
  constraints.distribute (solution);
 }
-*/
-
 /*......................................................................................*/
 template <int dim>
 double StokesProblem <dim>::pressure_mean_value () const
@@ -2110,8 +2105,13 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 //.................................................................................................................................
 //Output_result
 template <int dim>
-void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err )
 
+void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<float> & marked_cells , Vector<double> &est_per_cell , Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
+   		Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est )
+/*
+ // for uniform h-refinemnet
+void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err )
+*/
 {
 
  Vector<float> fe_degrees (triangulation.n_active_cells());
@@ -2149,17 +2149,17 @@ void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<doub
  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
 
 
- //data_out.add_data_vector (marked_cells, "marked_cells");
+ data_out.add_data_vector (marked_cells, "marked_cells");
  data_out.add_data_vector (fe_degrees, "fe_degree");
  data_out.add_data_vector (est_per_cell, "Error_Estimator");
  data_out.add_data_vector (error_per_cell, "Error");
  data_out.add_data_vector (Vect_Pressure_Err, "Pressure_Error");
  data_out.add_data_vector (Vect_grad_Velocity_Err, "Grad_Velocity_Error");
-/*
+
  data_out.add_data_vector (h_Conv_Est, "h_refine_Conv_Est");
  data_out.add_data_vector (p_Conv_Est, "p_refine_Conv_Est");
  data_out.add_data_vector (hp_Conv_Est, "hp_refine_Conv_Est");
-*/
+
 
  data_out.build_patches ();
  std::string filename = "solution-" +
@@ -2300,7 +2300,7 @@ void StokesProblem <dim>::run()
 		Vector<double> est_per_cell (triangulation.n_active_cells());
 		estimate(est_per_cell);
 
-
+/*
 		// for uniform refinement:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
@@ -2309,8 +2309,10 @@ void StokesProblem <dim>::run()
 		triangulation.refine_global (1);
 
 		//  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
+	*/	
+		
 
-		/*
+		
 // for adaptive h- and p- refinment:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
@@ -2330,7 +2332,7 @@ void StokesProblem <dim>::run()
 
 		if (L2_norm_est < Tolerance)
 			break;
-		 */
+		 
 
 
 	}// cycle
