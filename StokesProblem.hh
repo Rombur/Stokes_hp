@@ -87,7 +87,7 @@ class StokesProblem
     double pressure_mean_value () const;
     double exact_pressure_mean_value () const;
    
-    void compute_error (Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err);
+    void compute_error (Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, Vector<double> &Vect_Velocity_Err);
     void estimate (Vector<double> &est_per_cell);
     
     void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler, std::map<typename Triangulation<dim>::active_cell_iterator, typename hp::DoFHandler<dim>::active_cell_iterator> & patch_to_global_tria_map);
@@ -112,21 +112,22 @@ class StokesProblem
     std::vector<typename hp::DoFHandler<dim>::cell_iterator> get_cells_at_coarsest_common_level ( const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch);
 
     bool decreasing (const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator> &i, const std::pair<double,typename hp::DoFHandler<dim>::active_cell_iterator > &j);
-   
-    
-    void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
-    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map,  Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est , Vector<double> &hp_Conv_Est);
 
+
+    void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
+    		std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map,  Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est , Vector<double> &hp_Conv_Est);
+    /*
  // for adaptive refinemnet
     void output_results (const unsigned int cycle , Vector<float> & marked_cells , Vector<double> &est_per_cell , Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
     		Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est );
+     */
 
- /*    
-  // for uniform h-refinmenet
-void output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err );
-*/
+
+    // for uniform h-refinmenet
+    void output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err, Vector<double> & Vect_Velocity_Err );
+
     void refine_in_h_p (const unsigned int cycle, std::vector<typename hp::DoFHandler<dim>::active_cell_iterator> &candidate_cell_set, 
-    std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
+    		std::map<typename hp::DoFHandler<dim>::active_cell_iterator, bool > &p_ref_map );
 
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
@@ -134,7 +135,7 @@ void output_results (const unsigned int cycle , Vector<double> & est_per_cell , 
     hp::FECollection<dim> fe_collection;
     hp::QCollection<dim> quadrature_collection;
     hp::QCollection<dim-1> face_quadrature_collection;
-    
+
     hp::QCollection<dim> quadrature_collection_Err;
     hp::QCollection<dim-1> face_quadrature_collection_Err;
 

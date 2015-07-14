@@ -120,7 +120,7 @@ void StokesProblem <dim>::generate_mesh(){
  cell[2].vertices[3]=7;
 
  triangulation.create_triangulation(vertices,cell,SubCellData());
- triangulation.refine_global (3);
+ triangulation.refine_global (1);
  std::ofstream out ("grid-L-Shape.eps");
  GridOut grid_out;
  grid_out.write_eps (triangulation, out);
@@ -349,7 +349,7 @@ void StokesProblem <dim>::assemble_system () {
 //This is implemented using the SparseDirectUMFPACK class that uses the UMFPACK direct solver to compute the decomposition.
 
 
-/*
+
 template <int dim>
 void StokesProblem <dim>::solve ()
 {
@@ -365,9 +365,12 @@ void StokesProblem <dim>::solve ()
 
 	solution.block (1).add (-1.0 * pressure_mean_value ());
 	constraints.distribute (solution);	
+	
 }
-*/
 
+
+
+/*
 template <int dim>
 void StokesProblem <dim>::solve ()
 {
@@ -415,6 +418,8 @@ void StokesProblem <dim>::solve ()
  solution.block (1).add (-1.0 * pressure_mean_value ());
  constraints.distribute (solution);
 }
+*/
+
 /*......................................................................................*/
 template <int dim>
 double StokesProblem <dim>::pressure_mean_value () const
@@ -490,7 +495,7 @@ double StokesProblem <dim>::exact_pressure_mean_value () const
 // compute_error
 
 template <int dim>
-void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err)
+void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, Vector<double> & Vec_Velocity_Err)
 {
 	hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection_Err, update_values|update_quadrature_points|update_JxW_values|update_gradients|update_hessians);
 	const FEValuesExtractors::Vector velocities (0);
@@ -498,6 +503,8 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<
 
 	std::vector<double> values;
 	std::vector<Tensor<2,dim> > gradients;
+	std::vector<Tensor<1,dim> > velocity_values;
+	
 	std::vector<std::vector<Tensor<1,dim> > > exact_solution_gradients;
 	std::vector<Vector<double> > exact_solution_values;
 
@@ -511,52 +518,55 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<
 	unsigned int cell_index=0;
 	for (; cell!=endc; ++cell,++cell_index)
 	{
-		double subtract_p=0;
-		double grad_u_vals=0;
+		double subtract_p=0.;
+		double grad_u_vals=0.;
+		double u_vals=0.;
 		hp_fe_values.reinit (cell);
 		const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
 		const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
 		const std::vector<Point<dim> >& quadrature_points = fe_values.get_quadrature_points();
 		const unsigned int n_q_points =fe_values.n_quadrature_points;
 
-
+		velocity_values.resize(n_q_points);
 		gradients.resize(n_q_points);
 		values.resize(n_q_points);
 		exact_solution_gradients.resize(n_q_points , std::vector<Tensor<1,dim> > (dim+1));
 		exact_solution_values.resize(n_q_points, Vector<double> (dim+1));
-
+ 
+		fe_values[velocities].get_function_values(solution, velocity_values);
 		fe_values[velocities].get_function_gradients(solution, gradients);
 		fe_values[pressure].get_function_values(solution, values);
 
 		exact_solution->vector_gradient_list(quadrature_points, exact_solution_gradients);
 		exact_solution->vector_value_list(quadrature_points, exact_solution_values);
-
-
-
-
+ 
 		double diff_laplace_u_grad_p=0;
 
 		for (unsigned int q=0; q<n_q_points; ++q)
 		{
 			//std::cout<<values[q]<<" ";
 			values[q] -= exact_solution_values[q](dim);
+			
 			// std::cout<< exact_solution_values[q](dim)<<" "<<values[q]<<std::endl;
 			subtract_p +=values[q]*values[q]* JxW_values[q];
 
 			for (unsigned int i=0; i<dim; ++i)
 			{
-
+				velocity_values[q][i]-=exact_solution_values[q](i);
 				gradients[q][i]-=exact_solution_gradients[q][i];
 			}
 
 			grad_u_vals += gradients[q].norm_square() * JxW_values[q];
+			u_vals += velocity_values[q].norm_square() * JxW_values[q];
 
 		} // q
 
-		// I believe this one, as my old calculation of Err is wrong!
-		error_per_cell(cell_index) =sqrt(subtract_p) +sqrt( grad_u_vals);
+
+		error_per_cell(cell_index) = sqrt (subtract_p + grad_u_vals);
+
 		Vect_Pressure_Err(cell_index)=sqrt(subtract_p);
 		Vect_grad_Velocity_Err(cell_index)=sqrt(grad_u_vals);
+		Vec_Velocity_Err(cell_index)=sqrt(u_vals);
 
 	}// cell
 	//  std::cout<< "Vector of Compute Error per Cell: " << error_per_cell<< std::endl ;
@@ -567,7 +577,10 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, Vector<
 	double L2_norm_grad_velocity_Err= Vect_grad_Velocity_Err.l2_norm();
 	std::cout<< "L2_norm_grad_velocity_Err : "<< L2_norm_grad_velocity_Err << std::endl;
 	std::cout<< std::endl;
-
+	double L2_norm_velocity_Err= Vec_Velocity_Err.l2_norm();
+	std::cout<< "L2_norm_velocity_Err : "<< L2_norm_velocity_Err << std::endl;
+	std::cout<< std::endl;
+	std::cout<< std::endl;
 	double L2_norm_pressure_Err=Vect_Pressure_Err.l2_norm();
 	std::cout<< "L2_norm_pressure_Err : "<< L2_norm_pressure_Err << std::endl;
 	std::cout<< std::endl;
@@ -2105,13 +2118,15 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 //.................................................................................................................................
 //Output_result
 template <int dim>
-
+/*
 void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<float> & marked_cells , Vector<double> &est_per_cell , Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
    		Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est )
-/*
+ */  		
+   		
+
  // for uniform h-refinemnet
-void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err )
-*/
+void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err, Vector<double> & Vec_Velocity_Err )
+
 {
 
  Vector<float> fe_degrees (triangulation.n_active_cells());
@@ -2149,17 +2164,19 @@ void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<doub
  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
 
 
- data_out.add_data_vector (marked_cells, "marked_cells");
+ //data_out.add_data_vector (marked_cells, "marked_cells");
  data_out.add_data_vector (fe_degrees, "fe_degree");
  data_out.add_data_vector (est_per_cell, "Error_Estimator");
  data_out.add_data_vector (error_per_cell, "Error");
  data_out.add_data_vector (Vect_Pressure_Err, "Pressure_Error");
  data_out.add_data_vector (Vect_grad_Velocity_Err, "Grad_Velocity_Error");
-
+ data_out.add_data_vector (Vec_Velocity_Err, "Vec_Velocity_Err");
+ 
+/*
  data_out.add_data_vector (h_Conv_Est, "h_refine_Conv_Est");
  data_out.add_data_vector (p_Conv_Est, "p_refine_Conv_Est");
  data_out.add_data_vector (hp_Conv_Est, "hp_refine_Conv_Est");
-
+*/
 
  data_out.build_patches ();
  std::string filename = "solution-" +
@@ -2295,12 +2312,13 @@ void StokesProblem <dim>::run()
 		Vector<double> error_per_cell (triangulation.n_active_cells());
 		Vector<double> Vect_Pressure_Err(triangulation.n_active_cells());
 		Vector<double> Vect_grad_Velocity_Err(triangulation.n_active_cells());
-
-		compute_error  (error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err);
+		Vector<double> Vect_Velocity_Err(triangulation.n_active_cells());
+		
+		compute_error  (error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err, Vect_Velocity_Err);
 		Vector<double> est_per_cell (triangulation.n_active_cells());
 		estimate(est_per_cell);
 
-/*
+
 		// for uniform refinement:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
@@ -2309,10 +2327,10 @@ void StokesProblem <dim>::run()
 		triangulation.refine_global (1);
 
 		//  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
-	*/	
+	
 		
 
-		
+/*		
 // for adaptive h- and p- refinment:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
@@ -2332,7 +2350,7 @@ void StokesProblem <dim>::run()
 
 		if (L2_norm_est < Tolerance)
 			break;
-		 
+*/		 
 
 
 	}// cycle
