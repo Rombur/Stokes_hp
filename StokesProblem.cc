@@ -25,8 +25,11 @@ StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max
 {
 	if (exemple==1)
 		exact_solution = new ExactSolutionEx1<dim>();
-	else
+	else if (exemple==2)
 		exact_solution = new ExactSolutionEx2<dim>();
+	else 
+		exact_solution = new ExactSolutionEx3<dim>();
+	
 	for (unsigned int degree=1; degree<=max_degree; ++degree)
 	{
 
@@ -44,14 +47,14 @@ StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max
 		face_quadrature_collection_Err.push_back ( QGaussLobatto<dim-1> (degree+4));
 */
 
-		fe_collection.push_back (FESystem<dim>(FE_Q<dim> (degree + 2), dim,
-				FE_Q<dim> (degree+1), 1));
+		fe_collection.push_back (FESystem<dim>(FE_Q<dim> (degree + 1), dim,
+				FE_Q<dim> (degree), 1));
 
-		quadrature_collection.push_back(QGauss<dim> (degree+3));
-		face_quadrature_collection.push_back (QGauss<dim-1> (degree+3));
+		quadrature_collection.push_back(QGauss<dim> (degree+2));
+		face_quadrature_collection.push_back (QGauss<dim-1> (degree+2));
 
-		quadrature_collection_Err.push_back(QGauss<dim> (degree+4));
-		face_quadrature_collection_Err.push_back (QGauss<dim-1> (degree+4));
+		quadrature_collection_Err.push_back(QGauss<dim> (degree+3));
+		face_quadrature_collection_Err.push_back (QGauss<dim-1> (degree+3));
 	}
 	fe_collection.push_back (FESystem<dim>(FE_Nothing<dim>(), dim,
 			FE_Nothing<dim>(), 1));
@@ -81,16 +84,16 @@ bool StokesProblem <dim>::decreasing (const std::pair<double,typename hp::DoFHan
 template <int dim>
 void StokesProblem <dim>::generate_mesh(){
 
-/*
+ // 	// example 3.1, paper Morin-Nocheto- Uzawa
  GridGenerator::hyper_cube (triangulation, -1, 1);
- triangulation.refine_global (1);
+ triangulation.refine_global (2);
 
  std::ofstream out ("grid-hyper_cube.eps");
  GridOut grid_out;
  grid_out.write_eps (triangulation, out);
- */
 
 
+/*
  std::vector<Point<dim> > vertices (8);
 
  vertices [0]=Point<dim> (-1,-1);
@@ -124,7 +127,9 @@ void StokesProblem <dim>::generate_mesh(){
  std::ofstream out ("grid-L-Shape.eps");
  GridOut grid_out;
  grid_out.write_eps (triangulation, out);
-
+*/
+ 
+ 
  // std::cout<<"Number of active cells: "<< triangulation.n_active_cells() << std::endl;
  // std::cout<<"Total number of cells: " << triangulation.n_cells() << std::endl ;
 }
@@ -362,10 +367,10 @@ void StokesProblem <dim>::solve ()
 	constraints.distribute (solution);
 	//note: for square domain even without normalization of zero pressure mean value, the error orders was attained
 	 //basically we did this normalization for L-shaped domains
-
+/*
 	solution.block (1).add (-1.0 * pressure_mean_value ());
 	constraints.distribute (solution);	
-	
+	*/
 }
 
 

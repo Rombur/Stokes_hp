@@ -52,8 +52,11 @@
 #include <deal.II/hp/fe_values.h>
 
 #include <deal.II/base/std_cxx1x/bind.h>
+
 #include "ExactSolutionEx1.hh"
 #include "ExactSolutionEx2.hh"
+#include "ExactSolutionEx3.hh"
+
 #include "RightHandSide.hh"
 //#include "RightHandSideLocal.hh"
 
@@ -73,7 +76,7 @@ class StokesProblem
     void build_triangulation_from_patch (const std::vector<typename hp::DoFHandler<dim>::active_cell_iterator>  &patch, Triangulation<dim> &local_triangulation, unsigned int &level_h_refine, unsigned int &level_p_refine, std::map<typename Triangulation<dim>::active_cell_iterator, typename hp::DoFHandler<dim>::active_cell_iterator> & patch_to_global_tria_map);
 
   private:
-
+    
     const RightHandSide<dim> rhs_function;
     //const ExactSolution<dim> exact_solution;
     Function<dim>* exact_solution;
