@@ -32,7 +32,6 @@ StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max
 	
 	for (unsigned int degree=1; degree<=max_degree; ++degree)
 	{
-
 /*
 		// GaussLobatto polynomials and quadratures:
 
@@ -47,14 +46,14 @@ StokesProblem<dim>::StokesProblem(int exemple): dof_handler(triangulation),  max
 		face_quadrature_collection_Err.push_back ( QGaussLobatto<dim-1> (degree+4));
 */
 
-		fe_collection.push_back (FESystem<dim>(FE_Q<dim> (degree + 1), dim,
-				FE_Q<dim> (degree), 1));
+		fe_collection.push_back (FESystem<dim>(FE_Q<dim> (degree + 2), dim,
+				FE_Q<dim> (degree+1), 1));
 
-		quadrature_collection.push_back(QGauss<dim> (degree+2));
-		face_quadrature_collection.push_back (QGauss<dim-1> (degree+2));
+		quadrature_collection.push_back(QGauss<dim> (degree+3));
+		face_quadrature_collection.push_back (QGauss<dim-1> (degree+3));
 
-		quadrature_collection_Err.push_back(QGauss<dim> (degree+3));
-		face_quadrature_collection_Err.push_back (QGauss<dim-1> (degree+3));
+		quadrature_collection_Err.push_back(QGauss<dim> (degree+4));
+		face_quadrature_collection_Err.push_back (QGauss<dim-1> (degree+4));
 	}
 	fe_collection.push_back (FESystem<dim>(FE_Nothing<dim>(), dim,
 			FE_Nothing<dim>(), 1));
@@ -984,21 +983,25 @@ void StokesProblem <dim>::build_triangulation_from_patch (const std::vector<type
 
 						if (patch_to_global_tria_map_tmp.find(cell_ttt->child(c)) == patch_to_global_tria_map_tmp.end())
 						{
-							//std::cout<< " making pair ... "<<std::endl;
+							std::cout<<std::endl;
+							//std::cout<< "making pair ... "<<std::endl;
+							std::cout<<"cell_ttt   "<<cell_ttt<<std::endl;							
+							//std::cout<< "Accessing     cell_ttt->child(c)   " << cell_ttt->child(c) << std::endl;							
+							//std::cout<< "Accessing      patch_to_global_tria_map_tmp[cell_ttt]->child(c)   " << patch_to_global_tria_map_tmp[cell_ttt]->child(c) << std::endl;
 							patch_to_global_tria_map_tmp.insert (std::make_pair(cell_ttt ->child(c), patch_to_global_tria_map_tmp[cell_ttt]->child(c)));
 							//std::cout<< "before assert ...       pairing the cells with the same centers    ... " << std::endl;
 							AssertThrow( (std::fabs (cell_ttt ->child(c)->center()(0)- patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(0)) < 1e-16 && std::fabs (cell_ttt ->child(c)->center()(1)-patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(1)) < 1e-16) , ExcInternalError());
 							// std::cout<< "after assert ... " << std::endl;
 						}
 					}
-					//patch_to_global_tria_map_tmp.erase(cell_ttt);
-
+					patch_to_global_tria_map_tmp.erase(cell_ttt);
+					std::cout<<"erased cell_ttt   "<<cell_ttt<<std::endl;
+					std::cout<<std::endl;
 				}
 			}
 			// how do we know that here they pair the cells with the same center?
 		}
 		//  std::cout<<"the condition of DO loop is still satisfied... refinement_necessary " << refinement_necessary <<std::endl;
-
 	}
 
 	while (refinement_necessary);
@@ -2032,7 +2035,6 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 
 		else
 		{
-
 			convergence_est_per_cell(cell_index)=p_convergence_est_per_cell;
 			indicator_per_cell=convergence_est_per_cell(cell_index)*est_per_cell(cell_index);
 			hp_Conv_Est(cell_index)=indicator_per_cell;
@@ -2041,7 +2043,6 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 
 			std::cout<< "P-refinement_marking ...  =>  p_ref_map[cell] = "  << p_ref_map[cell] << std::endl;
 			p_ref_map.insert (std::make_pair(cell, true));
-
 		}  //else
 
 		to_be_sorted.push_back(std::make_pair(indicator_per_cell,cell));
@@ -2062,17 +2063,17 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 	{
 		min_conv_estimator = std::min ( min_conv_estimator, convergence_est_per_cell(index) );
 		//min_conv_estimator = std::min ( min_conv_estimator, hp_Conv_Est(index) );
-		std::cout<<std::endl;
-		std::cout<< "convergence_est_per_cell [" << index << " ] ="<<  convergence_est_per_cell(index) << std::endl;
-		std::cout<< "est_per_cell [" << index << " ] ="<< est_per_cell(index) << std::endl;
-		std::cout<< "  hp_Conv_Est(index) [" << index << " ] ="<<   hp_Conv_Est(index) << " ?= " <<  " hp 2 _Conv_Est(index)[" << index << " ] ="<<   hp_Conv_Est2(index) << std::endl;
-		std::cout<< "refinement_marking ...  =>  p-ref==1,  h-ref==0 : "  << p_ref_map[celll] << std::endl;
-		std::cout<<std::endl;
+		//std::cout<<std::endl;
+		//std::cout<< "convergence_est_per_cell [" << index << " ] ="<<  convergence_est_per_cell(index) << std::endl;
+		//std::cout<< "est_per_cell [" << index << " ] ="<< est_per_cell(index) << std::endl;
+		//std::cout<< "  hp_Conv_Est(index) [" << index << " ] ="<<   hp_Conv_Est(index) << " ?= " <<  " hp 2 _Conv_Est(index)[" << index << " ] ="<<   hp_Conv_Est2(index) << std::endl;
+		//std::cout<< "refinement_marking ...  =>  p-ref==1,  h-ref==0 : "  << p_ref_map[celll] << std::endl;
+		//std::cout<<std::endl;
 	}
 	std::cout<<std::endl;
 	std::cout<< "min_conv_estimator = " << min_conv_estimator << std::endl;
     //double theta= min_conv_estimator-0.0001;
-	double theta= 0.5;
+	double theta= 0.95;
 	std::cout<< "theta = " << theta << std::endl;
 	std::cout<<std::endl;
 	std::sort (to_be_sorted.begin(), to_be_sorted.end(), std_cxx1x::bind(&StokesProblem<dim>::decreasing,this,std_cxx1x::_1,std_cxx1x::_2));
@@ -2123,15 +2124,15 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle, Vector<float
 //.................................................................................................................................
 //Output_result
 template <int dim>
-/*
+
 void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<float> & marked_cells , Vector<double> &est_per_cell , Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
    		Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est )
- */  		
+ 		
    		
-
+/*
  // for uniform h-refinemnet
 void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<double> & est_per_cell , Vector<double> & error_per_cell, Vector<double> & Vect_Pressure_Err, Vector<double> & Vect_grad_Velocity_Err, Vector<double> & Vec_Velocity_Err )
-
+*/
 {
 
  Vector<float> fe_degrees (triangulation.n_active_cells());
@@ -2143,9 +2144,9 @@ void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<doub
      fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
  }
 
- std::vector<std::string> solution_names (dim, "velocity");
+// std::vector<std::string> solution_names (dim, "velocity");
 
- //std::vector<std::string> solution_names;
+std::vector<std::string> solution_names;
  solution_names.push_back ("x_velocity");
  solution_names.push_back ("y_velocity");
  solution_names.push_back ("pressure");
@@ -2153,8 +2154,8 @@ void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<doub
  //std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
  //(dim, DataComponentInterpretation::component_is_part_of_vector);
 
- std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
- (dim, DataComponentInterpretation::component_is_part_of_vector);
+ std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation;
+ //(dim, DataComponentInterpretation::component_is_part_of_vector);
 
  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
@@ -2169,19 +2170,17 @@ void StokesProblem <dim>::output_results (const unsigned int cycle , Vector<doub
  data_out.add_data_vector (solution, solution_names,DataOut<dim,hp::DoFHandler<dim> >::type_dof_data,data_component_interpretation);
 
 
- //data_out.add_data_vector (marked_cells, "marked_cells");
+ data_out.add_data_vector (marked_cells, "marked_cells");
  data_out.add_data_vector (fe_degrees, "fe_degree");
  data_out.add_data_vector (est_per_cell, "Error_Estimator");
  data_out.add_data_vector (error_per_cell, "Error");
  data_out.add_data_vector (Vect_Pressure_Err, "Pressure_Error");
  data_out.add_data_vector (Vect_grad_Velocity_Err, "Grad_Velocity_Error");
- data_out.add_data_vector (Vec_Velocity_Err, "Vec_Velocity_Err");
+// data_out.add_data_vector (Vec_Velocity_Err, "Vec_Velocity_Err");
  
-/*
  data_out.add_data_vector (h_Conv_Est, "h_refine_Conv_Est");
  data_out.add_data_vector (p_Conv_Est, "p_refine_Conv_Est");
  data_out.add_data_vector (hp_Conv_Est, "hp_refine_Conv_Est");
-*/
 
  data_out.build_patches ();
  std::string filename = "solution-" +
@@ -2323,7 +2322,7 @@ void StokesProblem <dim>::run()
 		Vector<double> est_per_cell (triangulation.n_active_cells());
 		estimate(est_per_cell);
 
-
+/*
 		// for uniform refinement:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
@@ -2332,10 +2331,10 @@ void StokesProblem <dim>::run()
 		triangulation.refine_global (1);
 
 		//  std::cout<< "Vector of Error Estimate: "<< est_per_cell << std::endl;
-	
+	*/
 		
 
-/*		
+		
 // for adaptive h- and p- refinment:
 		double L2_norm_est= est_per_cell.l2_norm();
 		std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
@@ -2355,7 +2354,7 @@ void StokesProblem <dim>::run()
 
 		if (L2_norm_est < Tolerance)
 			break;
-*/		 
+		 
 
 
 	}// cycle
