@@ -125,15 +125,10 @@ class StokesProblem
         const DoFHandler_active_cell_iterator &cell, 
         hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
 
-    void h_patch_conv_load_no (const unsigned int cycle ,
-        double &h_convergence_est_per_cell, unsigned int &h_workload_num,
+    void patch_conv_load_no (const unsigned int cycle ,
+        double &convergence_est_per_cell, unsigned int &workload_num,
         const DoFHandler_active_cell_iterator &cell, 
-        unsigned int & patch_number);
-
-    void p_patch_conv_load_no (const unsigned int cycle ,
-        double &p_convergence_est_per_cell, unsigned int &p_workload_num,
-        const DoFHandler_active_cell_iterator &cell,
-        unsigned int & patch_number);
+        unsigned int &patch_number, bool h_refinement);
 
     std::vector<DoFHandler_cell_iterator> get_cells_at_coarsest_common_level (
         const std::vector<DoFHandler_active_cell_iterator> &patch);
