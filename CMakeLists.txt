@@ -11,8 +11,10 @@ SET(TARGET_SRC
   StokesProblem.cc
   ExactSolutionEx1.cc
   ExactSolutionEx2.cc
+  ExactSolutionEx3.cc
   SchurComplement.cc
   RightHandSide.cc
+  Parameters.cc
   # You can specify additional files here!
   )
 

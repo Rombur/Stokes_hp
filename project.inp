@@ -1,0 +1,7 @@
+set Verbose = false
+set Exemple = 1
+set Quadrature = GaussLegendre
+set Max degree = 10
+set Max n cycles = 10
+set Theta = 0.5
+set Tolerance = 1e-12
