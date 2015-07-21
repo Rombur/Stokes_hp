@@ -79,7 +79,7 @@ class StokesProblem
     
     void run();
 
-  private:
+    // The following functions are put as public to be able to test it.
     std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
         const DoFHandler_active_cell_iterator &cell);
 
@@ -90,6 +90,7 @@ class StokesProblem
         std::map<Triangulation_active_cell_iterator, 
         DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
+  private:
     void generate_mesh ();
 
     void set_global_active_fe_indices (hp::DoFHandler<dim> &dof_handler);

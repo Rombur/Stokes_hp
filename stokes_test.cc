@@ -3,14 +3,28 @@
 
 #include <set>
 
-#include "../StokesProblem.hh"
+#include "StokesProblem.hh"
 #include "deal.II/grid/grid_generator.h"
 
 using namespace dealii;
 
+typedef typename hp::DoFHandler<2>::active_cell_iterator DoFHandler_active_cell_iterator;
+typedef typename hp::DoFHandler<2>::cell_iterator DoFHandler_cell_iterator;
+typedef typename Triangulation<2>::active_cell_iterator Triangulation_active_cell_iterator;
+typedef typename Triangulation<2>::cell_iterator Triangulation_cell_iterator;
+
 TEST_CASE("Build triangulation patch","[patch]")
 {
-  StokesProblem<2> stokes_problem(1);
+  bool verbose(false);
+  EXEMPLE exemple(exemple_1);
+  QUADRATURE quadrature(gauss_legendre);
+  unsigned int max_degree(10);
+  unsigned int max_n_cycles(10);
+  double theta(0.5);
+  double tolerance(1e-12);
+
+  StokesProblem<2> stokes_problem(verbose, exemple, quadrature, max_degree,
+      max_n_cycles, theta, tolerance);
 
   Triangulation<2> triangulation;
   GridGenerator::hyper_cube(triangulation);
@@ -39,10 +53,11 @@ TEST_CASE("Build triangulation patch","[patch]")
     REQUIRE(coord.count(j));
   }
 
-
   unsigned int level_h_refine;
   unsigned int level_p_refine;
-  stokes_problem.build_triangulation_from_patch (patch, tria_patch, level_h_refine, level_p_refine);
+	std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator> patch_to_global_tria_map;
+  stokes_problem.build_triangulation_from_patch (patch, tria_patch, level_h_refine, 
+      level_p_refine,patch_to_global_tria_map);
 
   hp::DoFHandler<2> dof_handler_patch(tria_patch);
 

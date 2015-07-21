@@ -11,3 +11,6 @@ Test_Stokes_dim2
 *.vtu
 *.swp
 triangulation_test
+CTest*
+Testing
+stokes_test
