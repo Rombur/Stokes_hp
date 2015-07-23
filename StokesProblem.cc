@@ -786,7 +786,6 @@ void StokesProblem<dim>::build_triangulation_from_patch(
 
 			for (unsigned int m=0; m<i; ++m)
 			{
-
 				if (position == vertices[m]){
 					repeat_vertex=true;
 					cells[k].vertices[j]=m ;
@@ -848,29 +847,32 @@ void StokesProblem<dim>::build_triangulation_from_patch(
 			for (Triangulation_cell_iterator cell_ttt = local_triangulation.begin(); 
           cell_ttt != local_triangulation.end(); ++cell_ttt)
 			{
-				if (cell_ttt-> has_children())
-				{
-					// Note: Since the cell got children, then it should not be in the map anymore...
-          // children may be added into the map, instead
+        if(patch_to_global_tria_map_tmp.find(cell_ttt)!=patch_to_global_tria_map_tmp.end())
+        {
+          if (cell_ttt-> has_children())
+          {
+            // Note: Since the cell got children, then it should not be in the map anymore...
+            // children may be added into the map, instead
 
-					// these children may not yet be in the map
-					for (unsigned int c=0; c< cell_ttt ->n_children(); ++c)
-					{
-						if (patch_to_global_tria_map_tmp.find(cell_ttt->child(c)) == 
-                patch_to_global_tria_map_tmp.end())
-						{
-							patch_to_global_tria_map_tmp.insert (std::make_pair(cell_ttt ->child(c), 
-                    patch_to_global_tria_map_tmp[cell_ttt]->child(c)));
+            // these children may not yet be in the map
+            for (unsigned int c=0; c< cell_ttt ->n_children(); ++c)
+            {
+              if (patch_to_global_tria_map_tmp.find(cell_ttt->child(c)) == 
+                  patch_to_global_tria_map_tmp.end())
+              {
+                patch_to_global_tria_map_tmp.insert (std::make_pair(cell_ttt ->child(c), 
+                      patch_to_global_tria_map_tmp[cell_ttt]->child(c)));
 
-							AssertThrow( (std::fabs (cell_ttt ->child(c)->center()(0) - 
-                      patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(0)) < 1e-16 && 
-                    std::fabs (cell_ttt ->child(c)->center()(1) - 
-                      patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(1)) < 1e-16), 
-                  ExcInternalError());
-						}
-					}
-          patch_to_global_tria_map_tmp.erase(cell_ttt);
-				}
+                AssertThrow( (std::fabs (cell_ttt ->child(c)->center()(0) - 
+                        patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(0)) < 1e-16 && 
+                      std::fabs (cell_ttt ->child(c)->center()(1) - 
+                        patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(1)) < 1e-16), 
+                    ExcInternalError());
+              }
+            }
+            patch_to_global_tria_map_tmp.erase(cell_ttt);
+          }
+        }
 			}
 		}
 	}
@@ -1267,7 +1269,7 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
       {
         if(std::fabs(temp1[k]-temp2[k]) > 1e-8)
         {
-          std::cout<< "symmetricity check  "<< std::endl;
+          std::cout<< "symmetry check  "<< std::endl;
           std::cout<< "comparison between row and column number: " << i << std::endl;
           std::cout<< "vector temp1 [ "<< k << " ]=" << temp1[k] << std::endl;
           std::cout<< "vector temp2 [ "<< k << " ]=" << temp2[k] << std::endl;
@@ -1635,7 +1637,6 @@ void StokesProblem <dim>::run()
 
     double L2_norm_est= est_per_cell.l2_norm();
     std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
-    std::cout<<std::endl;
     Vector<float> marked_cells(triangulation.n_active_cells());
     std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
     std::map<DoFHandler_active_cell_iterator, bool > p_ref_map;
@@ -1651,9 +1652,9 @@ void StokesProblem <dim>::run()
 
     refine_in_h_p(cycle, candidate_cell_set, p_ref_map);
 
+		std::cout<< "-----------------------------------------------------------" << std::endl;
     if (L2_norm_est < tolerance)
       break;
-		std::cout<< "-----------------------------------------------------------" << std::endl;
   }
 }
 
