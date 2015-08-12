@@ -25,7 +25,7 @@ Parameters::Parameters(const std::string &input_filename)
 void Parameters::declare_parameters(ParameterHandler &prm)
 {
   prm.declare_entry("Verbose", "false", Patterns::Bool(), "Verbose output");
-  prm.declare_entry("Exemple", "1", Patterns::Integer(1,3), "Exemple to run");
+  prm.declare_entry("Example", "1", Patterns::Integer(1,4), "Example to run");
   prm.declare_entry("Quadrature", "GaussLegendre", Patterns::Selection(
         "GaussLegendre|GaussLobatto"), "Type of quadrature to use");
   prm.declare_entry("Max degree", "10", Patterns::Integer(2), "Maximum degree used");
@@ -39,30 +39,36 @@ void Parameters::parse_parameters(ParameterHandler &prm)
 {
   verbose = prm.get_bool("Verbose");
 
-  unsigned int ex_number = prm.get_integer("Exemple");
+  unsigned int ex_number = prm.get_integer("Example");
   switch (ex_number)
   {
     case 1: 
       {
-        exemple = exemple_1;
+        example = example_1;
         dim = 2;
         break;
       }
     case 2:
       {
-        exemple = exemple_2;
+        example = example_2;
         dim = 2;
         break;
       }
     case 3:
       {
-        exemple = exemple_3;
+        example = example_3;
         dim = 2;
+        break;
+      }
+    case 4:
+      {
+        example = example_4;
+        dim = 3;
         break;
       }
     default:
       {
-        AssertThrow(false,ExcMessage("Unknow exemple"));
+        AssertThrow(false,ExcMessage("Unknow example"));
       }
   }
 

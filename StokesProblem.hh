@@ -54,6 +54,7 @@
 #include "ExactSolutionEx1.hh"
 #include "ExactSolutionEx2.hh"
 #include "ExactSolutionEx3.hh"
+#include "ExactSolutionEx4.hh"
 
 #include "Parameters.hh"
 
@@ -71,7 +72,7 @@ class StokesProblem
     typedef typename Triangulation<dim>::active_cell_iterator Triangulation_active_cell_iterator;
     typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
 
-    StokesProblem (bool verbose, EXEMPLE exemple, QUADRATURE quadrature, 
+    StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature, 
         unsigned int max_degree, unsigned int n_max_cycles, double theta,
         double tolerance);
     
@@ -118,18 +119,26 @@ class StokesProblem
     void patch_output (unsigned int patch_number, const unsigned int cycle, 
         hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
 
-    void solution_on_patch_system_1 (const unsigned int cycle, double &h_gradient_velocity_solution,
-        const DoFHandler_active_cell_iterator &cell, 
-        hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
+    void p_refinement(hp::DoFHandler<dim> &local_dof_handler, 
+        std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
+        &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
 
-    void solution_on_patch_system_2 (const unsigned int cycle, double &h_pressure_solution,
-        const DoFHandler_active_cell_iterator &cell, 
-        hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
+    void h_refinement(Triangulation<dim> &local_triangulation,
+        hp::DoFHandler<dim> &local_dof_handler, unsigned int level_h_refine, 
+        BlockVector<double> &local_solution);
 
-    void patch_conv_load_no (const unsigned int cycle ,
-        double &convergence_est_per_cell, unsigned int &workload_num,
-        const DoFHandler_active_cell_iterator &cell, 
-        unsigned int &patch_number, bool h_refinement);
+    void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
+        ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu, 
+        BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_solution, 
+        BlockVector<double> &patch_rhs);
+
+    void patch_solve(hp::DoFHandler<dim> &local_dof_handler, 
+        unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
+        double &conv_est, double &workload_num);
+
+    void patch_conv_load_no(const unsigned int cycle,
+        const unsigned int patch_number, DoFHandler_active_cell_iterator const &cell,
+        double &h_conv_est, double &h_workload, double &p_conv_est, double &p_workload);
 
     std::vector<DoFHandler_cell_iterator> get_cells_at_coarsest_common_level (
         const std::vector<DoFHandler_active_cell_iterator> &patch);
@@ -147,7 +156,7 @@ class StokesProblem
         Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
         Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est );
 
-    void refine_in_h_p (const unsigned int cycle, 
+    void refine_in_h_p (
         std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set, 
         std::map<DoFHandler_active_cell_iterator, bool > &p_ref_map );
 
@@ -171,7 +180,7 @@ class StokesProblem
     BlockVector<double> system_rhs;
 
     bool verbose;
-    EXEMPLE exemple;
+    EXAMPLE example;
     const unsigned int max_degree;
     const unsigned int max_n_cycles;
     double theta;

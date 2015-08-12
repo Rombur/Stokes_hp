@@ -5,12 +5,14 @@
 
 using namespace dealii;
 
-// Exemple 1 is the first exemple of
-// Exemple 2 is the second exemple of "An adaptive Uzawa FEM for the Stokes
+// Example 1 is the first example of
+// Example 2 is the second example of "An adaptive Uzawa FEM for the Stokes
 // Problem: Convergence without the Inf-Sup Condition"
-// Exemple 3 is the first exemple of "An adaptive Uzawa FEM for the Stokes
+// Example 3 is the first example of "An adaptive Uzawa FEM for the Stokes
 // Problem: Convergence without the Inf-Sup Condition"
-enum EXEMPLE{exemple_1,exemple_2,exemple_3};
+// Example 4 is the third example of "An adaptive Uzawa FEM for the Stokes
+// Problem: Convergence without the Inf-Sup Condition"
+enum EXAMPLE{example_1,example_2,example_3,example_4};
 enum QUADRATURE{gauss_legendre,gauss_lobatto};
 
 class Parameters
@@ -20,7 +22,7 @@ class Parameters
 
     bool get_verbose() const;
 
-    EXEMPLE get_exemple() const;
+    EXAMPLE get_example() const;
 
     QUADRATURE get_quadrature() const;
 
@@ -41,7 +43,7 @@ class Parameters
 
     ParameterHandler prm;
     bool verbose;
-    EXEMPLE exemple;
+    EXAMPLE example;
     QUADRATURE quadrature;
     unsigned int dim;
     unsigned int max_degree;
@@ -59,9 +61,9 @@ bool Parameters::get_verbose() const
 
 
 inline 
-EXEMPLE Parameters::get_exemple() const
+EXAMPLE Parameters::get_example() const
 {
-  return exemple;
+  return example;
 }
 
 inline

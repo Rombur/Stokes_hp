@@ -5,6 +5,8 @@ using namespace dealii;
 
 int main(int argc, char* argv[])
 {
+  // Silence a warning
+  (void) argc;
 	try
 	{
 		deallog.depth_console (0);
@@ -13,13 +15,19 @@ int main(int argc, char* argv[])
     if (parameters.get_dim()==2)
     {
       StokesProblem<2> stokesproblem(parameters.get_verbose(),
-          parameters.get_exemple(), parameters.get_quadrature(), 
+          parameters.get_example(), parameters.get_quadrature(), 
           parameters.get_max_degree(), parameters.get_max_n_cycles(),
           parameters.get_theta(), parameters.get_tolerance());
       stokesproblem.run();
     }
     else
-      AssertThrow(false,ExcMessage("3D not implemented yet."));
+    {
+      StokesProblem<3> stokesproblem(parameters.get_verbose(),
+          parameters.get_example(), parameters.get_quadrature(), 
+          parameters.get_max_degree(), parameters.get_max_n_cycles(),
+          parameters.get_theta(), parameters.get_tolerance());
+      stokesproblem.run();
+    }
 	  
 	}
 	catch (std::exception &exc)

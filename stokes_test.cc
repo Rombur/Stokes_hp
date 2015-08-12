@@ -16,14 +16,14 @@ typedef typename Triangulation<2>::cell_iterator Triangulation_cell_iterator;
 TEST_CASE("Build triangulation patch","[patch]")
 {
   bool verbose(false);
-  EXEMPLE exemple(exemple_1);
+  EXAMPLE example(example_1);
   QUADRATURE quadrature(gauss_legendre);
   unsigned int max_degree(10);
   unsigned int max_n_cycles(10);
   double theta(0.5);
   double tolerance(1e-12);
 
-  StokesProblem<2> stokes_problem(verbose, exemple, quadrature, max_degree,
+  StokesProblem<2> stokes_problem(verbose, example, quadrature, max_degree,
       max_n_cycles, theta, tolerance);
 
   Triangulation<2> triangulation;

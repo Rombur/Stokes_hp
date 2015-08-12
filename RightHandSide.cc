@@ -4,6 +4,10 @@
 template <int dim>
 double RightHandSide <dim>::value (const Point<dim> & p, const unsigned int  component) const
 {
+  // Silence warnings
+  (void) p;
+  (void) component;
+
   return 0;
 }
 
@@ -19,3 +23,4 @@ RightHandSide <dim>::vector_value (const Point<dim> &p, Vector<double> &values) 
 //Explicit initialization
 
 template class RightHandSide<2>;
+template class RightHandSide<3>;

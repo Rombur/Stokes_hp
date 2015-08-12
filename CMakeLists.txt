@@ -17,6 +17,7 @@ SET(TARGET_SRC
   ExactSolutionEx1.cc
   ExactSolutionEx2.cc
   ExactSolutionEx3.cc
+  ExactSolutionEx4.cc
   SchurComplement.cc
   RightHandSide.cc
   Parameters.cc
@@ -31,6 +32,7 @@ ADD_EXECUTABLE(stokes_test
   ExactSolutionEx1.cc
   ExactSolutionEx2.cc
   ExactSolutionEx3.cc
+  ExactSolutionEx4.cc
   SchurComplement.cc
   RightHandSide.cc
   Parameters.cc
