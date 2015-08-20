@@ -4,8 +4,10 @@
 #include <vector>
 
 #include <deal.II/base/quadrature_lib.h>
-#include <deal.II/base/logstream.h>
 #include <deal.II/base/function.h>
+#include <deal.II/base/logstream.h>
+#include <deal.II/base/synchronous_iterator.h>
+#include <deal.II/base/work_stream.h>
 
 #include <deal.II/lac/block_vector.h>
 #include <deal.II/lac/full_matrix.h>
@@ -56,9 +58,10 @@
 #include "ExactSolutionEx3.hh"
 #include "ExactSolutionEx4.hh"
 
+#include "CopyData.hh"
 #include "Parameters.hh"
-
 #include "RightHandSide.hh"
+#include "ScratchData.hh"
 
 
 using namespace dealii;
@@ -137,8 +140,9 @@ class StokesProblem
         double &conv_est, double &workload_num);
 
     void patch_conv_load_no(const unsigned int cycle,
-        const unsigned int patch_number, DoFHandler_active_cell_iterator const &cell,
-        double &h_conv_est, double &h_workload, double &p_conv_est, double &p_workload);
+        SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+        std::vector<unsigned int>::iterator>> const &synch_iterator,
+        ScratchData &scratch_data, CopyData<dim> &copy_data);
 
     std::vector<DoFHandler_cell_iterator> get_cells_at_coarsest_common_level (
         const std::vector<DoFHandler_active_cell_iterator> &patch);
@@ -146,19 +150,17 @@ class StokesProblem
     bool decreasing (const std::pair<double, DoFHandler_active_cell_iterator> &i, 
         const std::pair<double, DoFHandler_active_cell_iterator > &j);
 
+    void copy_to_refinement_maps(Vector<double> const &est_per_cell, 
+        CopyData<dim> const &copy_data);
+
     void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, 
-        std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set, 
-        std::map<DoFHandler_active_cell_iterator, bool > &p_ref_map,  
-        Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est);
+        std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set);
 
     void output_results (const unsigned int cycle, Vector<float> & marked_cells, 
         Vector<double> &est_per_cell, Vector<double> &error_per_cell, 
-        Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err ,
-        Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est );
+        Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err);
 
-    void refine_in_h_p (
-        std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set, 
-        std::map<DoFHandler_active_cell_iterator, bool > &p_ref_map );
+    void refine_in_h_p (std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set);
 
     Function<dim>* exact_solution;
 
@@ -185,6 +187,13 @@ class StokesProblem
     const unsigned int max_n_cycles;
     double theta;
     const double tolerance;
+
+    Vector<double> h_Conv_Est;
+    Vector<double> p_Conv_Est;
+    Vector<double> hp_Conv_Est;
+    Vector<double> convergence_est_per_cell;
+    std::vector<std::pair<double, DoFHandler_active_cell_iterator> > to_be_sorted;
+    std::map<DoFHandler_active_cell_iterator, bool > p_ref_map;
 };
 
 #endif

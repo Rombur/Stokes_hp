@@ -546,9 +546,9 @@ void StokesProblem <dim>::estimate (Vector<double> &est_per_cell)
 			for (unsigned int i=0; i<2; ++i)
 				gradients_p[q][i]-= (rhs_values[q](i)+ laplacians[q][i]);
 
-			term1+= contract(gradients_p[q],gradients_p[q])*JxW_values[q];
+			term1 += contract(gradients_p[q],gradients_p[q])*JxW_values[q];
 		}
-		res_est_per_cell(cell_index)= pow((cell->diameter())/(cell->get_fe().degree), 2.0 ) * (term1) + term2;
+		res_est_per_cell[cell_index] = pow((cell->diameter())/(cell->get_fe().degree), 2.0) * (term1) + term2;
 
 		//  compute jump_est_per_cell
 		double term3=0;//jumpped part of the estimator
@@ -565,7 +565,7 @@ void StokesProblem <dim>::estimate (Vector<double> &est_per_cell)
 				hp_neighbor_face_values.reinit (cell->neighbor(face_number), 
             cell->neighbor_of_neighbor(face_number), q_index);
 
-				const FEFaceValues<dim> &neighbor_face_values =hp_neighbor_face_values.get_present_fe_values ();
+				const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values ();
 				const FEFaceValues<dim> &fe_face_values = hp_fe_face_values.get_present_fe_values ();
 
 				const std::vector<double>& JxW_values = fe_face_values.get_JxW_values ();
@@ -590,7 +590,7 @@ void StokesProblem <dim>::estimate (Vector<double> &est_per_cell)
                 (fe_face_values.normal_vector(q)[j]);
 					jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 				}
-				term3 +=(cell->face(face_number)->diameter())/(2.0 * cell->get_fe().degree)*jump_val;
+				term3 += (cell->face(face_number)->diameter())/(2.0*cell->get_fe().degree)*jump_val;
 			}
 			// else if the neighbor has children
 			else if ( (cell->face(face_number)->at_boundary()==false) && 
@@ -676,7 +676,7 @@ void StokesProblem <dim>::estimate (Vector<double> &est_per_cell)
     }
 
 		Jump_est_per_cell(cell_index) = term3;
-		est_per_cell(cell_index)=sqrt(Jump_est_per_cell(cell_index)+res_est_per_cell(cell_index));
+		est_per_cell(cell_index) = sqrt(Jump_est_per_cell(cell_index)+res_est_per_cell(cell_index));
 	}
 }
 
@@ -1348,9 +1348,15 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
 
 template <int dim>
 void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
-    const unsigned int patch_number, DoFHandler_active_cell_iterator const &cell,
-    double &h_conv_est, double &h_workload, double &p_conv_est, double &p_workload)
+    SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+    std::vector<unsigned int>::iterator>> const &synch_iterator,
+    ScratchData &scratch_data, CopyData<dim> &copy_data)
 {
+  DoFHandler_active_cell_iterator cell = std_cxx11::get<0>(synch_iterator.iterators);
+  const unsigned int patch_number(*std_cxx11::get<1>(synch_iterator.iterators));
+  copy_data.global_cell = cell;
+  copy_data.cell_index = patch_number;
+
 	Triangulation<dim> local_triangulation;
 	unsigned int level_h_refine(0);
 	unsigned int level_p_refine(0);
@@ -1401,24 +1407,59 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
   // The local triangulation is not modified by the h-refinement so, we do
   // p-refinement first.
   p_refinement(local_dof_handler, patch_to_global_tria_map, level_p_refine, local_solu);
-  patch_solve(local_dof_handler, patch_number, cycle, local_solu, p_conv_est, p_workload);
+  patch_solve(local_dof_handler, patch_number, cycle, local_solu, copy_data.p_conv_est_per_cell, 
+      copy_data.p_workload);
 
   // Reset the local_dof_handler to what it was before p_refinement was called
   set_active_fe_indices (local_dof_handler,patch_to_global_tria_map);
   local_dof_handler.distribute_dofs(fe_collection);
   h_refinement(local_triangulation, local_dof_handler, level_h_refine, h_local_solu);
-  patch_solve(local_dof_handler, patch_number, cycle, h_local_solu, h_conv_est, h_workload);
+  patch_solve(local_dof_handler, patch_number, cycle, h_local_solu, copy_data.h_conv_est_per_cell, 
+      copy_data.h_workload);
 }
 
 
 template <int dim>
-void StokesProblem <dim>:: marking_cells (const unsigned int cycle, 
-    Vector<float> & marked_cells, 
-    std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set,
-		std::map<DoFHandler_active_cell_iterator, bool > &p_ref_map, 
-    Vector<double> & h_Conv_Est, Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est)
+void StokesProblem<dim>::copy_to_refinement_maps(Vector<double> const &est_per_cell,
+    CopyData<dim> const &copy_data)
 {
-  std::vector<std::pair<double, DoFHandler_active_cell_iterator> > to_be_sorted;
+  h_Conv_Est[copy_data.cell_index] = copy_data.h_conv_est_per_cell;
+  p_Conv_Est[copy_data.cell_index] = copy_data.p_conv_est_per_cell;
+
+  const double h_improv = copy_data.h_conv_est_per_cell/est_per_cell[copy_data.cell_index];
+  const double p_improv = copy_data.p_conv_est_per_cell/est_per_cell[copy_data.cell_index];
+
+  const double h_ratio(h_improv/copy_data.h_workload);
+  const double p_ratio(p_improv/copy_data.p_workload);
+  
+  double indicator_per_cell(0.);
+
+  if (h_ratio > p_ratio)
+  {
+    convergence_est_per_cell[copy_data.cell_index] = h_improv;
+    indicator_per_cell = copy_data.h_conv_est_per_cell;
+    hp_Conv_Est[copy_data.cell_index] = indicator_per_cell;
+    p_ref_map[copy_data.global_cell] = false;
+
+  }
+  else
+  {
+    convergence_est_per_cell[copy_data.cell_index] = p_improv;
+    indicator_per_cell = copy_data.p_conv_est_per_cell;
+    hp_Conv_Est[copy_data.cell_index] = indicator_per_cell;
+    p_ref_map[copy_data.global_cell] = true;
+  }
+
+  to_be_sorted.push_back(std::make_pair(indicator_per_cell, copy_data.global_cell));
+}
+
+
+template <int dim>
+void StokesProblem<dim>::marking_cells (const unsigned int cycle, 
+    Vector<float> & marked_cells, 
+    std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set)
+{
+  to_be_sorted.clear();
   std::vector<std::pair<DoFHandler_active_cell_iterator,bool > > to_be_sorted_with_refine_info;
 
   Vector<double> est_per_cell (triangulation.n_active_cells());
@@ -1426,92 +1467,40 @@ void StokesProblem <dim>:: marking_cells (const unsigned int cycle,
 
   // this vector "convergence_est_per_cell" will be finalized after checking out
   // which h- or p- refinement are going to be chosen for each cell
-  Vector<double> convergence_est_per_cell (triangulation.n_active_cells());
-  Vector<double> hp_Conv_Est2 (triangulation.n_active_cells());
+  convergence_est_per_cell.reinit(triangulation.n_active_cells());
 
   h_Conv_Est.reinit(triangulation.n_active_cells());
   p_Conv_Est.reinit(triangulation.n_active_cells());
   hp_Conv_Est.reinit(triangulation.n_active_cells());
 
-  unsigned int cell_index=0;
-  unsigned int patch_number=0;
-
+  std::vector<unsigned int> cell_indices(dof_handler.get_tria().n_active_cells(),0);
+  for (unsigned int i=0; i<dof_handler.get_tria().n_active_cells(); ++i)
+    cell_indices[i] = i;
   DoFHandler_active_cell_iterator cell = dof_handler.begin_active(), 
                                   end_cell = dof_handler.end();
-	for (; cell!=end_cell; ++cell, ++cell_index, ++patch_number)
-	{
-		double indicator_per_cell(0.);
-		double h_convergence_est_per_cell(0.);
-		double h_workload_num(0.);
-		double p_convergence_est_per_cell(0.);
-		double p_workload_num(0.);
+  SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+    std::vector<unsigned int>::iterator>> synch_iter(
+        std::tuple<DoFHandler_active_cell_iterator,
+        std::vector<unsigned int>::iterator> (cell, cell_indices.begin()));
+  SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+    std::vector<unsigned int>::iterator>> end_synch_iter(
+        std::tuple<DoFHandler_active_cell_iterator,
+        std::vector<unsigned int>::iterator> (end_cell, cell_indices.end()));
 
-		patch_conv_load_no(cycle, patch_number, cell, h_convergence_est_per_cell,
-        h_workload_num, p_convergence_est_per_cell, p_workload_num);
+  WorkStream::run(synch_iter,end_synch_iter,
+      std_cxx11::bind(&StokesProblem<dim>::patch_conv_load_no,this, cycle,
+          std_cxx11::_1, std_cxx11::_2, std_cxx11::_3),
+      std_cxx11::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,
+          est_per_cell, std_cxx11::_1),
+      ScratchData(),
+      CopyData<dim>());
 
-		h_Conv_Est[cell_index] = h_convergence_est_per_cell;
-		h_convergence_est_per_cell = h_convergence_est_per_cell /est_per_cell(cell_index);
-
-		p_Conv_Est[cell_index] = p_convergence_est_per_cell;
-		p_convergence_est_per_cell = p_convergence_est_per_cell /est_per_cell(cell_index);
-
-		const double h_ratio(h_convergence_est_per_cell/h_workload_num);
-		const double p_ratio(p_convergence_est_per_cell/p_workload_num);
-
-		if (h_ratio > p_ratio)
-		{
-			convergence_est_per_cell[cell_index] = h_convergence_est_per_cell;
-			indicator_per_cell= convergence_est_per_cell(cell_index)*est_per_cell(cell_index);
-			hp_Conv_Est(cell_index)=indicator_per_cell;
-			hp_Conv_Est2(cell_index)=h_Conv_Est(cell_index);
-			p_ref_map[cell] = false;
-
-      if (verbose)
-        std::cout<<"H-refinement_marking ...  =>  p_ref_map[cell] = "<< p_ref_map[cell]<<std::endl;
-			p_ref_map.insert (std::make_pair(cell, false));
-
-		}
-		else
-		{
-
-			convergence_est_per_cell(cell_index)=p_convergence_est_per_cell;
-			indicator_per_cell=convergence_est_per_cell(cell_index)*est_per_cell(cell_index);
-			hp_Conv_Est(cell_index)=indicator_per_cell;
-			hp_Conv_Est2(cell_index)=p_Conv_Est(cell_index);
-			p_ref_map[cell] = true;
-
-      if (verbose)
-        std::cout<<"P-refinement_marking ...  =>  p_ref_map[cell] = " <<p_ref_map[cell]<<std::endl;
-			p_ref_map.insert (std::make_pair(cell, true));
-
-		}
-
-		to_be_sorted.push_back(std::make_pair(indicator_per_cell,cell));
-	}
   double min_conv_estimator = convergence_est_per_cell(0);
-  unsigned int index=0;
+  unsigned int index = 0;
   cell = dof_handler.begin_active();
   for (; cell!=end_cell; ++cell , ++index)
-  {
     min_conv_estimator = std::min ( min_conv_estimator, convergence_est_per_cell(index) );
-    if (verbose)
-    {
-      std::cout<<std::endl;
-      std::cout<< "convergence_est_per_cell [ " << index << " ] = "<<  
-        convergence_est_per_cell(index) << std::endl;
-      std::cout<< "est_per_cell [ " << index << " ] = "<< est_per_cell(index) << std::endl;
-      std::cout<< "  hp_Conv_Est(index) [ " << index << " ] ="<< 
-        hp_Conv_Est(index) << " ?= " <<  " hp 2 _Conv_Est(index)[" << index << 
-        " ] ="<<   hp_Conv_Est2(index) << std::endl;
-      std::cout<< "refinement_marking ...  =>  p-ref==1,  h-ref==0 : " << p_ref_map[cell] << std::endl;
-      std::cout<<std::endl;
-    }
-  }
-  if (verbose)
-  {
-    std::cout<<std::endl;
-    std::cout<< "min_conv_estimator = " << min_conv_estimator << std::endl;
-  }
+
 	std::sort(to_be_sorted.begin(), to_be_sorted.end(), 
       std_cxx1x::bind(&StokesProblem<dim>::decreasing,this,std_cxx1x::_1,std_cxx1x::_2));
 
@@ -1557,8 +1546,7 @@ template <int dim>
 void StokesProblem <dim>::output_results (const unsigned int cycle, 
     Vector<float> & marked_cells, Vector<double> &est_per_cell, 
     Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, 
-    Vector<double> &Vect_grad_Velocity_Err,	Vector<double> & h_Conv_Est, 
-    Vector<double> &p_Conv_Est, Vector<double> &hp_Conv_Est )
+    Vector<double> &Vect_grad_Velocity_Err)
 {
   Vector<float> fe_degrees (triangulation.n_active_cells());
   {
@@ -1607,8 +1595,7 @@ void StokesProblem <dim>::output_results (const unsigned int cycle,
 
 template <int dim>
 void StokesProblem<dim>::refine_in_h_p (
-    std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set,
-    std::map<DoFHandler_active_cell_iterator, bool > &p_ref_map )
+    std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set)
 {
   bool need_to_h_refine=false;
   unsigned int candidate_INDEX=0;
@@ -1703,34 +1690,32 @@ void StokesProblem <dim>::run()
     std::cout<<"Solve"<<std::endl;
 		solve();
 
+    std::cout<<"Number of degrees of freedom: "<<dof_handler.n_dofs()<<std::endl;
+
 		Vector<double> error_per_cell (triangulation.n_active_cells());
 		Vector<double> Vect_Pressure_Err(triangulation.n_active_cells());
 		Vector<double> Vect_grad_Velocity_Err(triangulation.n_active_cells());
 		Vector<double> Vect_Velocity_Err(triangulation.n_active_cells());
-		
-		compute_error  (error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err, Vect_Velocity_Err);
-		Vector<double> est_per_cell (triangulation.n_active_cells());
-		estimate(est_per_cell);
+		compute_error(error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err, Vect_Velocity_Err);
+    std::cout<< "L2_norm of ERROR is: "<< error_per_cell.l2_norm() << std::endl;
 
-    double L2_norm_est= est_per_cell.l2_norm();
+		Vector<double> est_per_cell(triangulation.n_active_cells());
+		estimate(est_per_cell);
+    double L2_norm_est = est_per_cell.l2_norm();
     std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
     Vector<float> marked_cells(triangulation.n_active_cells());
     std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
-    std::map<DoFHandler_active_cell_iterator, bool > p_ref_map;
 
-    Vector<double> h_Conv_Est;
-    Vector<double> p_Conv_Est;
-    Vector<double> hp_Conv_Est;
+    p_ref_map.clear();
 
     std::cout<<"Marking Cell"<<std::endl;
-    marking_cells(cycle, marked_cells, candidate_cell_set, p_ref_map, h_Conv_Est, p_Conv_Est, 
-        hp_Conv_Est);
+    marking_cells(cycle, marked_cells, candidate_cell_set);
     std::cout<<"Output results"<<std::endl;
     output_results(cycle, marked_cells, est_per_cell, error_per_cell, Vect_Pressure_Err, 
-        Vect_grad_Velocity_Err, h_Conv_Est, p_Conv_Est, hp_Conv_Est);
+        Vect_grad_Velocity_Err);
 
     std::cout<<"Refinement"<<std::endl;
-    refine_in_h_p(candidate_cell_set, p_ref_map);
+    refine_in_h_p(candidate_cell_set);
 
 		std::cout<< "-----------------------------------------------------------" << std::endl;
     if (L2_norm_est < tolerance)
