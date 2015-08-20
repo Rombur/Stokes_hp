@@ -5,7 +5,8 @@
 
 using namespace dealii;
 
-// Example 1 is the first example of
+// Example 1 is the first example of "hp-Adaptive Discontinuous Galerkin Finite
+// Element Methods for the Stokes Problem."
 // Example 2 is the second example of "An adaptive Uzawa FEM for the Stokes
 // Problem: Convergence without the Inf-Sup Condition"
 // Example 3 is the first example of "An adaptive Uzawa FEM for the Stokes
