@@ -28,6 +28,8 @@ void Parameters::declare_parameters(ParameterHandler &prm)
   prm.declare_entry("Example", "1", Patterns::Integer(1,4), "Example to run");
   prm.declare_entry("Quadrature", "GaussLegendre", Patterns::Selection(
         "GaussLegendre|GaussLobatto"), "Type of quadrature to use");
+  prm.declare_entry("Refinement", "hp", Patterns::Selection(
+        "h|p|hp"), "Refinement strategy to use");
   prm.declare_entry("Max degree", "10", Patterns::Integer(2), "Maximum degree used");
   prm.declare_entry("Max n cycles", "10", Patterns::Integer(0), "Maximum degree used");
   prm.declare_entry("Theta", "0.5", Patterns::Double(0.,1.), "Refinement parameters");
@@ -77,6 +79,14 @@ void Parameters::parse_parameters(ParameterHandler &prm)
     quadrature = gauss_legendre;
   else
     quadrature = gauss_lobatto;
+
+  input = prm.get("Refinement");
+  if (input.compare("h")==0)
+    refinement = h_refine;
+  else if (input.compare("p")==0)
+    refinement = p_refine;
+  else
+    refinement = hp_refine;
 
   max_degree = prm.get_integer("Max degree");
 

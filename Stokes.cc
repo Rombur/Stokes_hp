@@ -16,16 +16,18 @@ int main(int argc, char* argv[])
     {
       StokesProblem<2> stokesproblem(parameters.get_verbose(),
           parameters.get_example(), parameters.get_quadrature(), 
-          parameters.get_max_degree(), parameters.get_max_n_cycles(),
-          parameters.get_theta(), parameters.get_tolerance());
+          parameters.get_refinement(), parameters.get_max_degree(), 
+          parameters.get_max_n_cycles(), parameters.get_theta(), 
+          parameters.get_tolerance());
       stokesproblem.run();
     }
     else
     {
       StokesProblem<3> stokesproblem(parameters.get_verbose(),
           parameters.get_example(), parameters.get_quadrature(), 
-          parameters.get_max_degree(), parameters.get_max_n_cycles(),
-          parameters.get_theta(), parameters.get_tolerance());
+          parameters.get_refinement(), parameters.get_max_degree(), 
+          parameters.get_max_n_cycles(), parameters.get_theta(), 
+          parameters.get_tolerance());
       stokesproblem.run();
     }
 	  

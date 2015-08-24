@@ -127,6 +127,7 @@ void ExactSolutionEx2<2>::vector_gradient(const Point<2> &p,
 template <>
 void ExactSolutionEx2<3>::vector_value(const Point<3> &p, Vector<double> &values) const
 {
+  // Silence warnings
   (void) p;
   (void) values;
 }
@@ -136,6 +137,7 @@ template <>
 void ExactSolutionEx2<3>::vector_gradient(const Point<3> &p, 
     std::vector<Tensor<1,3>> &gradients) const
 {
+  // Silence warnings
   (void) p;
   (void) gradients;
 }

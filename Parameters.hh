@@ -15,6 +15,7 @@ using namespace dealii;
 // Problem: Convergence without the Inf-Sup Condition"
 enum EXAMPLE{example_1,example_2,example_3,example_4};
 enum QUADRATURE{gauss_legendre,gauss_lobatto};
+enum REFINEMENT{h_refine,p_refine,hp_refine};
 
 class Parameters
 {
@@ -26,6 +27,8 @@ class Parameters
     EXAMPLE get_example() const;
 
     QUADRATURE get_quadrature() const;
+
+    REFINEMENT get_refinement() const;
 
     unsigned int get_dim() const;
 
@@ -46,6 +49,7 @@ class Parameters
     bool verbose;
     EXAMPLE example;
     QUADRATURE quadrature;
+    REFINEMENT refinement;
     unsigned int dim;
     unsigned int max_degree;
     unsigned int max_n_cycles;
@@ -67,10 +71,18 @@ EXAMPLE Parameters::get_example() const
   return example;
 }
 
+
 inline
 QUADRATURE Parameters::get_quadrature() const
 {
   return quadrature;
+}
+
+
+inline
+REFINEMENT Parameters::get_refinement() const
+{
+  return refinement;
 }
 
 

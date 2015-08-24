@@ -1,13 +1,20 @@
 #include "ExactSolutionEx3.hh"
 #include <cmath>
 
+using std::cos;
+using std::sin;
+using std::pow;
+using std::exp;
 
 template <>
 void ExactSolutionEx3<2>::vector_value(const Point<2> &p, Vector<double> &values) const
 {
-  values(0) = 2*p(1)*std::cos(std::pow(p(0),2)+std::pow(p(1),2));
-  values(1) =  -2*p(0)*std::cos(std::pow(p(0),2)+std::pow(p(1),2));
-  values(2) = std::exp(-10*(std::pow(p(0),2)+std::pow(p(1),2)));	
+  const double x(p[0]);
+  const double y(p[1]);
+
+  values(0) = 2.*y*cos(pow(x,2)+pow(y,2));
+  values(1) = -2.*x*cos(pow(x,2)+pow(y,2));
+  values(2) = exp(-10.*(pow(x,2)+pow(y,2)));	
 }
 
 
@@ -15,14 +22,16 @@ template <>
 void ExactSolutionEx3<2>::vector_gradient(const Point<2> &p,
     std::vector<Tensor<1,2>> &gradients) const
 {	
-  gradients[0][0]= -4*p(0)*p(1)*std::sin(std::pow(p(0),2)+std::pow(p(1),2));		
-  gradients[0][1]= 2*std::cos(std::pow(p(0),2)+std::pow(p(1),2))-4*std::pow(p(1),2)*
-    std::sin(std::pow(p(0),2)+std::pow(p(1),2));
-  gradients[1][0]= -2*std::cos(std::pow(p(0),2)+std::pow(p(1),2) ) + 
-    4*std::pow(p(0),2)*std::sin(std::pow(p(0),2)+std::pow(p(1),2));
-  gradients[1][1]=  4*p(0)*p(1)*std::sin(std::pow(p(0),2)+std::pow(p(1),2)) ;
-  gradients[2][0]= std::exp(-10*(std::pow(p(0),2)+std::pow(p(1),2))) * -20*p(0);
-  gradients[2][1]= std::exp(-10*(std::pow(p(0),2)+std::pow(p(1),2))) * -20*p(1);
+  const double x(p[0]);
+  const double y(p[1]);
+
+  gradients[0][0]= -4.*x*y*sin(pow(x,2)+pow(y,2));		
+  gradients[0][1]= 2.*cos(pow(x,2)+pow(y,2)) -4*pow(y,2)*
+    sin(pow(x,2)+pow(y,2));
+  gradients[1][0]= -2.*cos(pow(x,2)+pow(y,2))*(1.+2.*pow(x,2));
+  gradients[1][1]= 4*x*y*sin(pow(x,2)+pow(y,2));
+  gradients[2][0]= (-20.)*x*exp(-10.*(pow(x,2)+pow(y,2)));
+  gradients[2][1]= (-20.)*y*exp(-10.*(pow(x,2)+pow(y,2)));
 }
 
 

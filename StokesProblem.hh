@@ -14,12 +14,10 @@
 
 #include <deal.II/lac/block_sparse_matrix.h>
 #include <deal.II/lac/solver_cg.h>
-#include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/constraint_matrix.h>
 #include <deal.II/lac/precondition_block.h>
 
-#include <deal.II/lac/sparse_ilu.h>
 #include <deal.II/lac/full_matrix.h>
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
@@ -53,14 +51,14 @@
 
 #include <deal.II/base/std_cxx1x/bind.h>
 
+#include "CopyData.hh"
 #include "ExactSolutionEx1.hh"
 #include "ExactSolutionEx2.hh"
 #include "ExactSolutionEx3.hh"
 #include "ExactSolutionEx4.hh"
-
-#include "CopyData.hh"
 #include "Parameters.hh"
-#include "RightHandSide.hh"
+#include "RightHandSideEx1.hh"
+#include "RightHandSideEx3.hh"
 #include "ScratchData.hh"
 
 
@@ -76,23 +74,13 @@ class StokesProblem
     typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
 
     StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature, 
-        unsigned int max_degree, unsigned int n_max_cycles, double theta,
-        double tolerance);
+        REFINEMENT refinement, unsigned int max_degree, unsigned int n_max_cycles, 
+        double theta, double tolerance);
     
     ~StokesProblem();
     
     void run();
 
-    // The following functions are put as public to be able to test it.
-    std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
-        const DoFHandler_active_cell_iterator &cell);
-
-    void build_triangulation_from_patch (
-        const std::vector<DoFHandler_active_cell_iterator>  &patch, 
-        Triangulation<dim> &local_triangulation, unsigned int &level_h_refine, 
-        unsigned int &level_p_refine, 
-        std::map<Triangulation_active_cell_iterator, 
-        DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
   private:
     void generate_mesh ();
@@ -105,10 +93,6 @@ class StokesProblem
     
     void solve();
     
-    double pressure_mean_value () const;
-    
-    double exact_pressure_mean_value () const;
-
     void compute_error (Vector<double> &error_per_cell, 
         Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, 
         Vector<double> &Vect_Velocity_Err);
@@ -132,8 +116,7 @@ class StokesProblem
 
     void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
         ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu, 
-        BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_solution, 
-        BlockVector<double> &patch_rhs);
+        BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs);
 
     void patch_solve(hp::DoFHandler<dim> &local_dof_handler, 
         unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
@@ -162,7 +145,18 @@ class StokesProblem
 
     void refine_in_h_p (std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set);
 
+    std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
+        const DoFHandler_active_cell_iterator &cell);
+
+    void build_triangulation_from_patch (
+        const std::vector<DoFHandler_active_cell_iterator>  &patch, 
+        Triangulation<dim> &local_triangulation, unsigned int &level_h_refine, 
+        unsigned int &level_p_refine, 
+        std::map<Triangulation_active_cell_iterator, 
+        DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
+
     Function<dim>* exact_solution;
+    Function<dim>* rhs_function;
 
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
@@ -183,6 +177,7 @@ class StokesProblem
 
     bool verbose;
     EXAMPLE example;
+    REFINEMENT refinement;
     const unsigned int max_degree;
     const unsigned int max_n_cycles;
     double theta;

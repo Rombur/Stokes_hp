@@ -18,26 +18,11 @@ SET(TARGET_SRC
   ExactSolutionEx2.cc
   ExactSolutionEx3.cc
   ExactSolutionEx4.cc
-  SchurComplement.cc
-  RightHandSide.cc
+  RightHandSideEx1.cc
+  RightHandSideEx3.cc
   Parameters.cc
   # You can specify additional files here!
   )
-
-
-ENABLE_TESTING()
-ADD_EXECUTABLE(stokes_test 
-  stokes_test.cc
-  StokesProblem.cc
-  ExactSolutionEx1.cc
-  ExactSolutionEx2.cc
-  ExactSolutionEx3.cc
-  ExactSolutionEx4.cc
-  SchurComplement.cc
-  RightHandSide.cc
-  Parameters.cc
-  )
-ADD_TEST(NAME stokes_test COMMAND stokes_test)
 
 # Usually, you will not need to modify anything beyond this point...
 
@@ -54,5 +39,4 @@ ENDIF()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
-DEAL_II_SETUP_TARGET(stokes_test)
 DEAL_II_INVOKE_AUTOPILOT()
