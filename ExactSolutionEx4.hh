@@ -1,5 +1,5 @@
-#ifndef _EXACTSOLUTIONEX1_HH_
-#define _EXACTSOLUTIONEX1_HH_
+#ifndef _EXACTSOLUTIONEX4_HH_
+#define _EXACTSOLUTIONEX4_HH_
 
 #include <vector>
 
@@ -11,14 +11,15 @@
 using namespace dealii;
 
 template <int dim>
-class ExactSolutionEx1 : public Function<dim>
+class ExactSolutionEx4 : public Function<dim>
 {
-  public:
-    ExactSolutionEx1 () : Function<dim>(dim+1) {};
+  public :
+    ExactSolutionEx4() : Function<dim>(dim+1) {};
 
     void vector_value(const Point<dim> &p, Vector<double> &value) const;
-    
+
     void vector_gradient(const Point<dim> &p, std::vector<Tensor<1,dim>> &gradients) const;
 };
 
 #endif
+

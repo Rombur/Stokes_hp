@@ -5,27 +5,29 @@
 # Set the name of the project and target:
 SET(TARGET "Stokes")
 
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
+IF(COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
+ENDIF(COMMAND cmake_policy)
+
 # Declare all source files the target consists of:
 SET(TARGET_SRC
   ${TARGET}.cc
   StokesProblem.cc
   ExactSolutionEx1.cc
   ExactSolutionEx2.cc
-  SchurComplement.cc
-  RightHandSide.cc
+  ExactSolutionEx3.cc
+  ExactSolutionEx4.cc
+  RightHandSideEx1.cc
+  RightHandSideEx3.cc
+  Parameters.cc
   # You can specify additional files here!
   )
 
-# Temporary disable the test
-#ADD_EXECUTABLE(tests/triangulation_test
-#  )
-
 # Usually, you will not need to modify anything beyond this point...
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
-
-FIND_PACKAGE(deal.II 8.1.0 QUIET
-  HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ /w/aghesmati/dealII_install $ENV{DEAL_II_DIR}
+FIND_PACKAGE(deal.II 8.3.0 QUIET
+  HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ $ENV{DEAL_II_DIR}
   )
 IF(NOT ${deal.II_FOUND})
   MESSAGE(FATAL_ERROR "\n"
@@ -37,6 +39,4 @@ ENDIF()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
-# Temporary disable the test
-#DEAL_II_SETUP_TARGET(tests/triangulation_test)
 DEAL_II_INVOKE_AUTOPILOT()
