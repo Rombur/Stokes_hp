@@ -298,6 +298,7 @@ void StokesProblem <dim>::assemble_system ()
         double fe_rhs(0.);
         for (unsigned int d=0; d<dim; ++d)
           fe_rhs += phi_u[i][d]*rhs_values[q][d];
+        fe_rhs += phi_p[i]*rhs_values[q][dim];
         local_rhs[i] += fe_rhs * JxW_values[q];
 			} 
 		} 
@@ -964,7 +965,7 @@ void StokesProblem<dim>::h_refinement(Triangulation<dim> &local_triangulation,
     // execute_coarsening_and_refinement. save their values into
     // the material_id, since that one not only survives
     // refinement but is also inherited to the children
-    for (DoFHandler_active_cell_iterator patch_cell = local_dof_handler.begin(); 
+    for (DoFHandler_active_cell_iterator patch_cell = local_dof_handler.begin_active(); 
         patch_cell != local_dof_handler.end(); ++patch_cell)
     {
       if (patch_cell->user_flag_set())

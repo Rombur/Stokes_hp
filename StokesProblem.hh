@@ -158,10 +158,11 @@ class StokesProblem
     Function<dim>* exact_solution;
     Function<dim>* rhs_function;
 
+    hp::FECollection<dim> fe_collection;
+
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
 
-    hp::FECollection<dim> fe_collection;
     hp::QCollection<dim> quadrature_collection;
     hp::QCollection<dim-1> face_quadrature_collection;
 
