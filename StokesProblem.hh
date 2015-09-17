@@ -21,6 +21,8 @@
 #include <deal.II/lac/full_matrix.h>
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
+#include <deal.II/lac/compressed_sparsity_pattern.h>
+#include <deal.II/lac/sparse_ilu.h>
 
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/grid_generator.h>
@@ -61,7 +63,6 @@
 #include "RightHandSideEx3.hh"
 #include "ScratchData.hh"
 
-
 using namespace dealii;
 
 template <int dim>
@@ -81,7 +82,6 @@ class StokesProblem
     
     void run();
 
-
   private:
     void generate_mesh ();
 
@@ -92,6 +92,8 @@ class StokesProblem
     void assemble_system ();
     
     void solve();
+
+    double pressure_mean_value () const;
     
     void compute_error (Vector<double> &error_per_cell, 
         Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, 
@@ -158,10 +160,10 @@ class StokesProblem
     Function<dim>* exact_solution;
     Function<dim>* rhs_function;
 
+    hp::FECollection<dim> fe_collection;
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
 
-    hp::FECollection<dim> fe_collection;
     hp::QCollection<dim> quadrature_collection;
     hp::QCollection<dim-1> face_quadrature_collection;
 

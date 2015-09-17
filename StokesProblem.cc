@@ -185,8 +185,10 @@ void StokesProblem <dim>::setup_system()
   constraints.clear ();
   FEValuesExtractors::Vector velocities(0);
   DoFTools::make_hanging_node_constraints(dof_handler, constraints);
-  VectorTools::interpolate_boundary_values(dof_handler,0,*exact_solution,constraints,
-      fe_collection.component_mask(velocities));
+  
+  VectorTools::interpolate_boundary_values(dof_handler,0,*exact_solution,constraints,fe_collection.component_mask(velocities));
+
+  //VectorTools::interpolate_boundary_values(dof_handler,0, ZeroFunction<dim>(),constraints,fe_collection.component_mask(velocities));
 
 
   // Since with Dirichlet velocity Bdry, pressure will be defined up to a constant, 
@@ -251,8 +253,9 @@ void StokesProblem <dim>::assemble_system ()
 
 	const FEValuesExtractors::Vector velocities (0);
 	const FEValuesExtractors::Scalar pressure (dim);
-
-	std::vector<Tensor<2,dim>> grad_phi_u;
+         
+        std::vector<SymmetricTensor<2,dim> > symgrad_phi_u;
+	//std::vector<Tensor<2,dim>> grad_phi_u;
 	std::vector<double> div_phi_u;
 	std::vector<Tensor<1,dim>> phi_u;
 	std::vector<double> phi_p;
@@ -274,8 +277,9 @@ void StokesProblem <dim>::assemble_system ()
 
 		rhs_values.resize(n_q_points, Vector<double>(dim+1));
 		rhs_function->vector_value_list(fe_values.get_quadrature_points(), rhs_values);
-
-		grad_phi_u.resize(dofs_per_cell);
+                 
+                symgrad_phi_u.resize(dofs_per_cell);
+		//grad_phi_u.resize(dofs_per_cell);
 		div_phi_u.resize(dofs_per_cell);
 		phi_u.resize (dofs_per_cell);
 		phi_p.resize(dofs_per_cell);
@@ -284,7 +288,8 @@ void StokesProblem <dim>::assemble_system ()
 		{
 			for (unsigned int k=0; k<dofs_per_cell; ++k)
 			{
-				grad_phi_u[k] = fe_values[velocities].gradient (k, q);
+                                symgrad_phi_u[k] = fe_values[velocities].symmetric_gradient (k, q);
+				//grad_phi_u[k] = fe_values[velocities].gradient (k, q);
 				div_phi_u[k] = fe_values[velocities].divergence (k, q);
 				phi_u[k] = fe_values[velocities].value (k, q);
 				phi_p[k] = fe_values[pressure].value (k, q);
@@ -293,8 +298,11 @@ void StokesProblem <dim>::assemble_system ()
 			for (unsigned int i=0; i<dofs_per_cell; ++i)
 			{
 				for (unsigned int j=0; j<dofs_per_cell; ++j)
-					local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
-						- div_phi_u[i] * phi_p[j]	- phi_p[i] * div_phi_u[j]) * JxW_values[q];
+					//local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
+					//	- div_phi_u[i] * phi_p[j]	- phi_p[i] * div_phi_u[j]) * JxW_values[q];
+                                       local_matrix(i,j) += (2 * (symgrad_phi_u[i] * symgrad_phi_u[j]) - div_phi_u[i] * phi_p[j]
+                                         - phi_p[i] * div_phi_u[j])*JxW_values[q];
+
        
         double fe_rhs(0.);
         for (unsigned int d=0; d<dim; ++d)
@@ -319,7 +327,45 @@ void StokesProblem <dim>::solve ()
 	A_inverse.initialize(system_matrix, SparseDirectUMFPACK::AdditionalData());
 	A_inverse.vmult(solution, system_rhs);
 	constraints.distribute(solution);
+   
+        solution.block (1).add (-1.0 * pressure_mean_value ());
+	constraints.distribute (solution);
 }
+
+template <int dim>
+double StokesProblem <dim>::pressure_mean_value () const
+{
+
+	// get pressure such that satisfies mean value property:
+	hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection, update_values|update_JxW_values);
+	const FEValuesExtractors::Scalar pressure (dim);
+
+	std::vector<double> values;
+	double domain_mean_val_p=0;
+	double measure_domain=0;
+	typename hp::DoFHandler<dim>::active_cell_iterator
+	cell = dof_handler.begin_active(),
+	endc = dof_handler.end();
+	for (; cell!=endc; ++cell)
+	{
+		hp_fe_values.reinit (cell);
+
+		const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
+		const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
+		const unsigned int n_q_points = fe_values.n_quadrature_points;
+		values.resize(n_q_points);
+		fe_values[pressure].get_function_values(solution, values);
+		for (unsigned int q=0; q<n_q_points; ++q)
+		{
+			domain_mean_val_p += values[q]*JxW_values[q];
+			measure_domain += JxW_values[q];
+		}//q
+	}//cell
+	// 3 here is the area corresponding to our 3 cells.
+	// return domain_mean_val_p/3.0;
+	return domain_mean_val_p / measure_domain;
+}
+
 
 
 template <int dim>
@@ -518,6 +564,8 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
                 (fe_face_values.normal_vector(q)[j]);
 					jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 				}
+                                //const unsigned int poly_degree_1= max(cell->get_fe().degree , cell->neighbor(face_number)->get_fe().degree);
+                                //term3 += (cell->face(face_number)->diameter())/(2.0*poly_degree_1)*jump_val;
 				term3 += (cell->face(face_number)->diameter())/(2.0*cell->get_fe().degree)*jump_val;
 			}
 			// else if the neighbor has children
@@ -559,6 +607,10 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
                   (fe_subface_values.normal_vector(q)[j]);
             jump_val += contract(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
           }
+         // term3 +=(cell->face(face_number)->child(subface)->diameter()) / (2.0 * 
+         //     cell->neighbor_child_on_subface(face_number, subface)->get_fe().degree)*jump_val;
+          
+
           term3 +=(cell->face(face_number)->child(subface)->diameter()) / (2.0 * 
               cell->get_fe().degree)*jump_val;
         }
@@ -599,6 +651,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
                 (fe_face_values.normal_vector(q)[j]);
 					jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 				}
+                                //term3 += (cell->face(face_number)->diameter())/(2.0 * cell->get_fe().degree)*jump_val;
 				term3 += (cell->face(face_number)->diameter())/(2.0 * cell->get_fe().degree)*jump_val;
 			} // else if coarse neighbor
     }
@@ -911,11 +964,12 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
 
   if (need_to_refine==true)
   {
-    SolutionTransfer<dim,BlockVector<double>, hp::DoFHandler<dim>> solution_transfer(local_dof_handler);
+    //SolutionTransfer<dim,Vector<double>, hp::DoFHandler<dim> > aaa(local_dof_handler);
+    SolutionTransfer<dim,BlockVector<double>, hp::DoFHandler<dim> > solution_transfer(local_dof_handler);
     solution_transfer.prepare_for_pure_refinement();
 
-    act_patch_cell = local_dof_handler.begin_active();
-    for (; act_patch_cell!=act_end_patch_cell; ++act_patch_cell)
+   DoFHandler_active_cell_iterator active_patch_cell = local_dof_handler.begin_active();
+    for ( ; active_patch_cell!=local_dof_handler.end(); ++active_patch_cell)
     {
       // since here the fe_collection.size()=7 (i.e., 6 indices in total), and 
       // we also know the last index hold for the fe_nothing FE, therefore we will
@@ -924,8 +978,8 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
       // already the last index before the fe_nothing (index=6))
       // It is also worth to see how they did p-refinement in step-27.
       // if  (cell->active_fe_index()+1 < fe_collection.size()))
-      DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[act_patch_cell];
-      act_patch_cell->set_active_fe_index(global_cell->active_fe_index()+1);
+      DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[active_patch_cell];
+      active_patch_cell->set_active_fe_index(global_cell->active_fe_index()+1);
     }
 
     local_dof_handler.distribute_dofs (fe_collection);
@@ -967,7 +1021,7 @@ void StokesProblem<dim>::h_refinement(Triangulation<dim> &local_triangulation,
     // execute_coarsening_and_refinement. save their values into
     // the material_id, since that one not only survives
     // refinement but is also inherited to the children
-    for (DoFHandler_active_cell_iterator patch_cell = local_dof_handler.begin(); 
+    for (DoFHandler_active_cell_iterator patch_cell = local_dof_handler.begin_active(); 
         patch_cell != local_dof_handler.end(); ++patch_cell)
     {
       if (patch_cell->user_flag_set())
@@ -983,7 +1037,7 @@ void StokesProblem<dim>::h_refinement(Triangulation<dim> &local_triangulation,
     local_triangulation.execute_coarsening_and_refinement ();
 
     // get user flags back out of the material_id field
-    for (DoFHandler_cell_iterator patch_cell = local_dof_handler.begin(); 
+    for (DoFHandler_cell_iterator patch_cell = local_dof_handler.begin (); 
         patch_cell!=local_dof_handler.end(); ++patch_cell)
     {
       if (patch_cell->material_id() == 1)
@@ -1272,10 +1326,8 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
 	unsigned int level_h_refine(0);
 	unsigned int level_p_refine(0);
 	std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator> patch_to_global_tria_map;
-
   std::vector<DoFHandler_active_cell_iterator> patch = get_patch_around_cell(cell);
-  build_triangulation_from_patch (patch, local_triangulation, level_h_refine, 
-      level_p_refine, patch_to_global_tria_map);
+  build_triangulation_from_patch (patch, local_triangulation, level_h_refine, level_p_refine, patch_to_global_tria_map);
   hp::DoFHandler<dim> local_dof_handler(local_triangulation);
 
   set_active_fe_indices (local_dof_handler,patch_to_global_tria_map);
@@ -1297,8 +1349,6 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
   // to cell "K".
   DoFHandler_active_cell_iterator act_patch_cell = local_dof_handler.begin_active(), 
                                   act_end_patch_cell = local_dof_handler.end();
-  DoFHandler_cell_iterator patch_cell = local_dof_handler.begin(), 
-                           end_patch_cell = local_dof_handler.end();
   for (; act_patch_cell!=act_end_patch_cell; ++act_patch_cell)
   {
     const unsigned int dofs_per_cell = act_patch_cell->get_fe().dofs_per_cell;

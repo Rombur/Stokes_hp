@@ -59,7 +59,7 @@ void ExactSolutionEx4<3>::vector_gradient(const Point<3> &p,
   gradients[2][0] = 0.;
   gradients[2][1] = 0.;
   gradients[2][2] = 0.;
-  gradients[3][0] = 2.*mu*lambda*x*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
-  gradients[3][1] = 2.*mu*lambda*y*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
-  gradients[3][2] = 2.*mu*lambda*z*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
+  gradients[3][0] = -2.*mu*lambda*x*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
+  gradients[3][1] = -2.*mu*lambda*y*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
+  gradients[3][2] = -2.*mu*lambda*z*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
 }
