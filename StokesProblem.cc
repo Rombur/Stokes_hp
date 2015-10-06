@@ -292,13 +292,12 @@ void StokesProblem <dim>::assemble_system ()
 			for (unsigned int i=0; i<dofs_per_cell; ++i)
 			{
 				for (unsigned int j=0; j<dofs_per_cell; ++j)
-					local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
+					local_matrix(i,j) += (double_contract<0,0,1,1> (grad_phi_u[i], grad_phi_u[j])
 						- div_phi_u[i] * phi_p[j]	- phi_p[i] * div_phi_u[j]) * JxW_values[q];
        
         double fe_rhs(0.);
         for (unsigned int d=0; d<dim; ++d)
           fe_rhs += phi_u[i][d]*rhs_values[q][d];
-        fe_rhs += phi_p[i]*rhs_values[q][dim];
         local_rhs[i] += fe_rhs * JxW_values[q];
 			} 
 		} 
@@ -474,7 +473,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
 			for (unsigned int i=0; i<2; ++i)
 				gradients_p[q][i] -= (rhs_values[q](i)+ laplacians[q][i]);
 
-			term1 += contract(gradients_p[q],gradients_p[q])*JxW_values[q];
+			term1 += contract<0,0>(gradients_p[q],gradients_p[q])*JxW_values[q];
 		}
 		res_est_per_cell[cell_index] = pow((cell->diameter())/(cell->get_fe().degree), 2.0) * (term1) + term2;
 
@@ -516,7 +515,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
 						for (unsigned int j=0; j<2; ++j)
 							jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
                 (fe_face_values.normal_vector(q)[j]);
-					jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
+					jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 				}
 				term3 += (cell->face(face_number)->diameter())/(2.0*cell->get_fe().degree)*jump_val;
 			}
@@ -557,7 +556,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
               for (unsigned int j=0; j<2; ++j)
                 jump_per_subface[q][j] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) *
                   (fe_subface_values.normal_vector(q)[j]);
-            jump_val += contract(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
+            jump_val += contract<0,0>(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
           }
           term3 +=(cell->face(face_number)->child(subface)->diameter()) / (2.0 * 
               cell->get_fe().degree)*jump_val;
@@ -597,7 +596,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
 						for (unsigned int j=0; j<2; ++j)
 							jump_per_face[q][i] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) * 
                 (fe_face_values.normal_vector(q)[j]);
-					jump_val += contract(jump_per_face[q],jump_per_face[q])*JxW_values[q];
+					jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
 				}
 				term3 += (cell->face(face_number)->diameter())/(2.0 * cell->get_fe().degree)*jump_val;
 			} // else if coarse neighbor
@@ -1092,7 +1091,7 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
         for (unsigned int i=0; i<dofs_per_cell; ++i)
         {
           for (unsigned int j=0; j<dofs_per_cell; ++j)
-            local_matrix_patch(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j]) + 
+            local_matrix_patch(i,j) += (double_contract<0,0,1,1> (grad_phi_u[i], grad_phi_u[j]) + 
                 (phi_p[i] * phi_p[j]))* JxW_val;
 
           for (unsigned int d=0; d<dim; ++d)
@@ -1243,7 +1242,7 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
       {
         pressure_val +=values[q]*values[q]* JxW_values[q];
         for (unsigned int i=0; i<dim; ++i)
-          grad_u_val += contract(gradients[q][i],gradients[q][i])* JxW_values[q];
+          grad_u_val += contract<0,0>(gradients[q][i],gradients[q][i])* JxW_values[q];
       } 
       solu_norm_per_patch +=pressure_val + grad_u_val;
     }
@@ -1295,8 +1294,6 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
   // to cell "K".
   DoFHandler_active_cell_iterator act_patch_cell = local_dof_handler.begin_active(), 
                                   act_end_patch_cell = local_dof_handler.end();
-  DoFHandler_cell_iterator patch_cell = local_dof_handler.begin(), 
-                           end_patch_cell = local_dof_handler.end();
   for (; act_patch_cell!=act_end_patch_cell; ++act_patch_cell)
   {
     const unsigned int dofs_per_cell = act_patch_cell->get_fe().dofs_per_cell;
