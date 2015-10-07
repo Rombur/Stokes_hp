@@ -477,129 +477,145 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
 		}
 		res_est_per_cell[cell_index] = pow((cell->diameter())/(cell->get_fe().degree), 2.0) * (term1) + term2;
 
-		//  compute jump_est_per_cell
-		double term3=0;//jumpped part of the estimator
-		for (unsigned int face_number=0; face_number<GeometryInfo<dim>::faces_per_cell; ++face_number)
+    //  compute jump_est_per_cell
+    double term3=0;//jump part of the estimator
+    for (unsigned int face_number=0; face_number<GeometryInfo<dim>::faces_per_cell; ++face_number)
     {
-			if ((cell->face(face_number)->at_boundary()==false)	&& 
-          (cell->face(face_number)->has_children() == false) && 
-          (cell->face(face_number)->level() == cell->level()))
-			{
-				const unsigned int q_index = std::max (cell->active_fe_index(),
-						cell->neighbor(face_number)->active_fe_index());
+      // Check that the face is not at the boundary
+      if (cell->face(face_number)->at_boundary()==false)	
+      { 
+        // If the neighbor cell is active and on the same level
+        if ((cell->neighbor(face_number)->active()) && 
+            (cell->neighbor(face_number)->level() == cell->level()))
+        {
+          const unsigned int q_index = std::max (cell->active_fe_index(),
+              cell->neighbor(face_number)->active_fe_index());
 
-				hp_fe_face_values.reinit(cell, face_number, q_index);
-				hp_neighbor_face_values.reinit (cell->neighbor(face_number), 
-            cell->neighbor_of_neighbor(face_number), q_index);
+          hp_fe_face_values.reinit(cell, face_number, q_index);
+          hp_neighbor_face_values.reinit (cell->neighbor(face_number), 
+              cell->neighbor_of_neighbor(face_number), q_index);
 
-				const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values ();
-				const FEFaceValues<dim> &fe_face_values = hp_fe_face_values.get_present_fe_values ();
+          const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values ();
+          const FEFaceValues<dim> &fe_face_values = hp_fe_face_values.get_present_fe_values ();
 
-				const std::vector<double>& JxW_values = fe_face_values.get_JxW_values ();
+          const std::vector<double>& JxW_values = fe_face_values.get_JxW_values ();
 
-				const unsigned int n_face_q_points = fe_face_values.n_quadrature_points;
+          const unsigned int n_face_q_points = fe_face_values.n_quadrature_points;
 
-				gradients.resize(n_face_q_points);
-				neighbor_gradients.resize(n_face_q_points);
+          gradients.resize(n_face_q_points);
+          neighbor_gradients.resize(n_face_q_points);
 
-				neighbor_face_values[velocities].get_function_gradients(solution, neighbor_gradients);
-				fe_face_values[velocities].get_function_gradients(solution, gradients);
+          neighbor_face_values[velocities].get_function_gradients(solution, neighbor_gradients);
+          fe_face_values[velocities].get_function_gradients(solution, gradients);
 
-				std::vector<Tensor<1,dim> > jump_per_face;
-				jump_per_face.resize(n_face_q_points);
-				double jump_val=0;
-
-				for (unsigned int q=0; q<n_face_q_points; ++q)
-				{
-					for (unsigned int i=0; i<2; ++i)
-						for (unsigned int j=0; j<2; ++j)
-							jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
-                (fe_face_values.normal_vector(q)[j]);
-					jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
-				}
-				term3 += (cell->face(face_number)->diameter())/(2.0*cell->get_fe().degree)*jump_val;
-			}
-			// else if the neighbor has children
-			else if ( (cell->face(face_number)->at_boundary()==false) && 
-          (cell->face(face_number)->has_children() == true))
-			{
-				for (unsigned int subface=0;subface< cell->face(face_number)->n_children(); ++subface)
-				{
-					const unsigned int q_index = std::max(cell->neighbor_child_on_subface(
-                face_number, subface)->active_fe_index(), cell->active_fe_index());
-
-					hp_neighbor_face_values.reinit(cell->neighbor_child_on_subface(
-                face_number, subface), cell->neighbor_of_neighbor(face_number), q_index);
-					hp_subface_values.reinit (cell,face_number, subface, q_index);
-
-					const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values();
-					const FESubfaceValues<dim> &fe_subface_values = hp_subface_values.get_present_fe_values();
-
-
-					const std::vector<double>& JxW_values = fe_subface_values.get_JxW_values ();
-
-					const unsigned int n_subface_q_points = fe_subface_values.n_quadrature_points;
-
-          gradients.resize(n_subface_q_points);
-          neighbor_gradients.resize(n_subface_q_points);
-
-					neighbor_face_values[velocities].get_function_gradients(solution, neighbor_gradients);
-					fe_subface_values[velocities].get_function_gradients(solution, gradients);
-
-					std::vector<Tensor<1,dim>> jump_per_subface;
-					jump_per_subface.resize(n_subface_q_points);
-
+          std::vector<Tensor<1,dim> > jump_per_face;
+          jump_per_face.resize(n_face_q_points);
           double jump_val=0;
-          for (unsigned int q=0; q<n_subface_q_points; ++q)
+
+          for (unsigned int q=0; q<n_face_q_points; ++q)
           {
             for (unsigned int i=0; i<2; ++i)
               for (unsigned int j=0; j<2; ++j)
-                jump_per_subface[q][j] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) *
-                  (fe_subface_values.normal_vector(q)[j]);
-            jump_val += contract<0,0>(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
+                jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
+                  (fe_face_values.normal_vector(q)[j]);
+            jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
           }
-          term3 +=(cell->face(face_number)->child(subface)->diameter()) / (2.0 * 
-              cell->get_fe().degree)*jump_val;
+
+          unsigned int min_fe_degree = std::min(cell->get_fe().degree,
+              cell->neighbor(face_number)->get_fe().degree);
+
+          term3 += (cell->face(face_number)->diameter())/(2.0*min_fe_degree)*jump_val;
         }
+        // If the neighbor has children
+        else if (cell->neighbor(face_number)->has_children() == true)
+        {
+          for (unsigned int subface=0;subface< cell->face(face_number)->n_children(); ++subface)
+          {
+            const unsigned int q_index = std::max(cell->neighbor_child_on_subface(
+                  face_number, subface)->active_fe_index(), cell->active_fe_index());
+
+            hp_neighbor_face_values.reinit(cell->neighbor_child_on_subface(
+                  face_number, subface), cell->neighbor_of_neighbor(face_number), q_index);
+            hp_subface_values.reinit (cell,face_number, subface, q_index);
+
+            const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values();
+            const FESubfaceValues<dim> &fe_subface_values = hp_subface_values.get_present_fe_values();
+
+
+            const std::vector<double>& JxW_values = fe_subface_values.get_JxW_values ();
+
+            const unsigned int n_subface_q_points = fe_subface_values.n_quadrature_points;
+
+            gradients.resize(n_subface_q_points);
+            neighbor_gradients.resize(n_subface_q_points);
+
+            neighbor_face_values[velocities].get_function_gradients(solution, neighbor_gradients);
+            fe_subface_values[velocities].get_function_gradients(solution, gradients);
+
+            std::vector<Tensor<1,dim>> jump_per_subface;
+            jump_per_subface.resize(n_subface_q_points);
+
+            double jump_val=0;
+            for (unsigned int q=0; q<n_subface_q_points; ++q)
+            {
+              for (unsigned int i=0; i<2; ++i)
+                for (unsigned int j=0; j<2; ++j)
+                  jump_per_subface[q][j] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) *
+                    (fe_subface_values.normal_vector(q)[j]);
+              jump_val += contract<0,0>(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
+            }
+
+            unsigned int min_fe_degree = std::min(cell->get_fe().degree,
+                cell->neighbor_child_on_subface(face_number,subface)->get_fe().degree);
+
+            term3 +=(cell->face(face_number)->child(subface)->diameter()) / (2.0 * 
+                min_fe_degree)*jump_val;
+          }
+        }
+        // The neighbor is coarser
+        else 
+        {
+          Assert(cell->neighbor_is_coarser(face_number), 
+              ExcMessage("Problem while computing the error estimator."));
+          const unsigned int q_index = std::max(cell->active_fe_index(),
+              cell->neighbor(face_number)->active_fe_index());
+          hp_fe_face_values.reinit(cell, face_number,q_index);
+          hp_neighbor_subface_values.reinit(cell->neighbor(face_number),
+              cell->neighbor_of_coarser_neighbor(face_number).first, 
+              cell->neighbor_of_coarser_neighbor(face_number).second,q_index);
+
+          const FEFaceValues<dim> &fe_face_values = hp_fe_face_values.get_present_fe_values();
+          const FESubfaceValues<dim> &neighbor_subface_values = 
+            hp_neighbor_subface_values.get_present_fe_values();
+
+          const std::vector<double>& JxW_values = fe_face_values.get_JxW_values();
+
+          const unsigned int n_face_q_points = fe_face_values.n_quadrature_points;
+
+          gradients.resize(n_face_q_points);
+          neighbor_gradients.resize(n_face_q_points);
+
+          neighbor_subface_values[velocities].get_function_gradients(solution, neighbor_gradients);
+          fe_face_values[velocities].get_function_gradients(solution, gradients);
+
+          std::vector<Tensor<1,dim> > jump_per_face;
+          jump_per_face.resize(n_face_q_points);
+          double jump_val=0;
+          for (unsigned int q=0; q<n_face_q_points; ++q)
+          {
+            for (unsigned int i=0; i<2; ++i)
+              for (unsigned int j=0; j<2; ++j)
+                jump_per_face[q][i] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) * 
+                  (fe_face_values.normal_vector(q)[j]);
+            jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
+          }
+
+          unsigned int min_fe_degree = std::min(cell->get_fe().degree,
+              cell->neighbor(face_number)->get_fe().degree);
+
+          term3 += (cell->face(face_number)->diameter())/(2.0*min_fe_degree)*jump_val;
+        } 
       }
-      // if the neighbor is coarser
-			else if ( (cell->face(face_number)->at_boundary()==false) && 
-          (cell->neighbor_is_coarser(face_number)))
-			{
-				const unsigned int q_index = std::max(cell->active_fe_index(),
-            cell->neighbor(face_number)->active_fe_index());
-				hp_fe_face_values.reinit(cell, face_number,q_index);
-				hp_neighbor_subface_values.reinit(cell->neighbor(face_number),
-            cell->neighbor_of_coarser_neighbor(face_number).first, 
-            cell->neighbor_of_coarser_neighbor(face_number).second,q_index);
-
-				const FEFaceValues<dim> &fe_face_values = hp_fe_face_values.get_present_fe_values();
-				const FESubfaceValues<dim> &neighbor_subface_values = 
-          hp_neighbor_subface_values.get_present_fe_values();
-
-				const std::vector<double>& JxW_values = fe_face_values.get_JxW_values();
-
-				const unsigned int n_face_q_points = fe_face_values.n_quadrature_points;
-
-				gradients.resize(n_face_q_points);
-				neighbor_gradients.resize(n_face_q_points);
-
-				neighbor_subface_values[velocities].get_function_gradients(solution, neighbor_gradients);
-				fe_face_values[velocities].get_function_gradients(solution, gradients);
-
-				std::vector<Tensor<1,dim> > jump_per_face;
-				jump_per_face.resize(n_face_q_points);
-				double jump_val=0;
-				for (unsigned int q=0; q<n_face_q_points; ++q)
-				{
-					for (unsigned int i=0; i<2; ++i)
-						for (unsigned int j=0; j<2; ++j)
-							jump_per_face[q][i] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) * 
-                (fe_face_values.normal_vector(q)[j]);
-					jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
-				}
-				term3 += (cell->face(face_number)->diameter())/(2.0 * cell->get_fe().degree)*jump_val;
-			} // else if coarse neighbor
     }
 
 		Jump_est_per_cell(cell_index) = term3;
@@ -1406,18 +1422,12 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
       ScratchData(),
       CopyData<dim>());
 
-  double min_conv_estimator = convergence_est_per_cell(0);
-  unsigned int index = 0;
-  cell = dof_handler.begin_active();
-  for (; cell!=end_cell; ++cell , ++index)
-    min_conv_estimator = std::min ( min_conv_estimator, convergence_est_per_cell(index) );
-
 	std::sort(to_be_sorted.begin(), to_be_sorted.end(), 
       std_cxx1x::bind(&StokesProblem<dim>::decreasing,this,std_cxx1x::_1,std_cxx1x::_2));
 
   double L2_norm=est_per_cell.l2_norm();
   double sum=0;
-  for (unsigned int i=0; i< to_be_sorted. size(); ++i)
+  for (unsigned int i=0; i<to_be_sorted.size(); ++i)
   {
     to_be_sorted_with_refine_info.push_back(std::make_pair(to_be_sorted[i].second, 
           p_ref_map[to_be_sorted[i].second]));
@@ -1526,7 +1536,7 @@ void StokesProblem<dim>::refine_in_h_p (
 		}
   }
 
-  if ( need_to_h_refine==true)
+  if (need_to_h_refine==true)
     triangulation.execute_coarsening_and_refinement();
 
   bool cell_changed=false;
