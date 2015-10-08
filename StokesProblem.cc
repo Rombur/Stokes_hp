@@ -175,8 +175,6 @@ void StokesProblem <dim>::setup_system()
 
 	dof_handler.distribute_dofs(fe_collection);
 
-	DoFRenumbering::Cuthill_McKee(dof_handler);
-
 	std::vector<unsigned int> block_component (dim+1, 0);
 	block_component[dim]=1;
 	DoFRenumbering::component_wise(dof_handler, block_component);
@@ -471,7 +469,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
 			term2 += (divergences[q])*(divergences[q])*JxW_values[q];
 
 			for (unsigned int i=0; i<2; ++i)
-				gradients_p[q][i] -= (rhs_values[q](i)+ laplacians[q][i]);
+				gradients_p[q][i] -= (rhs_values[q](i)+laplacians[q][i]);
 
 			term1 += contract<0,0>(gradients_p[q],gradients_p[q])*JxW_values[q];
 		}
@@ -495,11 +493,9 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
           hp_neighbor_face_values.reinit (cell->neighbor(face_number), 
               cell->neighbor_of_neighbor(face_number), q_index);
 
-          const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values ();
+          const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values();
           const FEFaceValues<dim> &fe_face_values = hp_fe_face_values.get_present_fe_values ();
-
           const std::vector<double>& JxW_values = fe_face_values.get_JxW_values ();
-
           const unsigned int n_face_q_points = fe_face_values.n_quadrature_points;
 
           gradients.resize(n_face_q_points);
@@ -540,10 +536,7 @@ void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
 
             const FEFaceValues<dim> &neighbor_face_values = hp_neighbor_face_values.get_present_fe_values();
             const FESubfaceValues<dim> &fe_subface_values = hp_subface_values.get_present_fe_values();
-
-
             const std::vector<double>& JxW_values = fe_subface_values.get_JxW_values ();
-
             const unsigned int n_subface_q_points = fe_subface_values.n_quadrature_points;
 
             gradients.resize(n_subface_q_points);
@@ -878,21 +871,23 @@ void StokesProblem<dim>::patch_output (unsigned int patch_number,
     const unsigned int cycle, hp::DoFHandler<dim> &local_dof_handler, 
     BlockVector<double> &local_solu)
 {
- std::vector<std::string> solution_names (dim, "patch_velocity");
- solution_names.push_back ("patch_pressure");
+ std::vector<std::string> solution_names;
+ solution_names.push_back("patch_x_velocity");
+ solution_names.push_back("patch_y_velocity");
+ solution_names.push_back("patch_pressure");
 
- std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation
- (dim, DataComponentInterpretation::component_is_part_of_vector);
- data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
+ std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation;
+ data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
+ data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
+ data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
 
  DataOut<dim,hp::DoFHandler<dim> > patch_data_out;
-
  patch_data_out.attach_dof_handler (local_dof_handler);
 
 
- patch_data_out.add_data_vector (local_solu, solution_names,
+ patch_data_out.add_data_vector(local_solu, solution_names,
      DataOut<dim,hp::DoFHandler<dim> >::type_dof_data, data_component_interpretation);
- patch_data_out.build_patches ();
+ patch_data_out.build_patches();
 
  std::string filename = "patch_solution-" +
      Utilities::int_to_string (cycle, 2) +
@@ -943,9 +938,9 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
 
     local_dof_handler.distribute_dofs (fe_collection);
 
-    std::vector<unsigned int> block_component_patch (dim+1, 0);
-    block_component_patch[dim]=1;
-    DoFRenumbering::component_wise (local_dof_handler, block_component_patch);
+    std::vector<unsigned int> block_component_patch(dim+1, 0);
+    block_component_patch[dim] = 1;
+    DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
 
     std::vector<types::global_dof_index> dofs_per_block_patch (2);
     DoFTools::count_dofs_per_block (local_dof_handler, dofs_per_block_patch, block_component_patch);
@@ -1004,18 +999,18 @@ void StokesProblem<dim>::h_refinement(Triangulation<dim> &local_triangulation,
       else
         patch_cell->clear_user_flag();
     }
-    local_dof_handler.distribute_dofs (fe_collection);
+    local_dof_handler.distribute_dofs(fe_collection);
 
-    std::vector<unsigned int> block_component_patch (dim+1, 0);
-    block_component_patch[dim]=1;
-    DoFRenumbering::component_wise (local_dof_handler, block_component_patch);
+    std::vector<unsigned int> block_component_patch(dim+1, 0);
+    block_component_patch[dim] = 1;
+    DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
 
-    std::vector<types::global_dof_index> dofs_per_block_patch (2);
+    std::vector<types::global_dof_index> dofs_per_block_patch(2);
     DoFTools::count_dofs_per_block (local_dof_handler, dofs_per_block_patch, block_component_patch);
     // resize the vector temp to the correct size
-    BlockVector<double> temp (dofs_per_block_patch);
-    solution_transfer.refine_interpolate(local_solu , temp);
-    local_solu = temp;
+    BlockVector<double> tmp (dofs_per_block_patch);
+    solution_transfer.refine_interpolate(local_solu, tmp);
+    local_solu = tmp;
   }
 }
 
@@ -1049,7 +1044,6 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
 
   std::vector<double> values;
   std::vector<Tensor<2,dim>> gradients;
-
 
   DoFHandler_active_cell_iterator act_patch_cell = local_dof_handler.begin_active(),
                                   act_end_patch_cell = local_dof_handler.end();
@@ -1107,8 +1101,9 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
         for (unsigned int i=0; i<dofs_per_cell; ++i)
         {
           for (unsigned int j=0; j<dofs_per_cell; ++j)
-            local_matrix_patch(i,j) += (double_contract<0,0,1,1> (grad_phi_u[i], grad_phi_u[j]) + 
-                (phi_p[i] * phi_p[j]))* JxW_val;
+            local_matrix_patch(i,j) += 
+              (double_contract<0,0,1,1>(grad_phi_u[i],grad_phi_u[j]) + 
+               (phi_p[i]*phi_p[j])) * JxW_val;
 
           for (unsigned int d=0; d<dim; ++d)
             local_rhs1[i] += alpha[d]*phi_u[i][d];
@@ -1153,20 +1148,24 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
       for (unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
       {
         bool face_is_on_patch_Bdry = false;
-        if ((act_patch_cell->face(f)->at_boundary()) || 
-            ((act_patch_cell->neighbor(f)->has_children() == false)
-              &&
-              (act_patch_cell->neighbor(f)->user_flag_set() == false)))
+        if (act_patch_cell->face(f)->at_boundary())
           face_is_on_patch_Bdry = true;
-        else if ((act_patch_cell->face(f)->at_boundary()) || 
-            (act_patch_cell->neighbor(f)->has_children() == true))
+        else
         {
-          for (unsigned int sf=0; sf<act_patch_cell->face(f)->n_children(); ++sf)
-            if (act_patch_cell->neighbor_child_on_subface(f, sf)->user_flag_set() == false)
-            {
+          if (act_patch_cell->neighbor(f)->has_children() == true)
+          {
+            for (unsigned int sf=0; sf<act_patch_cell->face(f)->n_children(); ++sf)
+              if (act_patch_cell->neighbor_child_on_subface(f, sf)->user_flag_set() == false)
+              {
+                face_is_on_patch_Bdry = true;
+                break;
+              }
+          }
+          else
+          {
+            if (act_patch_cell->neighbor(f)->user_flag_set() == false)
               face_is_on_patch_Bdry = true;
-              break;
-            }
+          }
         }
 
         if (face_is_on_patch_Bdry)
@@ -1189,9 +1188,9 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
 
   std::vector<unsigned int> block_component_patch (dim+1, 0);
   block_component_patch[dim]=1;
-  DoFRenumbering::component_wise (local_dof_handler, block_component_patch);
+  DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
   std::vector<types::global_dof_index> dofs_per_block_patch (2);
-  DoFTools::count_dofs_per_block (local_dof_handler, dofs_per_block_patch, block_component_patch);
+  DoFTools::count_dofs_per_block(local_dof_handler, dofs_per_block_patch, block_component_patch);
 
   BlockDynamicSparsityPattern csp (dofs_per_block_patch, dofs_per_block_patch);
   BlockSparsityPattern sparsity_pattern_patch;
@@ -1256,14 +1255,14 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
 
       for (unsigned int q=0; q<n_q_points; ++q)
       {
-        pressure_val +=values[q]*values[q]* JxW_values[q];
+        pressure_val += values[q]*values[q]*JxW_values[q];
         for (unsigned int i=0; i<dim; ++i)
-          grad_u_val += contract<0,0>(gradients[q][i],gradients[q][i])* JxW_values[q];
+          grad_u_val += contract<0,0>(gradients[q][i],gradients[q][i]) * JxW_values[q];
       } 
-      solu_norm_per_patch +=pressure_val + grad_u_val;
+      solu_norm_per_patch += pressure_val + grad_u_val;
     }
   }
-  conv_est = sqrt(solu_norm_per_patch);
+  conv_est = std::sqrt(solu_norm_per_patch);
 }
 
 
@@ -1294,14 +1293,12 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
   set_active_fe_indices (local_dof_handler,patch_to_global_tria_map);
   local_dof_handler.distribute_dofs (fe_collection);
 
-  DoFRenumbering::Cuthill_McKee (local_dof_handler);
-
   std::vector<unsigned int> block_component_patch (dim+1, 0);
   block_component_patch[dim]=1;
-  DoFRenumbering::component_wise (local_dof_handler, block_component_patch);
+  DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
 
   std::vector<types::global_dof_index> dofs_per_block_patch (2);
-  DoFTools::count_dofs_per_block (local_dof_handler, dofs_per_block_patch, block_component_patch);
+  DoFTools::count_dofs_per_block(local_dof_handler, dofs_per_block_patch, block_component_patch);
 
   BlockVector<double> local_solu(dofs_per_block_patch);
 
@@ -1320,8 +1317,8 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
       Vector<double> local_solution_values(dofs_per_cell);
       DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[act_patch_cell];
 
-      global_cell->get_dof_values (solution,local_solution_values);
-      act_patch_cell->set_dof_values (local_solution_values, local_solu);
+      global_cell->get_dof_values(solution,local_solution_values);
+      act_patch_cell->set_dof_values(local_solution_values, local_solu);
     }
   }
 
@@ -1333,8 +1330,9 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
       copy_data.p_workload);
 
   // Reset the local_dof_handler to what it was before p_refinement was called
-  set_active_fe_indices (local_dof_handler,patch_to_global_tria_map);
+  set_active_fe_indices(local_dof_handler,patch_to_global_tria_map);
   local_dof_handler.distribute_dofs(fe_collection);
+  DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
   h_refinement(local_triangulation, local_dof_handler, level_h_refine, h_local_solu);
   patch_solve(local_dof_handler, patch_number, cycle, h_local_solu, copy_data.h_conv_est_per_cell, 
       copy_data.h_workload);
@@ -1360,7 +1358,6 @@ void StokesProblem<dim>::copy_to_refinement_maps(Vector<double> const &est_per_c
     h_ratio = 0.;
   
   double indicator_per_cell(0.);
-
   if (h_ratio > p_ratio)
   {
     convergence_est_per_cell[copy_data.cell_index] = h_improv;
@@ -1387,7 +1384,6 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
     std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set)
 {
   to_be_sorted.clear();
-  std::vector<std::pair<DoFHandler_active_cell_iterator,bool > > to_be_sorted_with_refine_info;
 
   Vector<double> est_per_cell (triangulation.n_active_cells());
   estimate(est_per_cell);
@@ -1400,6 +1396,7 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
   p_Conv_Est.reinit(triangulation.n_active_cells());
   hp_Conv_Est.reinit(triangulation.n_active_cells());
 
+  // Create the synchronous iterators used by WorkStream
   std::vector<unsigned int> cell_indices(dof_handler.get_tria().n_active_cells(),0);
   for (unsigned int i=0; i<dof_handler.get_tria().n_active_cells(); ++i)
     cell_indices[i] = i;
@@ -1414,7 +1411,7 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
         std::tuple<DoFHandler_active_cell_iterator,
         std::vector<unsigned int>::iterator> (end_cell, cell_indices.end()));
 
-  WorkStream::run(synch_iter,end_synch_iter,
+  WorkStream::run(synch_iter, end_synch_iter,
       std_cxx11::bind(&StokesProblem<dim>::patch_conv_load_no,this, cycle,
           std_cxx11::_1, std_cxx11::_2, std_cxx11::_3),
       std_cxx11::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,
@@ -1429,28 +1426,25 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
   double sum=0;
   for (unsigned int i=0; i<to_be_sorted.size(); ++i)
   {
-    to_be_sorted_with_refine_info.push_back(std::make_pair(to_be_sorted[i].second, 
-          p_ref_map[to_be_sorted[i].second]));
-    DoFHandler_active_cell_iterator  cell_sort=to_be_sorted[i].second;
-    sum+= (to_be_sorted[i].first)*(to_be_sorted[i].first);
+    DoFHandler_active_cell_iterator cell_sort = to_be_sorted[i].second;
+    sum += (to_be_sorted[i].first)*(to_be_sorted[i].first);
 
-    candidate_cell_set.push_back (cell_sort);
+    candidate_cell_set.push_back(cell_sort);
 
     // if theta is one, refine every cell
     if ((theta<1.0) && (sum >= (theta*(L2_norm))*(theta*(L2_norm))))
       break;
   }
 
-  marked_cells =0.;
-  unsigned int i=0;
+  marked_cells = 0.;
   cell = dof_handler.begin_active();
-  for (; cell!=end_cell; ++cell,++i)
+  for (unsigned int i=0; cell!=end_cell; ++cell,++i)
   {
     typename std::vector<DoFHandler_active_cell_iterator>::iterator  mark_candidate;
     for (mark_candidate=candidate_cell_set.begin(); 
-        mark_candidate!=candidate_cell_set.end(); ++ mark_candidate)
-      if (cell == (*mark_candidate))
-        marked_cells(i)=1;
+        mark_candidate!=candidate_cell_set.end(); ++mark_candidate)
+      if (cell == *mark_candidate)
+        marked_cells[i]=1;
   }
 }
 
@@ -1461,13 +1455,14 @@ void StokesProblem <dim>::output_results (const unsigned int cycle,
     Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, 
     Vector<double> &Vect_grad_Velocity_Err)
 {
-  Vector<float> fe_degrees (triangulation.n_active_cells());
+  Vector<float> fe_degrees(triangulation.n_active_cells());
   {
     DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
                                     endc = dof_handler.end();
     for (unsigned int index=0; cell!=endc; ++cell, ++index)
-      fe_degrees(index)= fe_collection[cell->active_fe_index()].degree;
+      fe_degrees[index] = fe_collection[cell->active_fe_index()].degree;
   }
+
 
   std::vector<std::string> solution_names;
   solution_names.push_back ("x_velocity");
@@ -1475,17 +1470,14 @@ void StokesProblem <dim>::output_results (const unsigned int cycle,
   solution_names.push_back ("pressure");
 
   std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation;
-  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
-  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
-  data_component_interpretation.push_back (DataComponentInterpretation::component_is_scalar);
-
+  data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
+  data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
+  data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
 
   DataOut<dim,hp::DoFHandler<dim> > data_out;
-
   data_out.attach_dof_handler (dof_handler);
-
   data_out.add_data_vector(solution, solution_names,
-      DataOut<dim,hp::DoFHandler<dim> >::type_dof_data, data_component_interpretation);
+      DataOut<dim,hp::DoFHandler<dim>>::type_dof_data, data_component_interpretation);
 
   data_out.add_data_vector (marked_cells, "marked_cells");
   data_out.add_data_vector (fe_degrees, "fe_degree");
@@ -1511,29 +1503,25 @@ void StokesProblem<dim>::refine_in_h_p (
     std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set)
 {
   bool need_to_h_refine=false;
-  unsigned int candidate_INDEX=0;
 
   typename std::vector<DoFHandler_active_cell_iterator>::iterator  cell_candidate;
   for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end(); 
-      ++cell_candidate, ++candidate_INDEX)
+      ++cell_candidate)
   {
     std::vector<DoFHandler_active_cell_iterator> patch_cells = 
       get_patch_around_cell (*cell_candidate);
 
+    // Mark the cell for h-refinement
     if (p_ref_map[*cell_candidate]==false)
     {
       need_to_h_refine = true;
       (*cell_candidate)->set_refine_flag();
     }
-    else if(p_ref_map[*cell_candidate]==true)
-    {
-
-      if ( ((*cell_candidate)-> active_fe_index()+ 1) <  (fe_collection.size()-1)  )
-      {
-        (*cell_candidate)->set_active_fe_index ((*cell_candidate)->active_fe_index() + 1);
-
-      }
-		}
+    // Mark the cell for p-refinement if we haven't reached the maximum
+    // polynomial order.
+    else
+      if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
+        (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
   }
 
   if (need_to_h_refine==true)
