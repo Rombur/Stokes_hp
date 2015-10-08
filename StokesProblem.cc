@@ -1560,8 +1560,77 @@ void StokesProblem<dim>::refine_in_h_p (
 
 
 template <int dim>
-void StokesProblem <dim>::run()
+void StokesProblem<dim>::output_convergence(std::vector<unsigned int> const &n_dofs_per_cycle,
+    std::vector<double> const &error_per_cycle) const
 {
+  std::ofstream output_stream;
+  output_stream.open("convergence.txt");
+  switch (example)
+  {
+    case (example_1) :
+      {
+        output_stream<<"example_1 ";
+
+        break;
+      }
+    case (example_2) :
+      {
+        output_stream<<"example_2 ";
+
+        break;
+      }
+    case (example_3) :
+      {
+        output_stream<<"example_3 ";
+
+        break;
+      }
+    case (example_4) :
+      {
+        output_stream<<"example_4 ";
+
+        break;
+      }
+    default :
+      {
+        AssertThrow(false, ExcMessage("Unknow Example"));
+      }  
+  }
+
+  switch (refinement)
+  {
+    case (h_refine) :
+      {
+        output_stream<<"h_refinement ";
+        
+        break;
+      }
+    case (p_refine) :
+      {
+        output_stream<<"p_refinement ";
+
+        break;
+      }
+    default :
+      {
+        output_stream<<"hp_refinement ";
+      }
+  }
+
+  output_stream<<theta<<std::endl;
+
+  for (unsigned int i=0; i<n_dofs_per_cycle.size(); ++i)
+    output_stream<<n_dofs_per_cycle[i]<<" "<<error_per_cycle[i]<<std::endl;
+
+  output_stream.close();
+}
+
+
+template <int dim>
+void StokesProblem<dim>::run()
+{
+  std::vector<unsigned int> n_dofs_per_cycles;
+  std::vector<double> error_per_cycles;
 	for (unsigned int cycle=0; cycle<max_n_cycles; ++cycle)
 	{
 		std::cout<< std::endl;
@@ -1586,6 +1655,7 @@ void StokesProblem <dim>::run()
 		solve();
 
     std::cout<<"Number of degrees of freedom: "<<dof_handler.n_dofs()<<std::endl;
+    n_dofs_per_cycles.push_back(dof_handler.n_dofs());
 
 		Vector<double> error_per_cell (triangulation.n_active_cells());
 		Vector<double> Vect_Pressure_Err(triangulation.n_active_cells());
@@ -1593,6 +1663,7 @@ void StokesProblem <dim>::run()
 		Vector<double> Vect_Velocity_Err(triangulation.n_active_cells());
 		compute_error(error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err, Vect_Velocity_Err);
     std::cout<< "L2_norm of ERROR is: "<< error_per_cell.l2_norm() << std::endl;
+    error_per_cycles.push_back(error_per_cell.l2_norm());
 
 		Vector<double> est_per_cell(triangulation.n_active_cells());
 		estimate(est_per_cell);
@@ -1616,6 +1687,8 @@ void StokesProblem <dim>::run()
     if (L2_norm_est < tolerance)
       break;
   }
+
+  output_convergence(n_dofs_per_cycles, error_per_cycles);
 }
 
 
