@@ -74,31 +74,37 @@ class StokesProblem
     typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
 
     StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature, 
-        REFINEMENT refinement, unsigned int max_degree, unsigned int n_max_cycles, 
-        double theta, double tolerance);
+        REFINEMENT refinement, unsigned int max_degree);
     
     ~StokesProblem();
-    
-    void run();
 
+    void generate_mesh();
 
-  private:
-    void generate_mesh ();
-
-    void set_global_active_fe_indices (hp::DoFHandler<dim> &dof_handler);
+    void setup_system();
     
-    void setup_system ();
-    
-    void assemble_system ();
+    void assemble_system();
     
     void solve();
     
-    void compute_error (Vector<double> &error_per_cell, 
-        Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, 
-        Vector<double> &Vect_Velocity_Err);
+    void compute_error();
 
-    void estimate (Vector<double> &est_per_cell);
+    void estimate_error();
 
+    void marking_cells(const unsigned int cycle, const double theta);
+
+    void output_results (const unsigned int cycle);
+
+    void refine_in_h_p();
+
+    unsigned int n_active_cells();
+
+    types::global_dof_index n_dofs();
+
+    double error_l2_norm();
+
+    double error_estimate_l2_norm();
+
+  private:
     void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler, 
         std::map<Triangulation_active_cell_iterator, 
         DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
@@ -133,17 +139,7 @@ class StokesProblem
     bool decreasing (const std::pair<double, DoFHandler_active_cell_iterator> &i, 
         const std::pair<double, DoFHandler_active_cell_iterator > &j);
 
-    void copy_to_refinement_maps(Vector<double> const &est_per_cell, 
-        CopyData<dim> const &copy_data);
-
-    void marking_cells (const unsigned int cycle,  Vector<float> & marked_cells, 
-        std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set);
-
-    void output_results (const unsigned int cycle, Vector<float> & marked_cells, 
-        Vector<double> &est_per_cell, Vector<double> &error_per_cell, 
-        Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err);
-
-    void refine_in_h_p (std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set);
+    void copy_to_refinement_maps(CopyData<dim> const &copy_data);
 
     std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
         const DoFHandler_active_cell_iterator &cell);
@@ -154,9 +150,6 @@ class StokesProblem
         unsigned int &level_p_refine, 
         std::map<Triangulation_active_cell_iterator, 
         DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
-
-    void output_convergence(std::vector<unsigned int> const &n_dofs_per_cycle,
-        std::vector<double> const &error_per_cycle) const;
 
     Function<dim>* exact_solution;
     Function<dim>* rhs_function;
@@ -183,16 +176,52 @@ class StokesProblem
     EXAMPLE example;
     REFINEMENT refinement;
     const unsigned int max_degree;
-    const unsigned int max_n_cycles;
-    double theta;
-    const double tolerance;
 
+    Vector<float> marked_cells;
     Vector<double> h_Conv_Est;
     Vector<double> p_Conv_Est;
     Vector<double> hp_Conv_Est;
     Vector<double> convergence_est_per_cell;
-    std::vector<std::pair<double, DoFHandler_active_cell_iterator> > to_be_sorted;
-    std::map<DoFHandler_active_cell_iterator, bool > p_ref_map;
+    Vector<double> error_per_cell;
+    Vector<double> est_per_cell;
+    Vector<double> Vect_Pressure_Err;
+    Vector<double> Vect_grad_Velocity_Err;
+    Vector<double> Vect_Velocity_Err;
+    std::vector<std::pair<double, DoFHandler_active_cell_iterator>> to_be_sorted;
+    std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
+    std::map<DoFHandler_active_cell_iterator, bool> p_ref_map;
 };
+
+ 
+template <int dim>
+inline
+unsigned int StokesProblem<dim>::n_active_cells()
+{
+  return triangulation.n_active_cells();
+}
+
+
+template <int dim>
+inline
+types::global_dof_index StokesProblem<dim>::n_dofs()
+{
+  return dof_handler.n_dofs();
+}                             
+
+
+template <int dim>
+inline
+double StokesProblem<dim>::error_l2_norm()
+{
+  return error_per_cell.l2_norm();
+}
+
+
+template <int dim>
+inline
+double StokesProblem<dim>::error_estimate_l2_norm()
+{
+  return est_per_cell.l2_norm();
+}
 
 #endif

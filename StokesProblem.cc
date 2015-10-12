@@ -10,16 +10,12 @@
 
 template <int dim>
 StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example,
-    QUADRATURE quadrature, REFINEMENT refinement, unsigned int max_degree, 
-    unsigned int max_n_cycles, double theta, double tolerance): 
+    QUADRATURE quadrature, REFINEMENT refinement, unsigned int max_degree): 
   dof_handler(triangulation),
   verbose(verbose),
   example(example),
   refinement(refinement),
-  max_degree(max_degree),
-  max_n_cycles(max_n_cycles),
-  theta(theta),
-  tolerance(tolerance)
+  max_degree(max_degree)
 {
   // Set the exact solution used in the Dirichlet boundary condition and to
   // compute the error. Also set the rhs.
@@ -154,17 +150,12 @@ void StokesProblem <dim>::generate_mesh()
     triangulation.create_triangulation(vertices,cell,SubCellData());
     triangulation.refine_global(1);
   }
-}
 
-
-template <int dim>
-void StokesProblem <dim>::set_global_active_fe_indices (hp::DoFHandler<dim> &dof_handler)
-{
-  // Set the finite element order to the minimum on every cell.
+  // Set the degree of the FE to the lowest possible on every cell.
   DoFHandler_active_cell_iterator cell = dof_handler.begin_active(), 
                                   end_cell = dof_handler.end();
   for (; cell!=end_cell; ++cell)
-    cell->set_active_fe_index (0);
+    cell->set_active_fe_index(0);
 }
 
 
@@ -222,12 +213,12 @@ void StokesProblem <dim>::setup_system()
   DoFTools::make_sparsity_pattern (dof_handler, csp, constraints, false);
   sparsity_pattern.copy_from (csp);
 	
-	system_matrix.reinit (sparsity_pattern);
-	solution.reinit (2);
-	solution.block(0).reinit (n_u);
-	solution.block(1).reinit (n_p);
-	solution.collect_sizes ();
-	system_rhs.reinit (2);
+	system_matrix.reinit(sparsity_pattern);
+	solution.reinit(2);
+	solution.block(0).reinit(n_u);
+	solution.block(1).reinit(n_p);
+	solution.collect_sizes();
+	system_rhs.reinit(2);
 	system_rhs.block(0).reinit (n_u);
 	system_rhs.block(1).reinit (n_p);
 	system_rhs.collect_sizes ();
@@ -310,7 +301,7 @@ void StokesProblem <dim>::assemble_system ()
 
 
 template <int dim>
-void StokesProblem <dim>::solve ()
+void StokesProblem <dim>::solve()
 {
 	SparseDirectUMFPACK A_inverse;
 	A_inverse.initialize(system_matrix, SparseDirectUMFPACK::AdditionalData());
@@ -320,10 +311,13 @@ void StokesProblem <dim>::solve ()
 
 
 template <int dim>
-void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell, 
-    Vector<double> &Vect_Pressure_Err, Vector<double> &Vect_grad_Velocity_Err, 
-    Vector<double> & Vec_Velocity_Err)
+void StokesProblem <dim>::compute_error()
 {
+  error_per_cell.reinit(triangulation.n_active_cells());
+  Vect_Pressure_Err.reinit(triangulation.n_active_cells());
+  Vect_grad_Velocity_Err.reinit(triangulation.n_active_cells());
+  Vect_Velocity_Err.reinit(triangulation.n_active_cells());
+
 	hp::FEValues<dim> hp_fe_values(fe_collection, quadrature_collection_Err, 
       update_values|update_quadrature_points|update_JxW_values|update_gradients|
       update_hessians);
@@ -340,13 +334,12 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell,
 	DoFHandler_active_cell_iterator	cell = dof_handler.begin_active(),
                                   endc = dof_handler.end();
 
-	unsigned int cell_index=0;
-	for (; cell!=endc; ++cell,++cell_index)
+	for (unsigned int cell_index=0; cell!=endc; ++cell,++cell_index)
 	{
-		double subtract_p=0.;
-		double grad_u_vals=0.;
-		double u_vals=0.;
-		hp_fe_values.reinit (cell);
+		double subtract_p = 0.;
+		double grad_u_vals = 0.;
+		double u_vals = 0.;
+		hp_fe_values.reinit(cell);
 		const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
 		const std::vector<double>& JxW_values = fe_values.get_JxW_values ();
 		const std::vector<Point<dim> >& quadrature_points = fe_values.get_quadrature_points();
@@ -355,7 +348,7 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell,
 		velocity_values.resize(n_q_points);
 		gradients.resize(n_q_points);
 		values.resize(n_q_points);
-		exact_solution_gradients.resize(n_q_points, std::vector<Tensor<1,dim> > (dim+1));
+		exact_solution_gradients.resize(n_q_points, std::vector<Tensor<1,dim>>(dim+1));
 		exact_solution_values.resize(n_q_points, Vector<double> (dim+1));
  
 		fe_values[velocities].get_function_values(solution, velocity_values);
@@ -368,7 +361,6 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell,
 		for (unsigned int q=0; q<n_q_points; ++q)
 		{
 			values[q] -= exact_solution_values[q](dim);
-			
 			subtract_p += values[q]*values[q]* JxW_values[q];
 
 			for (unsigned int i=0; i<dim; ++i)
@@ -385,7 +377,7 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell,
 
 		Vect_Pressure_Err[cell_index] = std::sqrt(subtract_p);
 		Vect_grad_Velocity_Err[cell_index] = std::sqrt(grad_u_vals);
-		Vec_Velocity_Err[cell_index] = std::sqrt(u_vals);
+		Vect_Velocity_Err[cell_index] = std::sqrt(u_vals);
 	}
 
   if (verbose)
@@ -394,7 +386,7 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell,
     double L2_norm_grad_velocity_Err = Vect_grad_Velocity_Err.l2_norm();
     std::cout<< "L2_norm_grad_velocity_Err: "<< L2_norm_grad_velocity_Err << std::endl;
     std::cout<< std::endl;
-    double L2_norm_velocity_Err = Vec_Velocity_Err.l2_norm();
+    double L2_norm_velocity_Err = Vect_Velocity_Err.l2_norm();
     std::cout<< "L2_norm_velocity_Err: "<< L2_norm_velocity_Err << std::endl;
     std::cout<< std::endl;
     std::cout<< std::endl;
@@ -411,8 +403,9 @@ void StokesProblem <dim>::compute_error (Vector<double> &error_per_cell,
 
 
 template <int dim>
-void StokesProblem<dim>::estimate(Vector<double> &est_per_cell)
+void StokesProblem<dim>::estimate_error()
 {
+  est_per_cell.reinit(triangulation.n_active_cells());
 	hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection,
       update_values|update_quadrature_points|update_JxW_values|update_gradients|
       update_hessians);
@@ -1206,6 +1199,7 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
       patch_rhs);
 
   // iterative solver
+  double tolerance = 1e-12;
   SolverControl solver_control_stiffness (patch_rhs.block(0).size(),
       tolerance*patch_rhs.block(0).l2_norm());
   SolverCG<> cg_stiff (solver_control_stiffness);
@@ -1340,8 +1334,7 @@ void StokesProblem<dim>::patch_conv_load_no(const unsigned int cycle,
 
 
 template <int dim>
-void StokesProblem<dim>::copy_to_refinement_maps(Vector<double> const &est_per_cell,
-    CopyData<dim> const &copy_data)
+void StokesProblem<dim>::copy_to_refinement_maps(CopyData<dim> const &copy_data)
 {
   h_Conv_Est[copy_data.cell_index] = copy_data.h_conv_est_per_cell;
   p_Conv_Est[copy_data.cell_index] = copy_data.p_conv_est_per_cell;
@@ -1379,14 +1372,11 @@ void StokesProblem<dim>::copy_to_refinement_maps(Vector<double> const &est_per_c
 
 
 template <int dim>
-void StokesProblem<dim>::marking_cells (const unsigned int cycle, 
-    Vector<float> & marked_cells, 
-    std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set)
+void StokesProblem<dim>::marking_cells(const unsigned int cycle, const double theta)
 {
   to_be_sorted.clear();
-
-  Vector<double> est_per_cell (triangulation.n_active_cells());
-  estimate(est_per_cell);
+  candidate_cell_set.clear();
+  marked_cells.reinit(triangulation.n_active_cells());
 
   // this vector "convergence_est_per_cell" will be finalized after checking out
   // which h- or p- refinement are going to be chosen for each cell
@@ -1415,7 +1405,7 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
       std_cxx11::bind(&StokesProblem<dim>::patch_conv_load_no,this, cycle,
           std_cxx11::_1, std_cxx11::_2, std_cxx11::_3),
       std_cxx11::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,
-          est_per_cell, std_cxx11::_1),
+          std_cxx11::_1),
       ScratchData(),
       CopyData<dim>());
 
@@ -1436,7 +1426,6 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
       break;
   }
 
-  marked_cells = 0.;
   cell = dof_handler.begin_active();
   for (unsigned int i=0; cell!=end_cell; ++cell,++i)
   {
@@ -1450,10 +1439,7 @@ void StokesProblem<dim>::marking_cells (const unsigned int cycle,
 
 
 template <int dim>
-void StokesProblem <dim>::output_results (const unsigned int cycle, 
-    Vector<float> & marked_cells, Vector<double> &est_per_cell, 
-    Vector<double> &error_per_cell, Vector<double> &Vect_Pressure_Err, 
-    Vector<double> &Vect_grad_Velocity_Err)
+void StokesProblem <dim>::output_results (const unsigned int cycle)
 {
   Vector<float> fe_degrees(triangulation.n_active_cells());
   {
@@ -1499,8 +1485,7 @@ void StokesProblem <dim>::output_results (const unsigned int cycle,
 
 
 template <int dim>
-void StokesProblem<dim>::refine_in_h_p (
-    std::vector<DoFHandler_active_cell_iterator> &candidate_cell_set)
+void StokesProblem<dim>::refine_in_h_p()
 {
   bool need_to_h_refine=false;
 
@@ -1523,6 +1508,9 @@ void StokesProblem<dim>::refine_in_h_p (
       if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
         (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
   }
+
+  // Clear the p-refinement map
+  p_ref_map.clear();
 
   if (need_to_h_refine==true)
     triangulation.execute_coarsening_and_refinement();
@@ -1556,139 +1544,6 @@ void StokesProblem<dim>::refine_in_h_p (
 
   }
   while (cell_changed==true);
-}
-
-
-template <int dim>
-void StokesProblem<dim>::output_convergence(std::vector<unsigned int> const &n_dofs_per_cycle,
-    std::vector<double> const &error_per_cycle) const
-{
-  std::ofstream output_stream;
-  output_stream.open("convergence.txt");
-  switch (example)
-  {
-    case (example_1) :
-      {
-        output_stream<<"example_1 ";
-
-        break;
-      }
-    case (example_2) :
-      {
-        output_stream<<"example_2 ";
-
-        break;
-      }
-    case (example_3) :
-      {
-        output_stream<<"example_3 ";
-
-        break;
-      }
-    case (example_4) :
-      {
-        output_stream<<"example_4 ";
-
-        break;
-      }
-    default :
-      {
-        AssertThrow(false, ExcMessage("Unknow Example"));
-      }  
-  }
-
-  switch (refinement)
-  {
-    case (h_refine) :
-      {
-        output_stream<<"h_refinement ";
-        
-        break;
-      }
-    case (p_refine) :
-      {
-        output_stream<<"p_refinement ";
-
-        break;
-      }
-    default :
-      {
-        output_stream<<"hp_refinement ";
-      }
-  }
-
-  output_stream<<theta<<std::endl;
-
-  for (unsigned int i=0; i<n_dofs_per_cycle.size(); ++i)
-    output_stream<<n_dofs_per_cycle[i]<<" "<<error_per_cycle[i]<<std::endl;
-
-  output_stream.close();
-}
-
-
-template <int dim>
-void StokesProblem<dim>::run()
-{
-  std::vector<unsigned int> n_dofs_per_cycles;
-  std::vector<double> error_per_cycles;
-	for (unsigned int cycle=0; cycle<max_n_cycles; ++cycle)
-	{
-		std::cout<< std::endl;
-
-		std::cout<< "-----------------------------------------------------------" << std::endl;
-		std::cout << "Cycle " << cycle << ':' << std::endl;
-		if (cycle == 0)
-		{
-			generate_mesh();
-      // Set the degree of the FE to the lowest possible on every cell.
-			set_global_active_fe_indices(dof_handler);
-
-		}
-		std::cout<<"Number of active cells: "<< triangulation.n_active_cells() << std::endl;
-
-		std::cout<<"Total number of cells: " << triangulation.n_cells() << std::endl ;
-    std::cout<<"Set up"<<std::endl;
-		setup_system();
-    std::cout<<"Assemble system"<<std::endl;
-		assemble_system();
-    std::cout<<"Solve"<<std::endl;
-		solve();
-
-    std::cout<<"Number of degrees of freedom: "<<dof_handler.n_dofs()<<std::endl;
-    n_dofs_per_cycles.push_back(dof_handler.n_dofs());
-
-		Vector<double> error_per_cell (triangulation.n_active_cells());
-		Vector<double> Vect_Pressure_Err(triangulation.n_active_cells());
-		Vector<double> Vect_grad_Velocity_Err(triangulation.n_active_cells());
-		Vector<double> Vect_Velocity_Err(triangulation.n_active_cells());
-		compute_error(error_per_cell, Vect_Pressure_Err, Vect_grad_Velocity_Err, Vect_Velocity_Err);
-    std::cout<< "L2_norm of ERROR is: "<< error_per_cell.l2_norm() << std::endl;
-    error_per_cycles.push_back(error_per_cell.l2_norm());
-
-		Vector<double> est_per_cell(triangulation.n_active_cells());
-		estimate(est_per_cell);
-    double L2_norm_est = est_per_cell.l2_norm();
-    std::cout<< "L2_norm of ERROR Estimate is: "<< L2_norm_est << std::endl;
-    Vector<float> marked_cells(triangulation.n_active_cells());
-    std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
-
-    p_ref_map.clear();
-
-    std::cout<<"Marking Cell"<<std::endl;
-    marking_cells(cycle, marked_cells, candidate_cell_set);
-    std::cout<<"Output results"<<std::endl;
-    output_results(cycle, marked_cells, est_per_cell, error_per_cell, Vect_Pressure_Err, 
-        Vect_grad_Velocity_Err);
-
-    std::cout<<"Refinement"<<std::endl;
-    refine_in_h_p(candidate_cell_set);
-
-		std::cout<< "-----------------------------------------------------------" << std::endl;
-    if (L2_norm_est < tolerance)
-      break;
-  }
-
-  output_convergence(n_dofs_per_cycles, error_per_cycles);
 }
 
 
