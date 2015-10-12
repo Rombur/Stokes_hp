@@ -157,10 +157,14 @@ class StokesProblem
         std::map<Triangulation_active_cell_iterator, 
         DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
+    void output_convergence(std::vector<unsigned int> const &n_dofs_per_cycle,
+        std::vector<double> const &error_per_cycle) const;
+
     Function<dim>* exact_solution;
     Function<dim>* rhs_function;
 
     hp::FECollection<dim> fe_collection;
+
     Triangulation<dim> triangulation;
     hp::DoFHandler<dim> dof_handler;
 
