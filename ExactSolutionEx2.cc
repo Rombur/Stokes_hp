@@ -2,53 +2,63 @@
 #include <cmath>
 
 
+using std::cos;
+using std::sin;
+using std::pow;
+using std::exp;
+using std::sqrt;
+
 template <>
 void ExactSolutionEx2<2>::vector_value(const Point<2> &p, Vector<double> &values) const
 {
+
+  const double x(p[0]);
+  const double y(p[1]);
+
   const double PI = std::atan(1.0)*4;
 
-  const double Lambda= 0.54448;
+  const double Lambda= 0.544;
   const double Omega=(3*(PI))/2;
-  double r= std::sqrt(std::pow(p(0),2)+std::pow(p(1),2));
+  double r= sqrt(pow(x,2)+pow(y,2));
   double Phi;
 
   // in order to get rid of NAN(Not A Number) case
-  if (std::fabs(p(0)-0.0)<1e-10 &&  std::fabs(p(1)-0.0)<1e-10 )
+  if (std::fabs(x-0.0)<1e-12 &&  std::fabs(y-0.0)<1e-12 )
     Phi=PI/4;
-  else if (p(0)>0 && p(1)==0)
+  else if (x-0.0>1e-12 && std::fabs(y-0.0)<1e-12)
     Phi=0.0;
-  else if (p(0)<0 && p(1)==0)
+  else if (x-0.0<1e-12 && std::fabs(y-0.0)<1e-12)
     Phi=PI;
-  else if (p(0)==0.0 && p(1)>0)
+  else if (std::fabs(x-0.0)<1e-12 && y-0.0>1e-12)
     Phi=PI/2;
-  else if (p(0)==0.0 && p(1)<0)
+  else if (std::fabs(x-0.0)<1e-12 && y-0.0<1e-12)
     Phi=3*PI/2;
-  else if ((p(0)<0 && p(1)>0) || (p(0)<0 && p(1)<0))
+  else if ((x-0.0<1e-12 && y-0.0>1e-12) || (x-0.0<1e-12 && y-0.0<1e-12))
     Phi=std::atan(p(1)/p(0))+PI;
   else 
     Phi=std::atan(p(1)/p(0));
 
 
-  double Psi= (std::sin((1+Lambda)*(Phi))*std::cos(Lambda*Omega))/(1+Lambda)-std::cos((1+Lambda)*Phi)
-    -(std::sin((1-Lambda)*Phi) * std::cos(Lambda*Omega))/(1-Lambda) +std::cos((1-Lambda)*Phi);
+  double Psi= (sin((1+Lambda)*(Phi))* cos(Lambda*Omega))/(1+Lambda)-cos((1+Lambda)*Phi)
+    -(sin((1-Lambda)*Phi) * cos(Lambda*Omega))/(1-Lambda) + cos((1-Lambda)*Phi);
 
-  double Deriv_Psi= (std::cos(Lambda*Omega) * std::cos((1+Lambda)*Phi))+ (1+Lambda)*std::sin((1+Lambda)*Phi)-
-    std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi)-(1-Lambda)*std::sin((1-Lambda)*Phi);
+  double Deriv_Psi= (cos(Lambda*Omega) * cos((1+Lambda)*Phi))+ (1+Lambda)*sin((1+Lambda)*Phi)-
+    cos(Lambda*Omega)*cos((1-Lambda)*Phi)-(1-Lambda)*sin((1-Lambda)*Phi);
 
-  double third_Deriv_Psi= - (std::pow((1+Lambda),2)) * std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi)- std::pow((1+Lambda),3)*std::sin((1+Lambda)*Phi)+ std::pow((1-Lambda),2)*std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi)+ std::pow((1-Lambda),3)*std::sin((1-Lambda)* Phi);
+  double third_Deriv_Psi= - (pow((1+Lambda),2)) * cos(Lambda*Omega)* cos((1+Lambda)*Phi)- pow((1+Lambda),3)* sin((1+Lambda)*Phi)+ pow((1-Lambda),2)* cos(Lambda*Omega)* cos((1-Lambda)*Phi)+ pow((1-Lambda),3)* sin((1-Lambda)* Phi);
 
   //L-shape/ actual problem / solution from Houston, et.al's paper
 
-  values(0) = std::pow(r, Lambda) *((1+Lambda)*std::sin(Phi) * Psi + std::cos(Phi) *
+  values(0) = pow(r, Lambda) *((1+Lambda)*sin(Phi) * Psi + cos(Phi) *
       Deriv_Psi ) ;
 
-  values(1) =  std::pow(r, Lambda) * (std::sin(Phi)* Deriv_Psi - (1+Lambda) * std::cos(Phi) * Psi);
+  values(1) =  pow(r, Lambda) * (sin(Phi)* Deriv_Psi - (1+Lambda) * cos(Phi) * Psi);
 
-  if (std::fabs(p(0)-0.0)<1e-16 &&  std::fabs(p(1)-0.0)<1e-16 )
+  if (std::fabs(x-0.0)<1e-12 &&  std::fabs(y-0.0)<1e-12 )
     // since in this case, presssure would be infinity...Hence, we have to take care of infinity value of pressure by setting it with a large number.
-    values(2) = std::pow (10,100);
+    values(2) = pow (10,100);
   else
-    values(2) = -std::pow(r,(Lambda-1)) * (std::pow((1+Lambda),2)*Deriv_Psi + third_Deriv_Psi )/ (1-Lambda);
+    values(2) = -pow(r,(Lambda-1)) * (pow((1+Lambda),2)*Deriv_Psi + third_Deriv_Psi )/ (1-Lambda);
 }
 
 
@@ -56,26 +66,28 @@ template <>
 void ExactSolutionEx2<2>::vector_gradient(const Point<2> &p, 
     std::vector<Tensor<1,2>> &gradients) const
 {
+
+  const double x(p[0]);
+  const double y(p[1]);
   const double PI = std::atan(1.0)*4;
-  const double Lambda= 0.54448373678246;
-  const double Omega=3/2*(PI);
-  double r= std::sqrt(std::pow(p(0),2)+std::pow(p(1),2));
 
-
+  const double Lambda= 0.544;
+  const double Omega=(3*(PI))/2;
+  double r= sqrt(pow(x,2)+pow(y,2));
   double Phi;
 
   // in order to get rid of NAN(Not A Number) case
-  if (std::fabs(p(0)-0.0)<1e-10 &&  std::fabs(p(1)-0.0)<1e-10 )
+  if (std::fabs(x-0.0)<=1e-12 &&  std::fabs(y-0.0)<=1e-12 )
     Phi=PI/4;
-  else if (p(0)>0 && p(1)==0)
+  else if (x-0.>1e-12 && std::fabs(y-0.0)<=1e-12)
     Phi=0.0;
-  else if (p(0)<0 && p(1)==0)
+  else if (x-0.<1e-12 && std::fabs(y-0.0)<=1e-12)
     Phi=PI;
-  else if (p(0)==0.0 && p(1)>0)
+  else if (std::fabs(x-0.0)<=1e-12 && y-0.0>1e-12)
     Phi=PI/2;
-  else if (p(0)==0.0 && p(1)<0)
+  else if (std::fabs(x-0.0)<=1e-12 && y-0.0<1e-12)
     Phi=3*PI/2;
-  else if ((p(0)<0 && p(1)>0) || (p(0)<0 && p(1)<0))
+  else if ((x-0.0<1e-12 && y-0.0>1e-12) || (x-0.0<1e-12 && y-0.0<1e-12))
     Phi=std::atan(p(1)/p(0))+PI;
   else 
     Phi=std::atan(p(1)/p(0));
@@ -83,45 +95,54 @@ void ExactSolutionEx2<2>::vector_gradient(const Point<2> &p,
 
   //L-shape/ actual problem / solution from Houston, et.al's paper
 
-
-  if (std::fabs(p(0)-0.0)<1e-10 &&  std::fabs(p(1)-0.0)<1e-10 )
-    gradients[0][0]= std::pow (10,100);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if (std::fabs(x-0.0)<1e-12 &&  std::fabs(y-0.0)<1e-12 )
+    gradients[0][0]= pow (10,100);
   else
-    gradients[0][0]= 1/r *( std::pow(r,Lambda)*Lambda* ( (1+Lambda)*std::sin(Phi)* ( ( std::cos(Lambda*Omega)*std::sin((1+Lambda)*Phi))/(1+Lambda) - std::cos((1+Lambda)*Phi)   -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Omega)  )/(1-Lambda) +  std::cos((1-Lambda)*Phi) )+std::cos(Phi)* ( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)* std::sin((1+Lambda)*Phi)- std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) -(1-Lambda)*std::sin((1-Lambda)*Phi)  )  ) )* ( (p(0))/(r) ) + 
+    gradients[0][0]= Lambda* pow(r, (Lambda-1))*( (1+Lambda)*sin(Phi) *( sin((1+Lambda)*Phi)*cos(Lambda*Omega)/(1+Lambda) -cos((1+Lambda)*Phi) - cos(Lambda*Omega) *sin((1-Lambda)*Phi)/(1-Lambda)+
+                     cos((1-Lambda)*Phi) ) + cos(Phi)* ( cos(Lambda*Omega) *cos((1+Lambda)*Phi) +(1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) - (1-Lambda)*sin((1-Lambda)*Phi)  ) )* x/r
+                   +( pow(r,Lambda)*( (1+Lambda)*cos(Phi)* (  sin((1+Lambda)*Phi) *cos(Lambda*Omega)/(1+Lambda) - cos((1+Lambda)*Phi) - cos(Lambda*Omega) *sin((1-Lambda)*Phi) /(1-Lambda) + cos((1-Lambda)*Phi) ) + (1+Lambda)*sin(Phi)*( cos((1+Lambda)*Phi) *cos(Lambda*Omega) + (1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) - (1-Lambda)*sin((1-Lambda)*Phi) )- 
+sin(Phi) *( cos(Lambda*Omega)*cos((1+Lambda)*Phi) +(1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) -(1-Lambda)*sin((1-Lambda)*Phi) ) + cos(Phi)*
+(-(1+Lambda)*cos(Lambda*Omega)*sin((1+Lambda)*Phi) + pow((1+Lambda),2)*cos((1+Lambda)*Phi) + (1-Lambda) *cos(Lambda*Omega)*sin((1-Lambda)*Phi) - pow((1-Lambda),2) *cos((1-Lambda)*Phi)))) 
+* (-y)/pow(r,2);
 
-      ( std::pow(r,Lambda)* ( (1+Lambda)*std::cos(Phi) *( ( std::sin((1+Lambda)*Phi)*std::cos(Lambda*Omega))/(1+Lambda) - std::cos((1+Lambda)*Phi)  -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Phi))/(1-Lambda) + std::cos((1-Lambda)*Phi)  )+ (1+Lambda)*std::sin(Phi) * ( std::cos((1+Lambda)*Phi) +(1+Lambda)*std::sin((1+Lambda)*Phi) -std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) -(1-Lambda)*std::sin((1-Lambda)*Phi) )-
-                              std::sin(Phi)* ( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)*std::sin((1+Lambda)*Phi) -std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi)- (1-Lambda)*std::sin((1-Lambda)*Phi)) +
-                              std::cos(Phi)*(-std::cos(Lambda*Omega)*(1+Lambda)*std::sin((1+Lambda)*Phi) + std::pow((1+Lambda),2)*std::cos((1+Lambda)*Phi) + std::cos(Lambda*Omega)*(1-Lambda)*std::sin((1-Lambda)*Phi) - std::pow((1-Lambda),2) *std::cos( (1-Lambda)*Phi )) ))*( (-p(1))/( std::pow(r,2)) );
-
-
-  if (std::fabs(p(0)-0.0)<1e-10 &&  std::fabs(p(1)-0.0)<1e-10 )
-    gradients[0][1]= std::pow (10,100);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ if (std::fabs(x-0.0)<1e-12 &&  std::fabs(y-0.0)<1e-12 )
+    gradients[0][1]= pow (10,100);
   else
-    gradients[0][1]= ( 1/r *( std::pow(r,Lambda)*Lambda* ( (1+Lambda)*std::sin(Phi)* ( ( std::cos(Lambda*Omega)*std::sin((1+Lambda)*Phi))/(1+Lambda) - std::cos((1+Lambda)*Phi)   -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Omega)  )/(1-Lambda) +  std::cos((1-Lambda)*Phi) )+std::cos(Phi)* ( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)* std::sin((1+Lambda)*Phi)- std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) -(1-Lambda)*std::sin((1-Lambda)*Phi)  )  ) ) )*(p(1)/r) + 
-      ( std::pow(r,Lambda)* ( (1+Lambda)*std::cos(Phi) *( ( std::sin((1+Lambda)*Phi)*std::cos(Lambda*Omega))/(1+Lambda) - std::cos((1+Lambda)*Phi)  -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Phi))/(1-Lambda) + std::cos((1-Lambda)*Phi)  )+ (1+Lambda)*std::sin(Phi) * ( std::cos((1+Lambda)*Phi) +(1+Lambda)*std::sin((1+Lambda)*Phi) -std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) -(1-Lambda)*std::sin((1-Lambda)*Phi) )-
-                              std::sin(Phi)* ( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)*std::sin((1+Lambda)*Phi) -std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi)- (1-Lambda)*std::sin((1-Lambda)*Phi)) +
-                              std::cos(Phi)*(-std::cos(Lambda*Omega)*(1+Lambda)*std::sin((1+Lambda)*Phi) + std::pow((1+Lambda),2)*std::cos((1+Lambda)*Phi) + std::cos(Lambda*Omega)*(1-Lambda)*std::sin((1-Lambda)*Phi) - std::pow((1-Lambda),2) *std::cos( (1-Lambda)*Phi )) ) )*((p(0))/(std::pow(r,2)));
+    gradients[0][1]= Lambda* pow(r, (Lambda-1))*( (1+Lambda)*sin(Phi) *( sin((1+Lambda)*Phi)*cos(Lambda*Omega)/(1+Lambda) -cos((1+Lambda)*Phi) - cos(Lambda*Omega) *sin((1-Lambda)*Phi)/(1-Lambda)+
+                     cos((1-Lambda)*Phi) ) + cos(Phi)* ( cos(Lambda*Omega) *cos((1+Lambda)*Phi) +(1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) - (1-Lambda)*sin((1-Lambda)*Phi)  ) )* y/r
++ ( pow(r,Lambda)*( (1+Lambda)*cos(Phi)* (  sin((1+Lambda)*Phi) *cos(Lambda*Omega)/(1+Lambda) - cos((1+Lambda)*Phi) - cos(Lambda*Omega) *sin((1-Lambda)*Phi) /(1-Lambda) + cos((1-Lambda)*Phi) ) + (1+Lambda)*sin(Phi)*( cos((1+Lambda)*Phi) *cos(Lambda*Omega) + (1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) - (1-Lambda)*sin((1-Lambda)*Phi) )- 
+sin(Phi) *( cos(Lambda*Omega)*cos((1+Lambda)*Phi) +(1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) -(1-Lambda)*sin((1-Lambda)*Phi) ) + cos(Phi)*
+(-(1+Lambda)*cos(Lambda*Omega)*sin((1+Lambda)*Phi) + pow((1+Lambda),2)*cos((1+Lambda)*Phi) + (1-Lambda) *cos(Lambda*Omega)*sin((1-Lambda)*Phi) - pow((1-Lambda),2) *cos((1-Lambda)*Phi)))) 
+* x/pow(r,2);
 
 
-  if (std::fabs(p(0)-0.0)<1e-10 &&  std::fabs(p(1)-0.0)<1e-10 )
-    gradients[1][0]= std::pow (10,100);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if (std::fabs(x-0.0)<1e-12 &&  std::fabs(y-0.0)<1e-12 )
+    gradients[1][0]= pow (10,100);
   else
-    gradients[1][0]= 1/r*( Lambda* std::pow(r,Lambda)* (  std::sin(Phi)*( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) + (1+Lambda)*std::sin((1+Lambda)*Phi) -std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) -(1-Lambda)*std::sin((1-Lambda)*Phi) )- (1+Lambda)*std::cos(Phi)*( ( std::cos(Lambda*Omega)*std::sin((1+Lambda)*Phi))/(1+Lambda) - std::cos((1+Lambda)*Phi)   -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Omega)  )/(1-Lambda) +  std::cos((1-Lambda)*Phi) ) ) ) 
-      *( (p(0))/(r) )
-      +(  std::pow(r,Lambda) * ( std::cos(Phi)*( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)*(std::sin((1+Lambda)*Phi)) - std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) - (1-Lambda)*std::sin((1-Lambda)*Phi)  )+ std::sin(Phi)*( -std::cos(Lambda*Omega)*(1+Lambda)*std::sin((1+Lambda)*Phi) + std::pow((1+Lambda),2)*std::cos((1+Lambda)*Phi) + std::cos(Lambda*Omega)*(1-Lambda)*std::sin((1-Lambda)*Phi) - std::pow((1-Lambda),2)*std::cos((1-Lambda)*Phi) ) +(1+Lambda)*std::sin(Phi) *( ( std::cos(Lambda*Omega)*std::sin((1+Lambda)*Phi))/(1+Lambda) - std::cos((1+Lambda)*Phi)   -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Omega)  )/(1-Lambda) +  std::cos((1-Lambda)*Phi) ) -(1+Lambda)*std::cos(Phi)* ( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)*(std::sin((1+Lambda)*Phi)) - std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) - (1-Lambda)*std::sin((1-Lambda)*Phi)  ) ) )
-      *((-p(1))/( std::pow(r,2)));
+    gradients[1][0]= Lambda*pow(r, (Lambda-1)) *( sin(Phi)*( cos(Lambda*Omega) *cos((1+Lambda)*Phi) + (1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) - (1-Lambda)*sin((1-Lambda)*Phi)  ) - (1+Lambda)*cos(Phi)*( sin((1+Lambda)*Phi) *cos(Lambda*Omega)/(1+Lambda) - cos((1+Lambda)*Phi) - cos(Lambda*Omega)*sin((1-Lambda)*Phi)/(1-Lambda) + cos((1-Lambda)*Phi))  ) * x/r
++ pow(r,Lambda)* ( cos(Phi)* (cos(Lambda*Omega)*cos((1+Lambda)*Phi) +(1+Lambda) *sin((1+Lambda)*Phi) - cos(Lambda*Omega) *cos((1-Lambda)*Phi) - (1-Lambda) *sin((1-Lambda)*Phi))
++ sin(Phi) *( -cos(Lambda*Omega)*(1+Lambda)*sin((1+Lambda)*Phi) + pow((1+Lambda),2) *cos((1+Lambda)*Phi) + cos(Lambda*Omega) *(1-Lambda)* sin((1-Lambda)*Phi) - pow((1-Lambda),2) *cos((1-Lambda)*Phi)) 
++ (1+Lambda)*sin(Phi) *( sin((1+Lambda)*Phi) *cos(Lambda*Omega)/ (1+Lambda) - cos((1+Lambda)*Phi) - cos(Lambda*Omega)*sin((1-Lambda)*Phi)/(1-Lambda) + cos((1-Lambda)*Phi)) 
+-(1+Lambda)*cos(Phi) *( cos(Lambda*Omega)* cos((1+Lambda)*Phi) + (1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega) *cos((1-Lambda)*Phi) -(1-Lambda) *sin((1-Lambda)*Phi)) ) *(-y/pow(r,2));
 
-
-  if (std::fabs(p(0)-0.0)<1e-10 &&  std::fabs(p(1)-0.0)<1e-10)
-    gradients[1][1]= std::pow (10,100);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   if (std::fabs(x-0.0)<1e-12 &&  std::fabs(y-0.0)<1e-12 )
+    gradients[1][1]= pow (10,100);
   else
-    gradients[1][1]= ( 1/r*( Lambda* std::pow(r,Lambda)* (  std::sin(Phi)*( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) + (1+Lambda)*std::sin((1+Lambda)*Phi) -std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) -(1-Lambda)*std::sin((1-Lambda)*Phi) )- (1+Lambda)*std::cos(Phi)*( ( std::cos(Lambda*Omega)*std::sin((1+Lambda)*Phi))/(1+Lambda) - std::cos((1+Lambda)*Phi)   -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Omega)  )/(1-Lambda) +  std::cos((1-Lambda)*Phi) ) ) ) )*(p(1)/r) +(  std::pow(r,Lambda) * ( std::cos(Phi)*( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)*(std::sin((1+Lambda)*Phi)) - std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) - (1-Lambda)*std::sin((1-Lambda)*Phi)  )+ std::sin(Phi)*( -std::cos(Lambda*Omega)*(1+Lambda)*std::sin((1+Lambda)*Phi) + std::pow((1+Lambda),2)*std::cos((1+Lambda)*Phi) + std::cos(Lambda*Omega)*(1-Lambda)*std::sin((1-Lambda)*Phi) - std::pow((1-Lambda),2)*std::cos((1-Lambda)*Phi) ) +(1+Lambda)*std::sin(Phi) *( ( std::cos(Lambda*Omega)*std::sin((1+Lambda)*Phi))/(1+Lambda) - std::cos((1+Lambda)*Phi)   -(std::cos(Lambda*Omega)*std::sin((1-Lambda)*Omega)  )/(1-Lambda) +  std::cos((1-Lambda)*Phi) ) -(1+Lambda)*std::cos(Phi)* ( std::cos(Lambda*Omega)*std::cos((1+Lambda)*Phi) +(1+Lambda)*(std::sin((1+Lambda)*Phi)) - std::cos(Lambda*Omega)*std::cos((1-Lambda)*Phi) - (1-Lambda)*std::sin((1-Lambda)*Phi)  ) ) )*(p(0)/std::pow(r,2));
+    gradients[1][1]=  Lambda*pow(r, (Lambda-1)) *( sin(Phi)*( cos(Lambda*Omega) *cos((1+Lambda)*Phi) + (1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega)*cos((1-Lambda)*Phi) - (1-Lambda)*sin((1-Lambda)*Phi)  ) - (1+Lambda)*cos(Phi)*( sin((1+Lambda)*Phi) *cos(Lambda*Omega)/(1+Lambda) -cos((1+Lambda)*Phi) - cos(Lambda*Omega)*sin((1-Lambda)*Phi)/(1-Lambda) + cos((1-Lambda)*Phi))  ) * y/r
++ pow(r,Lambda)* ( cos(Phi)* (cos(Lambda*Omega)*cos((1+Lambda)*Phi) +(1+Lambda) *sin((1+Lambda)*Phi) - cos(Lambda*Omega) *cos((1-Lambda)*Phi) - (1-Lambda) *sin((1-Lambda)*Phi))
++ sin(Phi) *( -cos(Lambda*Omega)*(1+Lambda)*sin((1+Lambda)*Phi) + pow((1+Lambda),2) *cos((1+Lambda)*Phi) + cos(Lambda*Omega) *(1-Lambda)* sin((1-Lambda)*Phi) - pow((1-Lambda),2) *cos((1-Lambda)*Phi)) 
++ (1+Lambda)*sin(Phi) *( sin((1+Lambda)*Phi) *cos(Lambda*Omega)/ (1+Lambda) -cos((1+Lambda)*Phi) - cos(Lambda*Omega)*sin((1-Lambda)*Phi)/(1-Lambda) + cos((1-Lambda)*Phi)) 
+-(1+Lambda)*cos(Phi) *( cos(Lambda*Omega)* cos((1+Lambda)*Phi) + (1+Lambda)*sin((1+Lambda)*Phi) - cos(Lambda*Omega) *cos((1-Lambda)*Phi) -(1-Lambda) *sin((1-Lambda)*Phi)) ) *(x/pow(r,2));
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   gradients[2][0]= 0 ;
   gradients[2][1]=  0 ;
 }
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 template <>
