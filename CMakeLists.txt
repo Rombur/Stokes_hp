@@ -19,6 +19,7 @@ SET(TARGET_SRC
   ExactSolutionEx3.cc
   ExactSolutionEx4.cc
   RightHandSideEx1.cc
+  RightHandSideEx2.cc
   RightHandSideEx3.cc
   Parameters.cc
   # You can specify additional files here!

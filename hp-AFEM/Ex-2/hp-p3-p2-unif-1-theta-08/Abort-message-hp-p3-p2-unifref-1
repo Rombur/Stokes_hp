@@ -1,0 +1,31 @@
+aghesmati@up ~/Documents/Spring15/Stokes_hp $ ./Stokes project.inp > hpAFEM-p3-p2-unifref-1-moreinfo.txt
+
+
+---------------------------------------------------------
+In one of the sub-threads of this program, an exception
+was thrown and not caught. Since exceptions do not
+propagate to the main thread, the library has caught it.
+The information carried by this exception is given below.
+
+---------------------------------------------------------
+Exception message: 
+  
+--------------------------------------------------------
+An error occurred in line <608> of file </w/aghesmati/candi_install/deal.II/default-default/include/deal.II/lac/solver_cg.h> in function
+    void dealii::SolverCG<VECTOR>::solve(const MATRIX&, VECTOR&, const VECTOR&, const PRECONDITIONER&) [with MATRIX = dealii::SparseMatrix<double>, PRECONDITIONER = dealii::PreconditionSSOR<>, VECTOR = dealii::Vector<double>]
+The violated condition was: 
+    false
+The name and call sequence of the exception was:
+    SolverControl::NoConvergence (it, res)
+Additional Information: 
+Iterative method reported convergence failure in step 1980. The residual in the last step was 5.69935e-08.
+
+This error message can indicate that you have simply not allowed a sufficiently large number of iterations for your iterative solver to converge. This often happens when you increase the size of your problem. In such cases, the last residual will likely still be very small, and you can make the error go away by increasing the allowed number of iterations when setting up the SolverControl object that determines the maximal number of iterations you allow.
+
+The other situation where this error may occur is when your matrix is not invertible (e.g., your matrix has a null-space), or if you try to apply the wrong solver to a matrix (e.g., using CG for a matrix that is not symmetric or not positive definite). In these cases, the residual in the last iteration is likely going to be large.
+--------------------------------------------------------
+
+Exception type: 
+  N6dealii13SolverControl13NoConvergenceE
+Aborting!
+

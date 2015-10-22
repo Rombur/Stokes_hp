@@ -1,0 +1,1944 @@
+-----------------------------------------------------------
+
+Cycle 0:
+Number of active cells: 12
+Total number of cells: 15
+   Number of degrees of freedom: 331 (266+65)
+
+l2-norm of velocity34.2178
+l2-norm of pressure25.3783
+
+
+L2_norm_grad_velocity_Err : 0.946751
+
+L2_norm_velocity_Err : 0.0494111
+
+
+L2_norm_pressure_Err : 1.81326
+
+
+L2_norm of Tottal_ERROR is : 2.04555
+
+L2_norm of ERROR Estimate is: 2.31446
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.412229
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 1:
+Number of active cells: 15
+Total number of cells: 19
+   Number of degrees of freedom: 433 (348+85)
+
+l2-norm of velocity38.735
+l2-norm of pressure26.9562
+
+
+L2_norm_grad_velocity_Err : 0.946851
+
+L2_norm_velocity_Err : 0.0490494
+
+
+L2_norm_pressure_Err : 1.81133
+
+
+L2_norm of Tottal_ERROR is : 2.04388
+
+L2_norm of ERROR Estimate is: 2.33883
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.524885
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 2:
+Number of active cells: 24
+Total number of cells: 31
+   Number of degrees of freedom: 693 (558+135)
+
+l2-norm of velocity42.2002
+l2-norm of pressure41.8289
+
+
+L2_norm_grad_velocity_Err : 0.656147
+
+L2_norm_velocity_Err : 0.0193876
+
+
+L2_norm_pressure_Err : 0.942221
+
+
+L2_norm of Tottal_ERROR is : 1.14818
+
+L2_norm of ERROR Estimate is: 1.52457
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.532564
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 3:
+Number of active cells: 33
+Total number of cells: 43
+   Number of degrees of freedom: 953 (768+185)
+
+l2-norm of velocity43.7386
+l2-norm of pressure61.0224
+
+
+L2_norm_grad_velocity_Err : 0.452025
+
+L2_norm_velocity_Err : 0.00788931
+
+
+L2_norm_pressure_Err : 0.614518
+
+
+L2_norm of Tottal_ERROR is : 0.762862
+
+L2_norm of ERROR Estimate is: 1.05646
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.345429
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 4:
+Number of active cells: 42
+Total number of cells: 55
+   Number of degrees of freedom: 1213 (978+235)
+
+l2-norm of velocity44.4378
+l2-norm of pressure86.1869
+
+
+L2_norm_grad_velocity_Err : 0.311575
+
+L2_norm_velocity_Err : 0.00350672
+
+
+L2_norm_pressure_Err : 0.416159
+
+
+L2_norm of Tottal_ERROR is : 0.519873
+
+L2_norm of ERROR Estimate is: 0.736615
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.33788
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 5:
+Number of active cells: 51
+Total number of cells: 67
+   Number of degrees of freedom: 1473 (1188+285)
+
+l2-norm of velocity44.7579
+l2-norm of pressure119.947
+
+
+L2_norm_grad_velocity_Err : 0.215524
+
+L2_norm_velocity_Err : 0.00191794
+
+
+L2_norm_pressure_Err : 0.284278
+
+
+L2_norm of Tottal_ERROR is : 0.356741
+
+L2_norm of ERROR Estimate is: 0.520448
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.337562
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 6:
+Number of active cells: 60
+Total number of cells: 79
+   Number of degrees of freedom: 1733 (1398+335)
+
+l2-norm of velocity44.9049
+l2-norm of pressure165.749
+
+
+L2_norm_grad_velocity_Err : 0.150315
+
+L2_norm_velocity_Err : 0.00144465
+
+
+L2_norm_pressure_Err : 0.195098
+
+
+L2_norm of Tottal_ERROR is : 0.246288
+
+L2_norm of ERROR Estimate is: 0.377641
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.337392
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 7:
+Number of active cells: 69
+Total number of cells: 91
+   Number of degrees of freedom: 1993 (1608+385)
+
+l2-norm of velocity44.9723
+l2-norm of pressure228.227
+
+
+L2_norm_grad_velocity_Err : 0.106603
+
+L2_norm_velocity_Err : 0.00133549
+
+
+L2_norm_pressure_Err : 0.13453
+
+
+L2_norm of Tottal_ERROR is : 0.171647
+
+L2_norm of ERROR Estimate is: 0.286685
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.337306
+theta = 0.75
+
+
+number of candidate_cell_set 1
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 8:
+Number of active cells: 78
+Total number of cells: 103
+   Number of degrees of freedom: 2253 (1818+435)
+
+l2-norm of velocity45.0033
+l2-norm of pressure313.687
+
+
+L2_norm_grad_velocity_Err : 0.0779692
+
+L2_norm_velocity_Err : 0.00131428
+
+
+L2_norm_pressure_Err : 0.0934753
+
+
+L2_norm of Tottal_ERROR is : 0.121724
+
+L2_norm of ERROR Estimate is: 0.231827
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.337266
+theta = 0.75
+
+
+number of candidate_cell_set 2
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 9:
+Number of active cells: 87
+Total number of cells: 115
+   Number of degrees of freedom: 2606 (2096+510)
+
+l2-norm of velocity45.0213
+l2-norm of pressure505.685
+
+
+L2_norm_grad_velocity_Err : 0.0572082
+
+L2_norm_velocity_Err : 0.00131079
+
+
+L2_norm_pressure_Err : 0.0585223
+
+
+L2_norm of Tottal_ERROR is : 0.0818391
+
+L2_norm of ERROR Estimate is: 0.199327
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.337242
+theta = 0.75
+
+
+number of candidate_cell_set 7
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 10:
+Number of active cells: 108
+Total number of cells: 143
+   Number of degrees of freedom: 3623 (2882+741)
+
+l2-norm of velocity50.851
+l2-norm of pressure864.813
+
+
+L2_norm_grad_velocity_Err : 0.042404
+
+L2_norm_velocity_Err : 0.0010942
+
+
+L2_norm_pressure_Err : 0.0844239
+
+
+L2_norm of Tottal_ERROR is : 0.0944748
+
+L2_norm of ERROR Estimate is: 0.172336
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.304721
+theta = 0.75
+
+
+number of candidate_cell_set 17
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+
+-----------------------------------------------------------
+
+
+
+Cycle 11:
+Number of active cells: 147
+Total number of cells: 195
+   Number of degrees of freedom: 5673 (4456+1217)
+
+l2-norm of velocity71.7726
+l2-norm of pressure1471.19
+
+
+L2_norm_grad_velocity_Err : 0.0316173
+
+L2_norm_velocity_Err : 0.000914443
+
+
+L2_norm_pressure_Err : 0.0245791
+
+
+L2_norm of Tottal_ERROR is : 0.0400473
+
+L2_norm of ERROR Estimate is: 0.131337
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.288907
+theta = 0.75
+
+
+number of candidate_cell_set 4
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+
+-----------------------------------------------------------
+
+Cycle 12:
+Number of active cells: 162
+Total number of cells: 215
+   Number of degrees of freedom: 6133 (4824+1309)
+
+l2-norm of velocity79.6269
+l2-norm of pressure1471.05
+
+
+L2_norm_grad_velocity_Err : 0.0246802
+
+L2_norm_velocity_Err : 0.000332474
+
+
+L2_norm_pressure_Err : 0.0720364
+
+
+L2_norm of Tottal_ERROR is : 0.0761469
+
+L2_norm of ERROR Estimate is: 0.0998727
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.288906
+theta = 0.75
+
+
+number of candidate_cell_set 10
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+
+-----------------------------------------------------------
+Cycle 13:
+Number of active cells: 216
+Total number of cells: 287
+   Number of degrees of freedom: 8552 (6690+1862)
+
+l2-norm of velocity87.6624
+l2-norm of pressure2348.88
+
+
+L2_norm_grad_velocity_Err : 0.0183372
+
+L2_norm_velocity_Err : 0.000204256
+
+
+L2_norm_pressure_Err : 0.0266656
+
+
+L2_norm of Tottal_ERROR is : 0.0323621
+
+L2_norm of ERROR Estimate is: 0.0768274
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+min_conv_estimator = 0.272483
+theta = 0.75
+
+
+number of candidate_cell_set 16
+
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  0
+h-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+  p_ref_map[*cell_candidate] :  1
+p-refinement flags
+
+-----------------------------------------------------------
+
+
+Cycle 14:
+Number of active cells: 267
+Total number of cells: 355
+   Number of degrees of freedom: 11083 (8634+2449)
+
+l2-norm of velocity101.958
+l2-norm of pressure3400.59
+
+
+L2_norm_grad_velocity_Err : 0.0141903
+
+L2_norm_velocity_Err : 0.000122533
+
+
+L2_norm_pressure_Err : 0.00931085
+
+
+L2_norm of Tottal_ERROR is : 0.0169722
+
+L2_norm of ERROR Estimate is: 0.0573508
+
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+H-refinement_marking ...  =>  p_ref_map[cell] = 0
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+P-refinement_marking ...  =>  p_ref_map[cell] = 1
+
+

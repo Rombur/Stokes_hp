@@ -1,0 +1,108 @@
+
+-----------------------------------------------------------
+Cycle 0:
+Number of active cells: 12
+Total number of cells: 15
+Set up
+Assemble system
+Solve
+Number of degrees of freedom: 151
+L2_norm of ERROR is: 2.71289
+L2_norm of ERROR Estimate is: 3.08163
+Marking Cell
+number-of-candidate-cells = 12
+Output results
+Refinement
+number-of-h-renimenet = 12
+number-of-p-renimenet = 0
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+Cycle 1:
+Number of active cells: 48
+Total number of cells: 63
+Set up
+Assemble system
+Solve
+Number of degrees of freedom: 515
+L2_norm of ERROR is: 1.83509
+L2_norm of ERROR Estimate is: 2.00683
+Marking Cell
+number-of-candidate-cells = 48
+Output results
+Refinement
+number-of-h-renimenet = 48
+number-of-p-renimenet = 0
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+Cycle 2:
+Number of active cells: 192
+Total number of cells: 255
+Set up
+Assemble system
+Solve
+Number of degrees of freedom: 1891
+L2_norm of ERROR is: 1.24531
+L2_norm of ERROR Estimate is: 1.39696
+Marking Cell
+number-of-candidate-cells = 192
+Output results
+Refinement
+number-of-h-renimenet = 192
+number-of-p-renimenet = 0
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+Cycle 3:
+Number of active cells: 768
+Total number of cells: 1023
+Set up
+Assemble system
+Solve
+Number of degrees of freedom: 7235
+L2_norm of ERROR is: 0.849498
+L2_norm of ERROR Estimate is: 0.964993
+Marking Cell
+number-of-candidate-cells = 768
+Output results
+Refinement
+number-of-h-renimenet = 768
+number-of-p-renimenet = 0
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+Cycle 4:
+Number of active cells: 3072
+Total number of cells: 4095
+Set up
+Assemble system
+Solve
+Number of degrees of freedom: 28291
+L2_norm of ERROR is: 0.581141
+L2_norm of ERROR Estimate is: 0.66403
+Marking Cell
+number-of-candidate-cells = 3072
+Output results
+Refinement
+number-of-h-renimenet = 3072
+number-of-p-renimenet = 0
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+Cycle 5:
+Number of active cells: 12288
+Total number of cells: 16383
+Set up
+Assemble system
+Solve
+Number of degrees of freedom: 111875
+L2_norm of ERROR is: 0.398225
+L2_norm of ERROR Estimate is: 0.456133
+Marking Cell
+number-of-candidate-cells = 12288
+Output results
+Refinement
+number-of-h-renimenet = 12288
+number-of-p-renimenet = 0
+-----------------------------------------------------------
