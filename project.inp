@@ -1,7 +1,7 @@
 set Verbose = false
 set Example = 3
 set Quadrature = GaussLegendre
-set Refinement = h
+set Refinement = hp
 set Max degree = 10
 set Max n cycles = 15
 set Theta = 0.9

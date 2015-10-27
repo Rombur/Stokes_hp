@@ -74,14 +74,14 @@ StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example,
     {
       for (unsigned int degree=1; degree<=max_degree; ++degree)
         {
-          fe_collection.push_back (FESystem<dim>(FE_Q<dim> (degree + 1), dim,
-                                                 FE_Q<dim> (degree), 1));
+          fe_collection.push_back (FESystem<dim>(FE_Q<dim> (degree + 2), dim,
+                                                 FE_Q<dim> (degree+1), 1));
 
-          quadrature_collection.push_back(QGauss<dim> (degree+2));
-          face_quadrature_collection.push_back (QGauss<dim-1> (degree+2));
+          quadrature_collection.push_back(QGauss<dim> (degree+3));
+          face_quadrature_collection.push_back (QGauss<dim-1> (degree+3));
 
-          quadrature_collection_Err.push_back(QGauss<dim> (degree+3));
-          face_quadrature_collection_Err.push_back (QGauss<dim-1> (degree+3));
+          quadrature_collection_Err.push_back(QGauss<dim> (degree+4));
+          face_quadrature_collection_Err.push_back (QGauss<dim-1> (degree+4));
         }
     }
 
@@ -116,7 +116,7 @@ void StokesProblem <dim>::generate_mesh()
   if ((example==example_3) || (example==example_3))
     {
       GridGenerator::hyper_cube(triangulation, -1, 1);
-      triangulation.refine_global(2);
+      triangulation.refine_global(1);
     }
   else
     {
@@ -318,8 +318,8 @@ void StokesProblem <dim>::solve()
   A_inverse.vmult(solution, system_rhs);
   constraints.distribute(solution);
 
-  solution.block (1).add (-1.0 * pressure_mean_value ());
-  constraints.distribute (solution);
+  //solution.block (1).add (-1.0 * pressure_mean_value ());
+  //constraints.distribute (solution);
 }
 
 template <int dim>
@@ -1257,27 +1257,43 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
   patch_assemble_system(local_dof_handler, constraints_patch, local_solu, patch_system,
                         patch_rhs);
 
-  // iterative solver
-  double tolerance = 1e-12;
-  SolverControl solver_control_stiffness (patch_rhs.block(0).size(),
-                                          tolerance*patch_rhs.block(0).l2_norm());
-  SolverCG<> cg_stiff (solver_control_stiffness);
 
-  PreconditionSSOR<> preconditioner_stiffness;
-  preconditioner_stiffness.initialize(patch_system.block(0,0), 1.2);
-  cg_stiff.solve (patch_system.block(0,0), patch_solution.block(0), patch_rhs.block(0),
-                  preconditioner_stiffness);
+  // direct solver
+  SparseDirectUMFPACK A_inverse_stiffness;
+  A_inverse_stiffness.initialize (patch_system.block(0,0),
+                                  SparseDirectUMFPACK::AdditionalData());
+  A_inverse_stiffness.vmult (patch_solution.block(0), patch_rhs.block(0));
+  //constraints_patch.distribute (patch_solution.block(0));
 
-  SolverControl solver_control_mass (patch_rhs.block(1).size(),
-                                     tolerance*patch_rhs.block(1).l2_norm());
-  SolverCG<> cg_mass (solver_control_mass);
+  SparseDirectUMFPACK A_inverse_mass;
+  A_inverse_mass.initialize (patch_system.block(1,1),
+                             SparseDirectUMFPACK::AdditionalData());
+  A_inverse_mass.vmult (patch_solution.block(1), patch_rhs.block(1));
+  // constraints_patch.distribute (patch_solution.block(1));
 
-  PreconditionSSOR<> preconditioner_mass;
-  preconditioner_mass.initialize(patch_system.block(1,1), 1.2);
-  cg_mass.solve (patch_system.block(1,1), patch_solution.block(1), patch_rhs.block(1),
-                 preconditioner_mass);
-  constraints_patch.distribute(patch_solution);
+  constraints_patch.distribute (patch_solution);
+  /*
+    // iterative solver
+    double tolerance = 1e-12;
+    SolverControl solver_control_stiffness (patch_rhs.block(0).size(),
+                                            tolerance*patch_rhs.block(0).l2_norm());
+    SolverCG<> cg_stiff (solver_control_stiffness);
 
+    PreconditionSSOR<> preconditioner_stiffness;
+    preconditioner_stiffness.initialize(patch_system.block(0,0), 1.2);
+    cg_stiff.solve (patch_system.block(0,0), patch_solution.block(0), patch_rhs.block(0),
+                    preconditioner_stiffness);
+
+    SolverControl solver_control_mass (patch_rhs.block(1).size(),
+                                       tolerance*patch_rhs.block(1).l2_norm());
+    SolverCG<> cg_mass (solver_control_mass);
+
+    PreconditionSSOR<> preconditioner_mass;
+    preconditioner_mass.initialize(patch_system.block(1,1), 1.2);
+    cg_mass.solve (patch_system.block(1,1), patch_solution.block(1), patch_rhs.block(1),
+                   preconditioner_mass);
+    constraints_patch.distribute(patch_solution);
+  */
   // get the L2 norm of the gradient of velocity solution and pressure value
   double pressure_val=0;
   double grad_u_val=0;
@@ -1416,7 +1432,8 @@ void StokesProblem<dim>::copy_to_refinement_maps(CopyData<dim> const &copy_data)
       indicator_per_cell = est_per_cell[copy_data.cell_index];
       hp_Conv_Est[copy_data.cell_index] = indicator_per_cell;
       p_ref_map[copy_data.global_cell] = false;
-
+      //std::cout<< "h_ratio = " << h_ratio << " > " << "p_ratio = " << p_ratio << std::endl;
+      std::cout<< "Cell Marked for h-Refinement" << std::endl;
     }
   else
     {
@@ -1425,6 +1442,8 @@ void StokesProblem<dim>::copy_to_refinement_maps(CopyData<dim> const &copy_data)
       indicator_per_cell = est_per_cell[copy_data.cell_index];
       hp_Conv_Est[copy_data.cell_index] = indicator_per_cell;
       p_ref_map[copy_data.global_cell] = true;
+      //std::cout<< "h_ratio = " << h_ratio << " < " << "p_ratio = " << p_ratio << std::endl;
+      std::cout<< "Cell Marked for p-Refinement" << std::endl;
     }
 
   to_be_sorted.push_back(std::make_pair(indicator_per_cell, copy_data.global_cell));
@@ -1474,6 +1493,7 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
             std_cxx1x::bind(&StokesProblem<dim>::sort_decreasing_order,this,std_cxx1x::_1,std_cxx1x::_2));
 
   double L2_norm=est_per_cell.l2_norm();
+  unsigned int number_of_candidate_cells=0;
   double sum=0;
   for (unsigned int i=0; i<to_be_sorted.size(); ++i)
     {
@@ -1481,12 +1501,12 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
       sum += (to_be_sorted[i].first)*(to_be_sorted[i].first);
 
       candidate_cell_set.push_back(cell_sort);
-
+      number_of_candidate_cells=number_of_candidate_cells+1;
       // if theta is one, refine every cell
       if ((theta<1.0) && (sum >= (theta*(L2_norm))*(theta*(L2_norm))))
         break;
     }
-
+  std::cout<< "number-of-candidate-cells = " << number_of_candidate_cells << std::endl;
   cell = dof_handler.begin_active();
   for (unsigned int i=0; cell!=end_cell; ++cell,++i)
     {
@@ -1551,7 +1571,8 @@ template <int dim>
 void StokesProblem<dim>::refine_in_h_p()
 {
   bool need_to_h_refine=false;
-
+  unsigned int number_of_h_renimenet=0;
+  unsigned int number_of_p_renimenet=0;
   typename std::vector<DoFHandler_active_cell_iterator>::iterator  cell_candidate;
   for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end();
        ++cell_candidate)
@@ -1564,12 +1585,22 @@ void StokesProblem<dim>::refine_in_h_p()
         {
           need_to_h_refine = true;
           (*cell_candidate)->set_refine_flag();
+          number_of_h_renimenet=number_of_h_renimenet+1;
         }
       // Mark the cell for p-refinement if we haven't reached the maximum
       // polynomial order.
       else if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
+      {
         (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
+        number_of_p_renimenet=number_of_p_renimenet+1;
+      }
     }
+
+  std::cout<<std::endl;
+  std::cout<< "number-of-h-renimenet = " << number_of_h_renimenet << std::endl;
+
+  std::cout<< "number-of-p-renimenet = " << number_of_p_renimenet << std::endl;
+
 
   // Clear the p-refinement map
   p_ref_map.clear();
