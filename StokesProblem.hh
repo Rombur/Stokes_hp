@@ -68,135 +68,135 @@ using namespace dealii;
 template <int dim>
 class StokesProblem
 {
-  public:
-    typedef typename hp::DoFHandler<dim>::active_cell_iterator DoFHandler_active_cell_iterator;
-    typedef typename hp::DoFHandler<dim>::cell_iterator DoFHandler_cell_iterator;
-    typedef typename Triangulation<dim>::active_cell_iterator Triangulation_active_cell_iterator;
-    typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
+public:
+  typedef typename hp::DoFHandler<dim>::active_cell_iterator DoFHandler_active_cell_iterator;
+  typedef typename hp::DoFHandler<dim>::cell_iterator DoFHandler_cell_iterator;
+  typedef typename Triangulation<dim>::active_cell_iterator Triangulation_active_cell_iterator;
+  typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
 
-    StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature, 
-        REFINEMENT refinement, unsigned int max_degree);
-    
-    ~StokesProblem();
+  StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature,
+                 REFINEMENT refinement, unsigned int max_degree);
 
-    void generate_mesh();
+  ~StokesProblem();
+
+  void generate_mesh();
 
 
-    void setup_system();
-    
-    void assemble_system();
-    
-    void solve();
+  void setup_system();
 
-    double pressure_mean_value () const;
-    
-    void compute_error();
+  void assemble_system();
 
-    void estimate_error();
+  void solve();
 
-    void marking_cells(const unsigned int cycle, const double theta);
+  double pressure_mean_value () const;
 
-    void output_results (const unsigned int cycle);
+  void compute_error();
 
-    void refine_in_h_p();
+  void estimate_error();
 
-    unsigned int n_active_cells();
+  void mark_cells(const unsigned int cycle, const double theta);
 
-    types::global_dof_index n_dofs();
+  void output_results (const unsigned int cycle);
 
-    double error_l2_norm();
+  void refine_in_h_p();
 
-    double error_estimate_l2_norm();
+  unsigned int n_active_cells();
 
-  private:
-    void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler, 
-        std::map<Triangulation_active_cell_iterator, 
-        DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
+  types::global_dof_index n_dofs();
 
-    void patch_output (unsigned int patch_number, const unsigned int cycle, 
-        hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
+  double error_l2_norm();
 
-    void p_refinement(hp::DoFHandler<dim> &local_dof_handler, 
-        std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
-        &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
+  double error_estimate_l2_norm();
 
-    void h_refinement(Triangulation<dim> &local_triangulation,
-        hp::DoFHandler<dim> &local_dof_handler, unsigned int level_h_refine, 
-        BlockVector<double> &local_solution);
+private:
+  void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler,
+                              std::map<Triangulation_active_cell_iterator,
+                              DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
-    void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
-        ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu, 
-        BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs);
+  void patch_output (unsigned int patch_number, const unsigned int cycle,
+                     hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
 
-    void patch_solve(hp::DoFHandler<dim> &local_dof_handler, 
-        unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
-        double &conv_est, double &workload_num);
+  void p_refinement(hp::DoFHandler<dim> &local_dof_handler,
+                    std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
+                    &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
 
-    void patch_conv_load_no(const unsigned int cycle,
-        SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
-        std::vector<unsigned int>::iterator>> const &synch_iterator,
-        ScratchData &scratch_data, CopyData<dim> &copy_data);
+  void h_refinement(Triangulation<dim> &local_triangulation,
+                    hp::DoFHandler<dim> &local_dof_handler, unsigned int level_h_refine,
+                    BlockVector<double> &local_solution);
 
-    std::vector<DoFHandler_cell_iterator> get_cells_at_coarsest_common_level (
-        const std::vector<DoFHandler_active_cell_iterator> &patch);
+  void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
+                             ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu,
+                             BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs);
 
-    bool decreasing (const std::pair<double, DoFHandler_active_cell_iterator> &i, 
-        const std::pair<double, DoFHandler_active_cell_iterator > &j);
+  void patch_solve(hp::DoFHandler<dim> &local_dof_handler,
+                   unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
+                   double &conv_est, double &workload_num);
 
-    void copy_to_refinement_maps(CopyData<dim> const &copy_data);
+  void patch_convergence_estimator(const unsigned int cycle,
+                                   SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+                                   std::vector<unsigned int>::iterator>> const &synch_iterator,
+                                   ScratchData &scratch_data, CopyData<dim> &copy_data);
 
-    std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
-        const DoFHandler_active_cell_iterator &cell);
+  std::vector<DoFHandler_cell_iterator> get_cells_at_coarsest_common_level (
+    const std::vector<DoFHandler_active_cell_iterator> &patch);
 
-    void build_triangulation_from_patch (
-        const std::vector<DoFHandler_active_cell_iterator>  &patch, 
-        Triangulation<dim> &local_triangulation, unsigned int &level_h_refine, 
-        unsigned int &level_p_refine, 
-        std::map<Triangulation_active_cell_iterator, 
-        DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
+  bool sort_decreasing_order (const std::pair<double, DoFHandler_active_cell_iterator> &i,
+                              const std::pair<double, DoFHandler_active_cell_iterator > &j);
 
-    Function<dim>* exact_solution;
-    Function<dim>* rhs_function;
+  void copy_to_refinement_maps(CopyData<dim> const &copy_data);
 
-    hp::FECollection<dim> fe_collection;
+  std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
+    const DoFHandler_active_cell_iterator &cell);
 
-    Triangulation<dim> triangulation;
-    hp::DoFHandler<dim> dof_handler;
+  void build_triangulation_from_patch (
+    const std::vector<DoFHandler_active_cell_iterator>  &patch,
+    Triangulation<dim> &local_triangulation, unsigned int &level_h_refine,
+    unsigned int &level_p_refine,
+    std::map<Triangulation_active_cell_iterator,
+    DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
-    hp::QCollection<dim> quadrature_collection;
-    hp::QCollection<dim-1> face_quadrature_collection;
+  Function<dim> *exact_solution;
+  Function<dim> *rhs_function;
 
-    hp::QCollection<dim> quadrature_collection_Err;
-    hp::QCollection<dim-1> face_quadrature_collection_Err;
+  hp::FECollection<dim> fe_collection;
 
-    ConstraintMatrix constraints;
-    BlockSparsityPattern sparsity_pattern;
-    BlockSparseMatrix<double> system_matrix;
+  Triangulation<dim> triangulation;
+  hp::DoFHandler<dim> dof_handler;
 
-    BlockVector<double> solution;
-    BlockVector<double> system_rhs;
+  hp::QCollection<dim> quadrature_collection;
+  hp::QCollection<dim-1> face_quadrature_collection;
 
-    bool verbose;
-    EXAMPLE example;
-    REFINEMENT refinement;
-    const unsigned int max_degree;
+  hp::QCollection<dim> quadrature_collection_Err;
+  hp::QCollection<dim-1> face_quadrature_collection_Err;
 
-    Vector<float> marked_cells;
-    Vector<double> h_Conv_Est;
-    Vector<double> p_Conv_Est;
-    Vector<double> hp_Conv_Est;
-    Vector<double> convergence_est_per_cell;
-    Vector<double> error_per_cell;
-    Vector<double> est_per_cell;
-    Vector<double> Vect_Pressure_Err;
-    Vector<double> Vect_grad_Velocity_Err;
-    Vector<double> Vect_Velocity_Err;
-    std::vector<std::pair<double, DoFHandler_active_cell_iterator>> to_be_sorted;
-    std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
-    std::map<DoFHandler_active_cell_iterator, bool> p_ref_map;
+  ConstraintMatrix constraints;
+  BlockSparsityPattern sparsity_pattern;
+  BlockSparseMatrix<double> system_matrix;
+
+  BlockVector<double> solution;
+  BlockVector<double> system_rhs;
+
+  bool verbose;
+  EXAMPLE example;
+  REFINEMENT refinement;
+  const unsigned int max_degree;
+
+  Vector<float> marked_cells;
+  Vector<double> h_Conv_Est;
+  Vector<double> p_Conv_Est;
+  Vector<double> hp_Conv_Est;
+  Vector<double> convergence_est_per_cell;
+  Vector<double> error_per_cell;
+  Vector<double> est_per_cell;
+  Vector<double> Vect_Pressure_Err;
+  Vector<double> Vect_grad_Velocity_Err;
+  Vector<double> Vect_Velocity_Err;
+  std::vector<std::pair<double, DoFHandler_active_cell_iterator>> to_be_sorted;
+  std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
+  std::map<DoFHandler_active_cell_iterator, bool> p_ref_map;
 };
 
- 
+
 template <int dim>
 inline
 unsigned int StokesProblem<dim>::n_active_cells()
@@ -210,7 +210,7 @@ inline
 types::global_dof_index StokesProblem<dim>::n_dofs()
 {
   return dof_handler.n_dofs();
-}                             
+}
 
 
 template <int dim>

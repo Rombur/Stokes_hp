@@ -1,8 +1,8 @@
 set Verbose = false
-set Example = 1
+set Example = 3
 set Quadrature = GaussLegendre
 set Refinement = h
 set Max degree = 10
-set Max n cycles = 30
-set Theta = 0.75
-set Tolerance = 1e-12
+set Max n cycles = 15
+set Theta = 0.9
+set Tolerance = 1e-15
