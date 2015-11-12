@@ -965,12 +965,14 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
       // ``main'' cell + 1 and below the maximum level of refinement.
       if ((global_cell->active_fe_index()+1) < (fe_collection.size()-1) &&
           global_cell->active_fe_index() < (level_p_refine+1))
+      {
         need_to_refine = true;
+        break;
+      }
     }
 
   if (need_to_refine==true)
     {
-      //SolutionTransfer<dim,Vector<double>, hp::DoFHandler<dim> > aaa(local_dof_handler);
       SolutionTransfer<dim,BlockVector<double>, hp::DoFHandler<dim> > solution_transfer(local_dof_handler);
       solution_transfer.prepare_for_pure_refinement();
 
@@ -984,10 +986,14 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
           // already the last index before the fe_nothing (index=6))
           // It is also worth to see how they did p-refinement in step-27.
           // if  (cell->active_fe_index()+1 < fe_collection.size()))
-          DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[active_patch_cell];
-          active_patch_cell->set_active_fe_index(global_cell->active_fe_index()+1);
+          DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[act_patch_cell];
+          if ((global_cell->active_fe_index()+1) < (fe_collection.size()-1) &&
+              global_cell->active_fe_index() < (level_p_refine+1))
+          {
+            DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[active_patch_cell];
+            active_patch_cell->set_active_fe_index(global_cell->active_fe_index()+1);
+          }
         }
-      //set_active_fe_indices(local_dof_handler,patch_to_global_tria_map);
       local_dof_handler.distribute_dofs (fe_collection);
 
       std::vector<unsigned int> block_component_patch(dim+1, 0);
@@ -1571,8 +1577,6 @@ template <int dim>
 void StokesProblem<dim>::refine_in_h_p()
 {
   bool need_to_h_refine=false;
-  unsigned int number_of_h_renimenet=0;
-  unsigned int number_of_p_renimenet=0;
   typename std::vector<DoFHandler_active_cell_iterator>::iterator  cell_candidate;
   for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end();
        ++cell_candidate)
@@ -1585,21 +1589,13 @@ void StokesProblem<dim>::refine_in_h_p()
         {
           need_to_h_refine = true;
           (*cell_candidate)->set_refine_flag();
-          number_of_h_renimenet=number_of_h_renimenet+1;
         }
       // Mark the cell for p-refinement if we haven't reached the maximum
       // polynomial order.
       else if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
-      {
         (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
-        number_of_p_renimenet=number_of_p_renimenet+1;
-      }
     }
 
-  std::cout<<std::endl;
-  std::cout<< "number-of-h-renimenet = " << number_of_h_renimenet << std::endl;
-
-  std::cout<< "number-of-p-renimenet = " << number_of_p_renimenet << std::endl;
 
 
   // Clear the p-refinement map
