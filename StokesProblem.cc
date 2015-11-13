@@ -240,7 +240,6 @@ void StokesProblem <dim>::assemble_system ()
   const FEValuesExtractors::Vector velocities (0);
   const FEValuesExtractors::Scalar pressure (dim);
 
-  // std::vector<SymmetricTensor<2,dim> > symgrad_phi_u;
   std::vector<Tensor<2,dim>> grad_phi_u;
   std::vector<double> div_phi_u;
   std::vector<Tensor<1,dim>> phi_u;
@@ -274,7 +273,6 @@ void StokesProblem <dim>::assemble_system ()
         {
           for (unsigned int k=0; k<dofs_per_cell; ++k)
             {
-              //symgrad_phi_u[k] = fe_values[velocities].symmetric_gradient (k, q);
               grad_phi_u[k] = fe_values[velocities].gradient (k, q);
               div_phi_u[k] = fe_values[velocities].divergence (k, q);
               phi_u[k] = fe_values[velocities].value (k, q);
@@ -284,12 +282,6 @@ void StokesProblem <dim>::assemble_system ()
           for (unsigned int i=0; i<dofs_per_cell; ++i)
             {
               for (unsigned int j=0; j<dofs_per_cell; ++j)
-
-                //local_matrix(i,j) += (double_contract (grad_phi_u[i], grad_phi_u[j])
-                //  - div_phi_u[i] * phi_p[j] - phi_p[i] * div_phi_u[j]) * JxW_values[q];
-                //local_matrix(i,j) += (2 * (symgrad_phi_u[i] * symgrad_phi_u[j]) - div_phi_u[i] * phi_p[j]
-                //  - phi_p[i] * div_phi_u[j])*JxW_values[q];
-
                 local_matrix(i,j) += (double_contract<0,0,1,1> (grad_phi_u[i], grad_phi_u[j])
                                       - div_phi_u[i] * phi_p[j]- phi_p[i] * div_phi_u[j]) * JxW_values[q];
 
@@ -552,8 +544,8 @@ void StokesProblem<dim>::estimate_error()
 
                   for (unsigned int q=0; q<n_face_q_points; ++q)
                     {
-                      for (unsigned int i=0; i<2; ++i)
-                        for (unsigned int j=0; j<2; ++j)
+                      for (unsigned int i=0; i<dim; ++i)
+                        for (unsigned int j=0; j<dim; ++j)
                           jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
                                                 (fe_face_values.normal_vector(q)[j]);
                       jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
