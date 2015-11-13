@@ -61,6 +61,7 @@
 #include "Parameters.hh"
 #include "RightHandSideEx1.hh"
 #include "RightHandSideEx3.hh"
+#include "RightHandSideEx4.hh"
 #include "ScratchData.hh"
 
 using namespace dealii;

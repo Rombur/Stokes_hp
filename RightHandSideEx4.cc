@@ -20,16 +20,18 @@ double RightHandSideEx4<dim>::value(const Point<dim> &p, const unsigned int comp
   double val(0.);
 
   if (component==0)
+    val = 8.*y*pow(x,2)*cos(pow(x,2)+pow(y,2)) + 16.*y*sin(pow(x,2)+pow(y,2)) +
+          8.*pow(y,3)*cos(pow(x,2)+pow(y,2)) - 
+          2.*mu*lambda*x*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
 
-    val= 16*y*sin(pow(x,2)+pow(y,2))+8*pow(x,2)*y*cos(pow(x,2)+pow(y,2))+8*pow(y,3)*cos(pow(x,2)+pow(y,2))-2*mu*lambda*x*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
   if (component==1)
-
-    val= -16*x*sin(pow(x,2)+pow(y,2)) -8*x*pow(y,2)*cos(pow(x,2)+pow(y,2))-8*pow(x,3)*cos(pow(x,2)+pow(y,2))-2*mu*lambda*y*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2))) ;
-  return val;
+    val = -8.*pow(x,3)*cos(pow(x,2)+pow(y,2)) - 16.*x*sin(pow(x,2)+pow(y,2)) -
+          8.*pow(y,2)*x*cos(pow(x,2)+pow(y,2)) - 
+          2.*mu*y*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
 
   if (component==2)
-
     val= -2*mu*lambda*z*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2))) ;
+
   return val;
 }
 

@@ -14,7 +14,7 @@ template <int dim>
 class ExactSolutionEx4 : public Function<dim>
 {
 public :
-  ExactSolutionEx4() : Function<dim>(dim+2) {};
+  ExactSolutionEx4() : Function<dim>(dim+1) {};
 
   void vector_value(const Point<dim> &p, Vector<double> &value) const;
 

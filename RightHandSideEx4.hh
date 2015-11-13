@@ -11,7 +11,7 @@ template <int dim>
 class RightHandSideEx4 : public Function<dim>
 {
 public:
-  RightHandSideEx4() : Function<dim>(dim+2) {}
+  RightHandSideEx4() : Function<dim>(dim+1) {}
   virtual double value (const Point<dim> &p, const unsigned int component) const;
   virtual void vector_value (const Point<dim> &p, Vector<double> &value) const;
 };

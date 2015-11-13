@@ -45,7 +45,7 @@ StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example,
     case (example_4) :
     {
       exact_solution = new ExactSolutionEx4<dim>();
-      AssertThrow(false, ExcMessage("Not implemented"));
+      rhs_function = new RightHandSideEx4<dim>();
 
       break;
     }
@@ -113,7 +113,7 @@ template <int dim>
 void StokesProblem <dim>::generate_mesh()
 {
   // Generate a square/cube mesh or a L-shape mesh.
-  if ((example==example_3) || (example==example_3))
+  if ((example==example_3) || (example==example_4))
     {
       GridGenerator::hyper_cube(triangulation, -1, 1);
       triangulation.refine_global(1);
@@ -161,7 +161,7 @@ void StokesProblem <dim>::generate_mesh()
 
 
 template <int dim>
-void StokesProblem <dim>::setup_system()
+void StokesProblem<dim>::setup_system()
 {
   system_matrix.clear();
 
@@ -171,7 +171,7 @@ void StokesProblem <dim>::setup_system()
   block_component[dim]=1;
   DoFRenumbering::component_wise(dof_handler, block_component);
 
-  constraints.clear ();
+  constraints.clear();
   FEValuesExtractors::Vector velocities(0);
   DoFTools::make_hanging_node_constraints(dof_handler, constraints);
 
@@ -1426,22 +1426,16 @@ void StokesProblem<dim>::copy_to_refinement_maps(CopyData<dim> const &copy_data)
   if (h_ratio > p_ratio)
     {
       convergence_est_per_cell[copy_data.cell_index] = h_improv;
-      //indicator_per_cell = copy_data.h_conv_est_per_cell;
       indicator_per_cell = est_per_cell[copy_data.cell_index];
       hp_Conv_Est[copy_data.cell_index] = indicator_per_cell;
       p_ref_map[copy_data.global_cell] = false;
-      //std::cout<< "h_ratio = " << h_ratio << " > " << "p_ratio = " << p_ratio << std::endl;
-      std::cout<< "Cell Marked for h-Refinement" << std::endl;
     }
   else
     {
       convergence_est_per_cell[copy_data.cell_index] = p_improv;
-      //indicator_per_cell = copy_data.p_conv_est_per_cell;
       indicator_per_cell = est_per_cell[copy_data.cell_index];
       hp_Conv_Est[copy_data.cell_index] = indicator_per_cell;
       p_ref_map[copy_data.global_cell] = true;
-      //std::cout<< "h_ratio = " << h_ratio << " < " << "p_ratio = " << p_ratio << std::endl;
-      std::cout<< "Cell Marked for p-Refinement" << std::endl;
     }
 
   to_be_sorted.push_back(std::make_pair(indicator_per_cell, copy_data.global_cell));
@@ -1504,7 +1498,6 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
       if ((theta<1.0) && (sum >= (theta*(L2_norm))*(theta*(L2_norm))))
         break;
     }
-  std::cout<< "number-of-candidate-cells = " << number_of_candidate_cells << std::endl;
   cell = dof_handler.begin_active();
   for (unsigned int i=0; cell!=end_cell; ++cell,++i)
     {

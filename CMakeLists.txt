@@ -21,6 +21,7 @@ SET(TARGET_SRC
   RightHandSideEx1.cc
   RightHandSideEx2.cc
   RightHandSideEx3.cc
+  RightHandSideEx4.cc
   Parameters.cc
   # You can specify additional files here!
   )
