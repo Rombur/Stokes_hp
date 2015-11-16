@@ -1,7 +1,7 @@
 #include "ExactSolutionEx1.hh"
 #include <cmath>
-
-
+// Example-1, (Taken from numerical experiments of paper Houston et al.)
+// The solution is smooth on L-shape domain in [-1,1]*[-1,1]\(0,1)*(-1,0)
 template <>
 void ExactSolutionEx1<2>::vector_value(const Point<2> &p, Vector<double> &values) const
 {

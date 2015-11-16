@@ -8,6 +8,7 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/synchronous_iterator.h>
 #include <deal.II/base/work_stream.h>
+//#include <deal.II/base/multithread_info.h>
 
 #include <deal.II/lac/block_vector.h>
 #include <deal.II/lac/full_matrix.h>
@@ -60,6 +61,7 @@
 #include "ExactSolutionEx4.hh"
 #include "Parameters.hh"
 #include "RightHandSideEx1.hh"
+#include "RightHandSideEx2.hh"
 #include "RightHandSideEx3.hh"
 #include "ScratchData.hh"
 
@@ -88,7 +90,6 @@ public:
 
   void solve();
 
-  double pressure_mean_value () const;
 
   void compute_error();
 
@@ -121,8 +122,10 @@ private:
                     &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
 
   void h_refinement(Triangulation<dim> &local_triangulation,
-                    hp::DoFHandler<dim> &local_dof_handler, unsigned int level_h_refine,
+                    hp::DoFHandler<dim> &local_dof_handler,
+                    unsigned int level_h_refine,
                     BlockVector<double> &local_solution);
+
 
   void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
                              ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu,

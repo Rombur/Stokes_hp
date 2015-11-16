@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
   // Silence a warning
   (void) argc;
   deallog.depth_console (0);
+  //MultithreadInfo::set_thread_limit(1);
   Parameters parameters(argv[1]);
 
   if (parameters.get_dim()==2)

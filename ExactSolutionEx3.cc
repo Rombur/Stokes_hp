@@ -1,6 +1,9 @@
 #include "ExactSolutionEx3.hh"
 #include <cmath>
 
+// Example-3, (Taken from numerical experiments of paper AN ADAPTIVE UZAWA FEM FOR THE STOKES PROBLEM, by Morin et al.)
+// This is a problem with smooth solution on square domain (-1,1)*(-1,1)
+
 using std::cos;
 using std::sin;
 using std::pow;
