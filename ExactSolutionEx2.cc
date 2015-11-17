@@ -1,6 +1,10 @@
 #include "ExactSolutionEx2.hh"
 #include <cmath>
 
+// Example-2 (Taken from numerical experiments of paper Houston et al.)
+// In this example pressure and gradient of velocity both are singular on re-entrant corner (0,0)
+// We consider the L-shape [-1,1]*[-1,1]\(0,1)*(-1,0) as problem domain
+
 using std::cos;
 using std::sin;
 using std::pow;
