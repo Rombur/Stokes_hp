@@ -280,7 +280,7 @@ void StokesProblem <dim>::assemble_system ()
           for (unsigned int i=0; i<dofs_per_cell; ++i)
             {
               for (unsigned int j=0; j<dofs_per_cell; ++j)
-                local_matrix(i,j) += (double_contract<0,0,1,1> (grad_phi_u[i], grad_phi_u[j])
+                local_matrix(i,j) += (scalar_product(grad_phi_u[i], grad_phi_u[j])
                                       - div_phi_u[i] * phi_p[j]- phi_p[i] * div_phi_u[j]) * JxW_values[q];
 
 
@@ -465,10 +465,10 @@ void StokesProblem<dim>::estimate_error()
         {
           term2 += (divergences[q])*(divergences[q])*JxW_values[q];
 
-          for (unsigned int i=0; i<2; ++i)
+          for (unsigned int i=0; i<dim; ++i)
             gradients_p[q][i] -= (rhs_values[q](i)+laplacians[q][i]);
 
-          term1 += contract<0,0>(gradients_p[q],gradients_p[q])*JxW_values[q];
+          term1 += scalar_product(gradients_p[q],gradients_p[q])*JxW_values[q];
         }
       res_est_per_cell[cell_index] = pow((cell->diameter())/(cell->get_fe().degree), 2.0) * (term1) + term2;
 
@@ -550,11 +550,11 @@ void StokesProblem<dim>::estimate_error()
                       double jump_val=0;
                       for (unsigned int q=0; q<n_subface_q_points; ++q)
                         {
-                          for (unsigned int i=0; i<2; ++i)
-                            for (unsigned int j=0; j<2; ++j)
+                          for (unsigned int i=0; i<dim; ++i)
+                            for (unsigned int j=0; j<dim; ++j)
                               jump_per_subface[q][j] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) *
                                                         (fe_subface_values.normal_vector(q)[j]);
-                          jump_val += contract<0,0>(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
+                          jump_val += scalar_product(jump_per_subface[q],jump_per_subface[q])*(JxW_values[q]);
                         }
 
                       unsigned int min_fe_degree = std::min(cell->get_fe().degree,
@@ -595,11 +595,11 @@ void StokesProblem<dim>::estimate_error()
                   double jump_val=0;
                   for (unsigned int q=0; q<n_face_q_points; ++q)
                     {
-                      for (unsigned int i=0; i<2; ++i)
-                        for (unsigned int j=0; j<2; ++j)
+                      for (unsigned int i=0; i<dim; ++i)
+                        for (unsigned int j=0; j<dim; ++j)
                           jump_per_face[q][i] += (gradients[q][i][j] - neighbor_gradients[q][i][j]) *
                                                  (fe_face_values.normal_vector(q)[j]);
-                      jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
+                      jump_val += scalar_product(jump_per_face[q],jump_per_face[q])*JxW_values[q];
                     }
 
 
@@ -1102,7 +1102,7 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
                 {
                   for (unsigned int j=0; j<dofs_per_cell; ++j)
                     local_matrix_patch(i,j) +=
-                      (double_contract<0,0,1,1>(grad_phi_u[i],grad_phi_u[j]) +
+                      (scalar_product(grad_phi_u[i],grad_phi_u[j]) +
                        (phi_p[i]*phi_p[j])) * JxW_val;
 
                   double local_rhs1 = 0;
@@ -1215,29 +1215,6 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
   A_inverse_mass.vmult (patch_solution.block(1), patch_rhs.block(1));
   constraints_patch.distribute (patch_solution);
 
-
-  /*
-    // iterative solver
-    double tolerance = 1e-12;
-    SolverControl solver_control_stiffness (patch_rhs.block(0).size(),
-                                            tolerance*patch_rhs.block(0).l2_norm());
-    SolverCG<> cg_stiff (solver_control_stiffness);
-
-    PreconditionSSOR<> preconditioner_stiffness;
-    preconditioner_stiffness.initialize(patch_system.block(0,0), 1.2);
-    cg_stiff.solve (patch_system.block(0,0), patch_solution.block(0), patch_rhs.block(0),
-                    preconditioner_stiffness);
-
-    SolverControl solver_control_mass (patch_rhs.block(1).size(),
-                                       tolerance*patch_rhs.block(1).l2_norm());
-    SolverCG<> cg_mass (solver_control_mass);
-
-    PreconditionSSOR<> preconditioner_mass;
-    preconditioner_mass.initialize(patch_system.block(1,1), 1.2);
-    cg_mass.solve (patch_system.block(1,1), patch_solution.block(1), patch_rhs.block(1),
-                   preconditioner_mass);
-    constraints_patch.distribute(patch_solution);
-   */
   // get the L2 norm of the gradient of velocity solution and pressure value
   double pressure_val=0;
   double grad_u_val=0;
@@ -1269,8 +1246,7 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
           for (unsigned int q=0; q<n_q_points; ++q)
             {
               pressure_val += values[q]*values[q]*JxW_values[q];
-              for (unsigned int i=0; i<dim; ++i)
-                grad_u_val += contract<0,0>(gradients[q][i],gradients[q][i]) * JxW_values[q];
+              grad_u_val += scalar_product(gradients[q],gradients[q]) * JxW_values[q];
             }
           solu_norm_per_patch += pressure_val + grad_u_val;
         }
