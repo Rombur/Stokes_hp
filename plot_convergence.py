@@ -7,7 +7,7 @@
 
 import pylab
 
-input_files = ['convergence-Adapive-h-p3-p2-Ex1-30-iteration.txt', 'convergence-unif-h-p3-p2-Ex1.txt']
+input_files = ['convergence.txt']
 output_file = 'convergence.png'
 
 colors = ['blue', 'red', 'green', 'black']

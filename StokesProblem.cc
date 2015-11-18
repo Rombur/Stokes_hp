@@ -173,7 +173,8 @@ void StokesProblem<dim>::setup_system()
   FEValuesExtractors::Vector velocities(0);
   DoFTools::make_hanging_node_constraints(dof_handler, constraints);
 
-  VectorTools::interpolate_boundary_values(dof_handler,0,*exact_solution,constraints,fe_collection.component_mask(velocities));
+  VectorTools::interpolate_boundary_values(dof_handler,0,*exact_solution,constraints,
+      fe_collection.component_mask(velocities));
 
   // Since with Dirichlet velocity Bdry, pressure will be defined up to a constant,
   // in order to make the solution to be unique, we need to add an additional
@@ -261,7 +262,6 @@ void StokesProblem <dim>::assemble_system ()
       rhs_values.resize(n_q_points, Vector<double>(dim+1));
       rhs_function->vector_value_list(fe_values.get_quadrature_points(), rhs_values);
 
-      //symgrad_phi_u.resize(dofs_per_cell);
       grad_phi_u.resize(dofs_per_cell);
       div_phi_u.resize(dofs_per_cell);
       phi_u.resize (dofs_per_cell);
@@ -271,18 +271,17 @@ void StokesProblem <dim>::assemble_system ()
         {
           for (unsigned int k=0; k<dofs_per_cell; ++k)
             {
-              grad_phi_u[k] = fe_values[velocities].gradient (k, q);
-              div_phi_u[k] = fe_values[velocities].divergence (k, q);
-              phi_u[k] = fe_values[velocities].value (k, q);
-              phi_p[k] = fe_values[pressure].value (k, q);
+              grad_phi_u[k] = fe_values[velocities].gradient(k,q);
+              div_phi_u[k] = fe_values[velocities].divergence(k,q);
+              phi_u[k] = fe_values[velocities].value(k,q);
+              phi_p[k] = fe_values[pressure].value(k,q);
             }
 
           for (unsigned int i=0; i<dofs_per_cell; ++i)
             {
               for (unsigned int j=0; j<dofs_per_cell; ++j)
                 local_matrix(i,j) += (scalar_product(grad_phi_u[i], grad_phi_u[j])
-                                      - div_phi_u[i] * phi_p[j]- phi_p[i] * div_phi_u[j]) * JxW_values[q];
-
+                                      - div_phi_u[i]*phi_p[j] - phi_p[i]*div_phi_u[j]) * JxW_values[q];
 
               double fe_rhs(0.);
               for (unsigned int d=0; d<dim; ++d)
@@ -307,7 +306,6 @@ void StokesProblem <dim>::solve()
   A_inverse.initialize(system_matrix, SparseDirectUMFPACK::AdditionalData());
   A_inverse.vmult(solution, system_rhs);
   constraints.distribute(solution);
-
 }
 
 
@@ -511,7 +509,7 @@ void StokesProblem<dim>::estimate_error()
                         for (unsigned int j=0; j<dim; ++j)
                           jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
                                                 (fe_face_values.normal_vector(q)[j]);
-                      jump_val += contract<0,0>(jump_per_face[q],jump_per_face[q])*JxW_values[q];
+                      jump_val += scalar_product(jump_per_face[q],jump_per_face[q])*JxW_values[q];
                     }
 
                   unsigned int min_fe_degree = std::min(cell->get_fe().degree,
@@ -627,8 +625,9 @@ StokesProblem<dim>::get_patch_around_cell(const DoFHandler_active_cell_iterator 
 
   patch.push_back (cell);
   cells_done.insert(cell);
+  const unsigned int n_layers = 1;
   //  i counter for the number of patch layers ... n_layers=1 here (1 level of patch around cell)
-  for (unsigned int i=0; i<1; ++i)
+  for (unsigned int i=0; i<n_layers; ++i)
     {
       const unsigned int patch_size = patch.size();
       for (unsigned int j=0; j<patch_size; ++j)
@@ -767,7 +766,7 @@ void StokesProblem<dim>::build_triangulation_from_patch(
        coarse_cell_t != local_triangulation.end(); ++coarse_cell_t, ++index)
     {
       patch_to_global_tria_map_tmp.insert (std::make_pair(coarse_cell_t, uniform_cells[index]));
-      AssertThrow ((std::fabs(coarse_cell_t->center()(0) - uniform_cells[index]->center()(0))<1e-16 &&
+      Assert ((std::fabs(coarse_cell_t->center()(0) - uniform_cells[index]->center()(0))<1e-16 &&
                     std::fabs(coarse_cell_t->center()(1) - uniform_cells[index]->center()(1)) <1e-16),
                    ExcInternalError());
     }
@@ -818,7 +817,7 @@ void StokesProblem<dim>::build_triangulation_from_patch(
                               patch_to_global_tria_map_tmp.insert (std::make_pair(cell_ttt ->child(c),
                                                                                   patch_to_global_tria_map_tmp[cell_ttt]->child(c)));
 
-                              AssertThrow( (std::fabs (cell_ttt ->child(c)->center()(0) -
+                              Assert( (std::fabs (cell_ttt ->child(c)->center()(0) -
                                                        patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(0)) < 1e-16 &&
                                             std::fabs (cell_ttt ->child(c)->center()(1) -
                                                        patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(1)) < 1e-16),
@@ -880,9 +879,12 @@ void StokesProblem<dim>::patch_output (unsigned int patch_number,
   std::vector<std::string> solution_names;
   solution_names.push_back("patch_x_velocity");
   solution_names.push_back("patch_y_velocity");
+  if (dim==3)
+    solution_names.push_back("patch_z_velocity");
   solution_names.push_back("patch_pressure");
 
   std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation;
+  data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
   data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
   data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
   data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
@@ -1444,12 +1446,17 @@ void StokesProblem <dim>::output_results (const unsigned int cycle)
   std::vector<std::string> solution_names;
   solution_names.push_back ("x_velocity");
   solution_names.push_back ("y_velocity");
+  if (dim==3)
+    solution_names.push_back ("z_velocity");
   solution_names.push_back ("pressure");
 
   std::vector<DataComponentInterpretation::DataComponentInterpretation> data_component_interpretation;
   data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
   data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
   data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
+  if (dim==3)
+    data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
+
 
   DataOut<dim,hp::DoFHandler<dim> > data_out;
   data_out.attach_dof_handler (dof_handler);
@@ -1467,10 +1474,10 @@ void StokesProblem <dim>::output_results (const unsigned int cycle)
   data_out.add_data_vector (p_Conv_Est, "p_refine_Conv_Est");
   data_out.add_data_vector (hp_Conv_Est, "hp_refine_Conv_Est");
 
-  data_out.build_patches ();
+  data_out.build_patches();
   std::string filename = "solution-" +
                          Utilities::int_to_string (cycle, 2) +".vtu";
-  std::ofstream output (filename.c_str());
+  std::ofstream output(filename.c_str());
   data_out.write_vtu (output);
 }
 
