@@ -174,7 +174,7 @@ void StokesProblem<dim>::setup_system()
   DoFTools::make_hanging_node_constraints(dof_handler, constraints);
 
   VectorTools::interpolate_boundary_values(dof_handler,0,*exact_solution,constraints,
-      fe_collection.component_mask(velocities));
+                                           fe_collection.component_mask(velocities));
 
   // Since with Dirichlet velocity Bdry, pressure will be defined up to a constant,
   // in order to make the solution to be unique, we need to add an additional
@@ -507,8 +507,8 @@ void StokesProblem<dim>::estimate_error()
                     {
                       for (unsigned int i=0; i<dim; ++i)
                         for (unsigned int j=0; j<dim; ++j)
-                          jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
-                                                (fe_face_values.normal_vector(q)[j]);
+                          jump_per_face[q][i] += (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
+                                                 (fe_face_values.normal_vector(q)[j]);
                       jump_val += scalar_product(jump_per_face[q],jump_per_face[q])*JxW_values[q];
                     }
 
@@ -607,7 +607,6 @@ void StokesProblem<dim>::estimate_error()
                   term3 += (cell->face(face_number)->diameter())/(2.0*min_fe_degree)*jump_val;
                 }
             }
-
         }
       Jump_est_per_cell(cell_index) = term3;
       est_per_cell(cell_index) = sqrt(Jump_est_per_cell(cell_index)+res_est_per_cell(cell_index));
@@ -767,8 +766,8 @@ void StokesProblem<dim>::build_triangulation_from_patch(
     {
       patch_to_global_tria_map_tmp.insert (std::make_pair(coarse_cell_t, uniform_cells[index]));
       Assert ((std::fabs(coarse_cell_t->center()(0) - uniform_cells[index]->center()(0))<1e-16 &&
-                    std::fabs(coarse_cell_t->center()(1) - uniform_cells[index]->center()(1)) <1e-16),
-                   ExcInternalError());
+               std::fabs(coarse_cell_t->center()(1) - uniform_cells[index]->center()(1)) <1e-16),
+              ExcInternalError());
     }
 
   bool refinement_necessary;
@@ -818,10 +817,10 @@ void StokesProblem<dim>::build_triangulation_from_patch(
                                                                                   patch_to_global_tria_map_tmp[cell_ttt]->child(c)));
 
                               Assert( (std::fabs (cell_ttt ->child(c)->center()(0) -
-                                                       patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(0)) < 1e-16 &&
-                                            std::fabs (cell_ttt ->child(c)->center()(1) -
-                                                       patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(1)) < 1e-16),
-                                           ExcInternalError());
+                                                  patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(0)) < 1e-16 &&
+                                       std::fabs (cell_ttt ->child(c)->center()(1) -
+                                                  patch_to_global_tria_map_tmp[cell_ttt]->child(c)->center()(1)) < 1e-16),
+                                      ExcInternalError());
                             }
                         }
                       patch_to_global_tria_map_tmp.erase(cell_ttt);
