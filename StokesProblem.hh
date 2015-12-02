@@ -8,7 +8,6 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/synchronous_iterator.h>
 #include <deal.II/base/work_stream.h>
-//#include <deal.II/base/multithread_info.h>
 
 #include <deal.II/lac/block_vector.h>
 #include <deal.II/lac/full_matrix.h>
@@ -68,6 +67,8 @@
 
 using namespace dealii;
 
+enum PRIMALDUAL{primal,dual};
+
 template <int dim>
 class StokesProblem
 {
@@ -84,19 +85,17 @@ public:
 
   void generate_mesh();
 
-
   void setup_system();
 
-  void assemble_system();
+  void assemble_system(PRIMALDUAL primal_dual);
 
-  void solve();
-
+  void solve(PRIMALDUAL primal_dual);
 
   void compute_error();
 
-  void estimate_error();
+  void compute_error_estimator();
 
-  void mark_cells(const unsigned int cycle, const double theta);
+  void mark_cells(const unsigned int cycle, const double theta, const bool goal_oriented);
 
   void output_results (const unsigned int cycle);
 
@@ -112,15 +111,15 @@ public:
 
 private:
   void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler,
-                              std::map<Triangulation_active_cell_iterator,
-                              DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
+      std::map<Triangulation_active_cell_iterator,DoFHandler_active_cell_iterator>
+      &patch_to_global_tria_map);
 
   void patch_output (unsigned int patch_number, const unsigned int cycle,
                      hp::DoFHandler<dim> &local_dof_handler, BlockVector<double> &local_solu);
 
   void p_refinement(hp::DoFHandler<dim> &local_dof_handler,
-                    std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
-                    &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
+      std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
+      &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
 
   void h_refinement(Triangulation<dim> &local_triangulation,
                     hp::DoFHandler<dim> &local_dof_handler,
@@ -129,8 +128,8 @@ private:
 
 
   void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
-                             ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu,
-                             BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs);
+      ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu,
+      BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs);
 
   void patch_solve(hp::DoFHandler<dim> &local_dof_handler,
                    unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
@@ -143,6 +142,7 @@ private:
 
   std::vector<DoFHandler_cell_iterator> get_cells_at_coarsest_common_level (
     const std::vector<DoFHandler_active_cell_iterator> &patch);
+
 
   bool sort_decreasing_order (const std::pair<double, DoFHandler_active_cell_iterator> &i,
                               const std::pair<double, DoFHandler_active_cell_iterator > &j);
@@ -159,6 +159,8 @@ private:
     std::map<Triangulation_active_cell_iterator,
     DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
+  void compute_dual_residual();
+
   Function<dim> *exact_solution;
   Function<dim> *rhs_function;
 
@@ -170,7 +172,7 @@ private:
   hp::QCollection<dim> quadrature_collection;
   hp::QCollection<dim-1> face_quadrature_collection;
 
-  hp::QCollection<dim> quadrature_collection_Err;
+  hp::QCollection<dim> quadrature_collection_error;
 
   ConstraintMatrix constraints;
   BlockSparsityPattern sparsity_pattern;
@@ -194,7 +196,7 @@ private:
   Vector<double> Vect_Pressure_Err;
   Vector<double> Vect_grad_Velocity_Err;
   Vector<double> Vect_Velocity_Err;
-  std::vector<std::pair<double, DoFHandler_active_cell_iterator>> to_be_sorted;
+  std::vector<std::pair<double, DoFHandler_active_cell_iterator>> primal_indicator_cell;
   std::vector<DoFHandler_active_cell_iterator> candidate_cell_set;
   std::map<DoFHandler_active_cell_iterator, bool> p_ref_map;
 };

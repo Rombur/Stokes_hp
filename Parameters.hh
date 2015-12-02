@@ -19,43 +19,54 @@ enum REFINEMENT {h_refine,p_refine,hp_refine};
 
 class Parameters
 {
-public :
-  Parameters(const std::string &input_filename);
+  public :
+    Parameters(const std::string &input_filename);
 
-  bool get_verbose() const;
+    bool do_goal_oriented() const;
 
-  EXAMPLE get_example() const;
+    bool get_verbose() const;
 
-  QUADRATURE get_quadrature() const;
+    EXAMPLE get_example() const;
 
-  REFINEMENT get_refinement() const;
+    QUADRATURE get_quadrature() const;
 
-  unsigned int get_dim() const;
+    REFINEMENT get_refinement() const;
 
-  unsigned int get_max_degree() const;
+    unsigned int get_dim() const;
 
-  unsigned int get_max_n_cycles() const;
+    unsigned int get_max_degree() const;
 
-  double get_theta() const;
+    unsigned int get_max_n_cycles() const;
 
-  double get_tolerance() const;
+    double get_theta() const;
 
-private :
-  void declare_parameters(ParameterHandler &prm);
+    double get_tolerance() const;
 
-  void parse_parameters(ParameterHandler &prm);
+  private :
+    void declare_parameters(ParameterHandler &prm);
 
-  ParameterHandler prm;
-  bool verbose;
-  EXAMPLE example;
-  QUADRATURE quadrature;
-  REFINEMENT refinement;
-  unsigned int dim;
-  unsigned int max_degree;
-  unsigned int max_n_cycles;
-  double theta;
-  double tolerance;
+    void parse_parameters(ParameterHandler &prm);
+
+    ParameterHandler prm;
+
+    bool goal_oriented;
+    bool verbose;
+    EXAMPLE example;
+    QUADRATURE quadrature;
+    REFINEMENT refinement;
+    unsigned int dim;
+    unsigned int max_degree;
+    unsigned int max_n_cycles;
+    double theta;
+    double tolerance;
 };
+
+
+inline
+bool Parameters::do_goal_oriented() const
+{
+  return goal_oriented;
+}
 
 
 inline

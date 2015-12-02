@@ -24,6 +24,7 @@ Parameters::Parameters(const std::string &input_filename)
 
 void Parameters::declare_parameters(ParameterHandler &prm)
 {
+  prm.declare_entry("Goal oriented", "false", Patterns::Bool(), "Goal oriented run");
   prm.declare_entry("Verbose", "false", Patterns::Bool(), "Verbose output");
   prm.declare_entry("Example", "1", Patterns::Integer(1,4), "Example to run");
   prm.declare_entry("Quadrature", "GaussLegendre", Patterns::Selection(
@@ -39,6 +40,8 @@ void Parameters::declare_parameters(ParameterHandler &prm)
 
 void Parameters::parse_parameters(ParameterHandler &prm)
 {
+  goal_oriented = prm.get_bool("Goal oriented");
+
   verbose = prm.get_bool("Verbose");
 
   unsigned int ex_number = prm.get_integer("Example");

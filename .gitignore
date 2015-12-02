@@ -10,6 +10,7 @@ Test_Stokes_dim2
 *.un~
 *.vtu
 *.swp
+*.swo
 triangulation_test
 CTest*
 Testing
