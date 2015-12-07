@@ -79,7 +79,7 @@ public:
   typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
 
   StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature,
-                 REFINEMENT refinement, unsigned int max_degree);
+      REFINEMENT refinement, unsigned int max_degree, bool goal_oriented);
 
   ~StokesProblem();
 
@@ -95,7 +95,14 @@ public:
 
   void compute_error_estimator();
 
-  void mark_cells(const unsigned int cycle, const double theta, const bool goal_oriented);
+  std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
+    compute_goal_oriented_error_estimator();
+
+  void mark_cells_goal_oriented(const unsigned int cycle, const double theta,
+      std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
+      const &go_error_estimator_square);
+
+  void mark_cells(const unsigned int cycle, const double theta);
 
   void output_results (const unsigned int cycle);
 
@@ -159,12 +166,21 @@ private:
     std::map<Triangulation_active_cell_iterator,
     DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
-  void compute_dual_residual();
+  BlockVector<double> compute_local_dual_residual(
+      hp::DoFHandler<dim> const &local_dof_handler,
+      hp::DoFHandler<dim> &local_dual_dof_handler);
+
+  double compute_local_go_error_estimator_square(
+      hp::DoFHandler<dim> const &local_dof_handler,
+      hp::DoFHandler<dim> const &dual_local_dof_handler,
+      BlockVector<double> const &dual_residual_solution);
 
   Function<dim> *exact_solution;
   Function<dim> *rhs_function;
+  Function<dim> *dual_source;
 
   hp::FECollection<dim> fe_collection;
+  hp::FECollection<dim> dual_fe_collection;
 
   Triangulation<dim> triangulation;
   hp::DoFHandler<dim> dof_handler;
@@ -180,6 +196,7 @@ private:
 
   BlockVector<double> solution;
   BlockVector<double> system_rhs;
+  BlockVector<double> dual_solution;
 
   bool verbose;
   EXAMPLE example;

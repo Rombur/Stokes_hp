@@ -110,7 +110,7 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
     std::cout<< "L2_norm of ERROR Estimate is: " << stokes_problem.error_estimate_l2_norm() 
       << std::endl;
 
-    if (paramerters.do_goal_oriented())
+    if (parameters.do_goal_oriented())
     {
       std::cout<<"Assemble dual system"<<std::endl;
       stokes_problem.assemble_system(dual);
@@ -119,11 +119,17 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
       stokes_problem.solve(dual);
 
       std::cout<<"Compute goal oriented error estimator"<<std::endl;
-      stokes_problem.compute_goal_oriented_error_estimator();
-    }
+      auto go_error_estimator_square = stokes_problem.compute_goal_oriented_error_estimator();
 
-    std::cout<<"Marking Cell"<<std::endl;
-    stokes_problem.mark_cells(cycle, parameters.get_theta());
+      std::cout<<"Marking Cell"<<std::endl;
+      stokes_problem.mark_cells_goal_oriented(cycle, parameters.get_theta(), 
+          go_error_estimator_square);
+    }
+    else
+    {
+      std::cout<<"Marking Cell"<<std::endl;
+      stokes_problem.mark_cells(cycle, parameters.get_theta());
+    }
 
     std::cout<<"Output results"<<std::endl;
     stokes_problem.output_results(cycle);
@@ -151,14 +157,16 @@ int main(int argc, char *argv[])
   {
     StokesProblem<2> stokes_problem(parameters.get_verbose(),
         parameters.get_example(), parameters.get_quadrature(),
-        parameters.get_refinement(), parameters.get_max_degree());
+        parameters.get_refinement(), parameters.get_max_degree(),
+        parameters.do_goal_oriented());
     run(parameters, stokes_problem);
   }
   else
   {
     StokesProblem<3> stokes_problem(parameters.get_verbose(),
         parameters.get_example(), parameters.get_quadrature(),
-        parameters.get_refinement(), parameters.get_max_degree());
+        parameters.get_refinement(), parameters.get_max_degree(),
+        parameters.do_goal_oriented());
     run(parameters, stokes_problem);
   }
 

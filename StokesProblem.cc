@@ -10,7 +10,7 @@
 
 template <int dim>
 StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example, QUADRATURE quadrature, 
-    REFINEMENT refinement, unsigned int max_degree):
+    REFINEMENT refinement, unsigned int max_degree, bool goal_oriented):
   exact_solution(nullptr),
   rhs_function(nullptr),
   dof_handler(triangulation),
@@ -267,7 +267,7 @@ void StokesProblem<dim>::assemble_system(PRIMALDUAL primal_dual)
   Vector<double> local_rhs;
   std::vector<types::global_dof_index> local_dof_indices;
 
-  std::vector<Vector<double>>  rhs_values;
+  std::vector<Vector<double>> rhs_values;
 
   const FEValuesExtractors::Vector velocities(0);
   const FEValuesExtractors::Scalar pressure(dim);
@@ -556,7 +556,7 @@ void StokesProblem<dim>::compute_error_estimator()
                     {
                       for (unsigned int i=0; i<dim; ++i)
                         for (unsigned int j=0; j<dim; ++j)
-                          jump_per_face[q][i] = (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
+                          jump_per_face[q][i] += (gradients[q][i][j]-neighbor_gradients[q][i][j]) *
                                                 (fe_face_values.normal_vector(q)[j]);
                       jump_val += scalar_product(jump_per_face[q],jump_per_face[q])*JxW_values[q];
                     }
@@ -656,7 +656,6 @@ void StokesProblem<dim>::compute_error_estimator()
                   term3 += (cell->face(face_number)->diameter())/(2.0*min_fe_degree)*jump_val;
                 }
             }
-
         }
       Jump_est_per_cell(cell_index) = term3;
       est_per_cell(cell_index) = sqrt(Jump_est_per_cell(cell_index)+res_est_per_cell(cell_index));
@@ -1285,8 +1284,8 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
       if (dofs_per_cel!=0)
         {
           hp_fe_values.reinit (act_patch_cell);
-          const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
-          const std::vector<double> &JxW_values = fe_values.get_JxW_values ();
+          const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values();
+          const std::vector<double> &JxW_values = fe_values.get_JxW_values();
           const unsigned int n_q_points = fe_values.n_quadrature_points;
 
           gradients.resize(n_q_points);
@@ -1311,9 +1310,9 @@ void StokesProblem<dim>::patch_solve(hp::DoFHandler<dim> &local_dof_handler,
 // error reduction as we named it as patch_convergence_estimator()
 template <int dim>
 void StokesProblem<dim>::patch_convergence_estimator(const unsigned int cycle,
-                                                     SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
-                                                     std::vector<unsigned int>::iterator>> const &synch_iterator,
-                                                     ScratchData &scratch_data, CopyData<dim> &copy_data)
+    SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+    std::vector<unsigned int>::iterator>> const &synch_iterator,
+    ScratchData &scratch_data, CopyData<dim> &copy_data)
 {
   // Silence a warning
   (void) scratch_data;
@@ -1328,7 +1327,8 @@ void StokesProblem<dim>::patch_convergence_estimator(const unsigned int cycle,
   unsigned int level_p_refine(0);
   std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator> patch_to_global_tria_map;
   std::vector<DoFHandler_active_cell_iterator> patch = get_patch_around_cell(cell);
-  build_triangulation_from_patch (patch, local_triangulation, level_h_refine, level_p_refine, patch_to_global_tria_map);
+  build_triangulation_from_patch (patch, local_triangulation, level_h_refine, 
+      level_p_refine, patch_to_global_tria_map);
   hp::DoFHandler<dim> local_dof_handler(local_triangulation);
   set_active_fe_indices (local_dof_handler,patch_to_global_tria_map);
   local_dof_handler.distribute_dofs (fe_collection);
@@ -1419,14 +1419,14 @@ void StokesProblem<dim>::copy_to_refinement_maps(CopyData<dim> const &copy_data)
 template <int dim>
 BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
     hp::DoFHandler<dim> const &local_dof_handler,
-    hp::DoFHandler<dim> const &local_dual_dof_handler)
+    hp::DoFHandler<dim> &local_dual_dof_handler)
 {
   // Build the constraint to force zero boundary condition on patch
   ConstraintMatrix constraints_patch;
   DoFTools::make_hanging_node_constraints(local_dual_dof_handler, constraints_patch);
   DoFHandler_active_cell_iterator dual_cell = local_dual_dof_handler.begin_active(),
                                   dual_endc = local_dual_dof_handler.end();
-  for (; dual_cell!=dual_endc; ++act_patch_cell)
+  for (; dual_cell!=dual_endc; ++dual_cell)
   {
     std::vector<types::global_dof_index> local_face_dof_indices((dual_cell->get_fe()).dofs_per_face);
     if (dual_cell->user_flag_set() == true)
@@ -1440,7 +1440,7 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
         {
           if (dual_cell->neighbor(f)->has_children() == true)
           {
-            for (unsigned int sf=0; sf<dualh_cell->face(f)->n_children(); ++sf)
+            for (unsigned int sf=0; sf<dual_cell->face(f)->n_children(); ++sf)
               if (dual_cell->neighbor_child_on_subface(f,sf)->user_flag_set() == false)
               {
                 face_is_on_patch_bdry = true;
@@ -1449,7 +1449,7 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
           }
           else
           {
-            if (dual_cell->neighbor(f)->user_flag_set() == false
+            if (dual_cell->neighbor(f)->user_flag_set() == false)
               face_is_on_patch_bdry = true;
           }
         }
@@ -1496,9 +1496,13 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
   FEValuesExtractors::Vector const velocities(0);
   FEValuesExtractors::Scalar const pressure(dim);
 
+  FullMatrix<double> local_matrix_patch;
+  Vector<double> local_rhs_patch;
+  std::vector<Vector<double>>  rhs_values;
+
   std::vector<Tensor<2,dim>> dual_grad_phi_u;
   std::vector<Tensor<1,dim>> dual_phi_u;
-  std::vector<double> phi_p;
+  std::vector<double> dual_phi_p;
 
   std::vector<Tensor<1,dim>> gradient_p;
   std::vector<double> divergence;
@@ -1506,15 +1510,14 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
 
   DoFHandler_active_cell_iterator cell = local_dof_handler.begin_active();
   dual_cell = local_dual_dof_handler.begin_active();
-  for (; dual_cell!=dual_endc; ++dual_cell, cell)
+  for (; dual_cell!=dual_endc; ++dual_cell, ++cell)
   {
     unsigned int const dual_dofs_per_cell = dual_cell->get_fe().dofs_per_cell;
     if (dual_dofs_per_cell!=0)
     {
-      local_matrix_patch.reini(dual_dofs_per_cell, dual_dofs_per_cell);
+      local_matrix_patch.reinit(dual_dofs_per_cell, dual_dofs_per_cell);
       local_rhs_patch.reinit(dual_dofs_per_cell);
 
-      unsigned int const dofs_per_cell = cell->get_fe().dofs_per_cell;
       hp_fe_values.reinit(cell);
       dual_hp_fe_values.reinit(dual_cell);
       FEValues<dim> const &fe_values = hp_fe_values.get_present_fe_values();
@@ -1539,8 +1542,6 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
 
       for (unsigned int q=0; q<n_q_points; ++q)
       {
-        double const local_rhs_1(rhs_value[q]+laplacian[q]-gradient_p[q]);
-        double const local_rhs_2(divergence);
         double const JxW_val(JxW_values[q]);
 
         for (unsigned int i=0; i<dual_dofs_per_cell; ++i)
@@ -1558,12 +1559,17 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
                 dual_grad_phi_u[j]) + (dual_phi_p[i]*dual_phi_p[j])) * JxW_val;
 
           // Assemble the local rhs
-          local_rhs_patch[i] += (local_rhs_1*dual_phi_u + local_rhs_2*dual_phi_p)*JxW_val;
+          Tensor<1,dim> local_rhs_1(laplacian[q]-gradient_p[q]);
+          for (unsigned int d=0; d<dim; ++d)
+            local_rhs_1[d] += rhs_values[q][d];
+          double const local_rhs_2(divergence[q]);
+          local_rhs_patch[i] += (scalar_product(local_rhs_1,dual_phi_u[i]) - 
+            local_rhs_2*dual_phi_p[i])*JxW_val;
         }
       }  
 
-      local_dof_indices.resize(dual_dofs_per_cell);
-      dual_cell->get_dofs_indices(local_dof_indices);
+      std::vector<types::global_dof_index> local_dof_indices(dual_dofs_per_cell);
+      dual_cell->get_dof_indices(local_dof_indices);
       constraints_patch.distribute_local_to_global(local_matrix_patch, local_rhs_patch,
           local_dof_indices, patch_system, patch_rhs);
     }
@@ -1585,23 +1591,62 @@ BlockVector<double> StokesProblem<dim>::compute_local_dual_residual(
 
 
 template <int dim>
-double StokesProblem<dim>::compute_local_dual_error_estimator()
+double StokesProblem<dim>::compute_local_go_error_estimator_square(
+    hp::DoFHandler<dim> const &local_dof_handler,
+    hp::DoFHandler<dim> const &dual_local_dof_handler,
+    BlockVector<double> const &dual_residual_solution)
 {
-  double dual_error_estimator(0.);
+  double go_error_estimator_square(0.);
 
   hp::FEValues<dim> hp_fe_values(fe_collection, quadrature_collection,
       update_values|update_quadrature_points|update_JxW_values|update_gradients|
-      update_hessians);
+      update_hessians);    
+  hp::FEFaceValues<dim> hp_fe_face_values(fe_collection, 
+      face_quadrature_collection,update_JxW_values|update_gradients|
+      update_normal_vectors);
+  hp::FEFaceValues<dim> hp_neighbor_face_values(fe_collection,
+      face_quadrature_collection, update_gradients);
+  hp::FESubfaceValues<dim> hp_subface_values(fe_collection, 
+      face_quadrature_collection, update_JxW_values|update_gradients|
+      update_normal_vectors);
+  hp::FESubfaceValues<dim> hp_neighbor_subface_values(fe_collection,
+      face_quadrature_collection, update_gradients);
+  
   hp::FEValues<dim> dual_hp_fe_values(dual_fe_collection, quadrature_collection,
       update_values|update_quadrature_points|update_JxW_values|update_gradients|
       update_hessians);
+  hp::FEFaceValues<dim> dual_hp_fe_face_values(dual_fe_collection, 
+      face_quadrature_collection,update_JxW_values|update_gradients|
+      update_normal_vectors);
+  hp::FEFaceValues<dim> dual_hp_neighbor_face_values(dual_fe_collection,
+      face_quadrature_collection, update_gradients);
+  hp::FESubfaceValues<dim> dual_hp_subface_values(dual_fe_collection, 
+      face_quadrature_collection, update_JxW_values|update_gradients|
+      update_normal_vectors);
+  hp::FESubfaceValues<dim> dual_hp_neighbor_subface_values(dual_fe_collection,
+      face_quadrature_collection, update_gradients);
+
+  FEValuesExtractors::Vector const velocities(0);
+  FEValuesExtractors::Scalar const pressure(dim);
+
+  std::vector<Vector<double>> rhs_values;
+  std::vector<double> divergence;
+  std::vector<Tensor<1,dim>> gradient_p;
+  std::vector<Tensor<1,dim>> laplacian;
+  std::vector<double> dual_value;
+  std::vector<Tensor<1,dim>> dual_laplacian;
+  std::vector<Tensor<2,dim>> gradient_u;
+  std::vector<Tensor<2,dim>> neighbor_gradient_u;
+  std::vector<Tensor<2,dim>> dual_gradient_u;
+  std::vector<Tensor<2,dim>> neighbor_dual_gradient_u;
+
   DoFHandler_active_cell_iterator cell = local_dof_handler.begin_active();
-  DoFHandler_active_cell_iterator dual_cell = local_dual_dof_handler.begin_active(),
-                                  dual_endc = local_dual_dof_handler.end();
+  DoFHandler_active_cell_iterator dual_cell = dual_local_dof_handler.begin_active(),
+                                  dual_endc = dual_local_dof_handler.end();
   for (; dual_cell!=dual_endc; ++dual_cell, ++cell)
   {
     hp_fe_values.reinit(cell);
-    dual_fe_values.reinit(dual_cell);
+    dual_hp_fe_values.reinit(dual_cell);
     FEValues<dim> const &fe_values = hp_fe_values.get_present_fe_values();
     FEValues<dim> const &dual_fe_values = dual_hp_fe_values.get_present_fe_values();
     std::vector<double> const &JxW_values = dual_fe_values.get_JxW_values();
@@ -1620,32 +1665,36 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
     fe_values[velocities].get_function_divergences(dual_solution, divergence);
     fe_values[velocities].get_function_laplacians(dual_solution, laplacian);
     fe_values[pressure].get_function_gradients(dual_solution, gradient_p);
-    dual_fe_values[velocites].get_function_laplacians(dual_residual_solution,
+    dual_fe_values[velocities].get_function_laplacians(dual_residual_solution,
         dual_laplacian);
     dual_fe_values[pressure].get_function_values(dual_residual_solution, 
         dual_value);
 
     // Compute residual term
     double residual_term(0.);
+    double res_divergence_square(0.);
+    double res_pressure_square(0.);
     double term_1(0.);
     double term_2(0.);
     for (unsigned int q=0; q<n_q_points; ++q)
     {
       for (unsigned int i=0; i<dim; ++i)
-        rhs_values[q][i] += laplacian[q][i] - gradients[q][i] + dual_laplacian[q][i];
-      term_1 += scalar_product(rhs_values[q],rhs_values[q]) * JxW_values[q];
+        rhs_values[q][i] += laplacian[q][i] - gradient_p[q][i] + dual_laplacian[q][i];
+      term_1 += rhs_values[q] * rhs_values[q] * JxW_values[q];
 
-      term_2 += ((divergence[q]*divergence[q])+(dual_value[q]*dual_value[q]))*JxW_values[q];
+      res_divergence_square += divergence[q]*divergence[q]*JxW_values[q];
+      res_pressure_square += dual_value[q]*dual_value[q]*JxW_values[q];
+      term_2 += res_divergence_square + res_pressure_square;
     }
     // ATTENTION in the paper we divide by p_L but it's really p+1
     residual_term = pow(cell->diameter()/dual_cell->get_fe().degree,2.)*term_1 + term_2;
 
     // Compute jump term
     double jump_term(0.);
-    for (unsigned int face=0; facer<GeometryInfo<dim>::faces_per_cell; ++face)
+    for (unsigned int face=0; face<GeometryInfo<dim>::faces_per_cell; ++face)
     {
       // Check that the face is not at the boundary
-      if (dual_face->face(face)->at_boundary()==false)
+      if (dual_cell->face(face)->at_boundary()==false)
       {
         // If the neighbor cell is active and on the same level
         if ((dual_cell->neighbor(face)->active()) &&
@@ -1654,31 +1703,41 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
           unsigned int const q_index = std::max(dual_cell->active_fe_index(),
               dual_cell->neighbor(face)->active_fe_index());
 
+          hp_fe_face_values.reinit(cell, face, q_index);
+          hp_neighbor_face_values.reinit(cell->neighbor(face),
+              cell->neighbor_of_neighbor(face), q_index);
+
           dual_hp_fe_face_values.reinit(dual_cell, face, q_index);
           dual_hp_neighbor_face_values.reinit(dual_cell->neighbor(face),
               dual_cell->neighbor_of_neighbor(face), q_index);
+
+          FEFaceValues<dim> const &fe_face_values = 
+            hp_fe_face_values.get_present_fe_values();
+          FEFaceValues<dim> const &neighbor_face_values = 
+            hp_neighbor_face_values.get_present_fe_values();
+
           FEFaceValues<dim> const &dual_neighbor_face_values = 
-            dual_hp_neighbor_face_values.get_fe_values();
+            dual_hp_neighbor_face_values.get_present_fe_values();
           FEFaceValues<dim> const &dual_fe_face_values = 
             dual_hp_fe_face_values.get_present_fe_values();
           std::vector<double> const &JxW_values = 
-            dual_fe_face_values.n_quadrature_points;
+            dual_fe_face_values.get_JxW_values();
           unsigned int const n_face_q_points = dual_fe_face_values.n_quadrature_points;
 
-          gradient.resize(n_face_q_points);
-          neighbor_gradients.resize(n_face_q_points);
-          dual_gradient.resize(n_face_q_points);
-          neighbor_dual_gradients.resize(n_face_q_points);
+          gradient_u.resize(n_face_q_points);
+          neighbor_gradient_u.resize(n_face_q_points);
+          dual_gradient_u.resize(n_face_q_points);
+          neighbor_dual_gradient_u.resize(n_face_q_points);
 
           neighbor_face_values[velocities].get_function_gradients(
-              dual_solution, neighbor_gradients);
-          neighbor_dual_face_values[velocities].get_function_gradients(
-              dual_residual_solution, neighbor_dual_gradients);
+              dual_solution, neighbor_gradient_u);
+          dual_neighbor_face_values[velocities].get_function_gradients(
+              dual_residual_solution, neighbor_dual_gradient_u);
 
           fe_face_values[velocities].get_function_gradients(dual_solution,
-              gradient);
+              gradient_u);
           dual_fe_face_values[velocities].get_function_gradients(
-              dual_residual_solution, dual_gradient);
+              dual_residual_solution, dual_gradient_u);
 
           std::vector<Tensor<1,dim>> jump_per_face;
           jump_per_face.resize(n_face_q_points);
@@ -1687,11 +1746,11 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
           {
             for (unsigned int i=0; i<dim; ++i)
               for (unsigned int j=0; j<dim; ++j)
-                jump_per_face[q][i] += (gradient[q][i][j]-neighbor_gradient[q][i][j] +
-                    dual_gradient[q][i][j]-neighbor_dual_gradient) * 
+                jump_per_face[q][i] += (gradient_u[q][i][j]-neighbor_gradient_u[q][i][j] +
+                    dual_gradient_u[q][i][j]-neighbor_dual_gradient_u[q][i][j]) * 
                   dual_fe_face_values.normal_vector(q)[j];
 
-            jump_val += scalar_product(jump_per_face[q],jump_per_face_[q])*JxW_values[q];
+            jump_val += scalar_product(jump_per_face[q],jump_per_face[q])*JxW_values[q];
           }
 
           unsigned int const min_fe_degree = std::min(dual_cell->get_fe().degree,
@@ -1702,35 +1761,46 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
         // If the neighbor has children
         else if (dual_cell->neighbor(face)->has_children() == true)
         {
-          for (unsigned int subface=0; subface<cell->face(face)->n_children;
+          for (unsigned int subface=0; subface<cell->face(face)->n_children();
               ++ subface)
           {
-            unsigned int const q_index = std::max(dual_cell->neighbor_child_on_subface(
-                  face, subface), dual_cell->neighbor_of_neighbor(face), q_index);
+            const unsigned int q_index = std::max(dual_cell->neighbor_child_on_subface(
+                  face, subface)->active_fe_index(), dual_cell->active_fe_index());
+
+            hp_neighbor_face_values.reinit(cell->neighbor_child_on_subface(
+                  face, subface), cell->neighbor_of_neighbor(face), q_index);
+            hp_subface_values.reinit(cell, face, subface, q_index);
+
             dual_hp_neighbor_face_values.reinit(dual_cell->neighbor_child_on_subface(
                   face, subface), dual_cell->neighbor_of_neighbor(face), q_index);
             dual_hp_subface_values.reinit(dual_cell, face, subface, q_index);
+
+            FEFaceValues<dim> const &neighbor_face_values =
+              hp_neighbor_face_values.get_present_fe_values();
+            FESubfaceValues<dim> const &fe_subface_values =
+              hp_subface_values.get_present_fe_values();
+
             FEFaceValues<dim> const &neighbor_dual_face_values =
-              dual_hp_neighbor_face_values.get_presentfe_values();
+              dual_hp_neighbor_face_values.get_present_fe_values();
             FESubfaceValues<dim> const &dual_fe_subface_values =
               dual_hp_subface_values.get_present_fe_values();
             std::vector<double> const &JxW_values = dual_fe_subface_values.get_JxW_values();
             unsigned int const n_subface_q_points = dual_fe_subface_values.n_quadrature_points;
 
-            gradient.resize(n_subface_q_points);
-            neighbor_gradient.resize(n_subface_q_points);
-            dual_gradient.resize(n_subface_q_points);
-            neighbor_dual_gradient.resize(n_subface_q_points);
+            gradient_u.resize(n_subface_q_points);
+            neighbor_gradient_u.resize(n_subface_q_points);
+            dual_gradient_u.resize(n_subface_q_points);
+            neighbor_dual_gradient_u.resize(n_subface_q_points);
 
             neighbor_face_values[velocities].get_function_gradients(dual_solution,
-                neighbor_gradient);
+                neighbor_gradient_u);
             neighbor_dual_face_values[velocities].get_function_gradients(
-                dual_residual_solution, neighbor_dual_gradients);
+                dual_residual_solution, neighbor_dual_gradient_u);
 
             fe_subface_values[velocities].get_function_gradients(dual_solution,
-                gradient);
-            dual_fe_subface_values[velocities].get_functions_gradients(
-                dual_residual_solution, dual_gradient);
+                gradient_u);
+            dual_fe_subface_values[velocities].get_function_gradients(
+                dual_residual_solution, dual_gradient_u);
 
             std::vector<Tensor<1,dim>> jump_per_subface;
             jump_per_subface.resize(n_subface_q_points);
@@ -1740,9 +1810,10 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
             {
               for (unsigned int i=0; i<dim; ++i)
                 for (unsigned int j=0; j<dim; ++j)
-                  jump_per_subface[q][i] += (gradient[q][i][j]-neighbor_gradient[q][i][j] +
-                    dual_gradient[q][i][j]-neighbor_dual_gradient) * 
-                  dual_fe_face_values.normal_vector(q)[j];
+                  jump_per_subface[q][i] += (gradient_u[q][i][j] -
+                      neighbor_gradient_u[q][i][j] +
+                      dual_gradient_u[q][i][j] - neighbor_dual_gradient_u[q][i][j]) * 
+                    dual_fe_subface_values.normal_vector(q)[j];
 
               jump_val += scalar_product(jump_per_subface[q],jump_per_subface[q])*
                 JxW_values[q];
@@ -1760,32 +1831,42 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
         {
           unsigned int const q_index = std::max(dual_cell->active_fe_index(),
               dual_cell->neighbor(face)->active_fe_index());
+
+          hp_neighbor_subface_values.reinit(cell->neighbor(face),
+              cell->neighbor_of_coarser_neighbor(face).first,
+              cell->neighbor_of_coarser_neighbor(face).second, q_index);
+
           dual_hp_fe_face_values.reinit(dual_cell, face, q_index);
           dual_hp_neighbor_subface_values.reinit(dual_cell->neighbor(face),
               dual_cell->neighbor_of_coarser_neighbor(face).first,
               dual_cell->neighbor_of_coarser_neighbor(face).second, q_index);
 
+          FEFaceValues<dim> const &fe_face_values = 
+            hp_fe_face_values.get_present_fe_values();
+          FESubfaceValues<dim> const &neighbor_subface_values = 
+            hp_neighbor_subface_values.get_present_fe_values();
+
           FEFaceValues<dim> const &dual_fe_face_values = 
             dual_hp_fe_face_values.get_present_fe_values();
-          FEFaceValues<dim> const &neighbor_dual_subface_values = 
+          FESubfaceValues<dim> const &neighbor_dual_subface_values = 
             dual_hp_neighbor_subface_values.get_present_fe_values();
 
           std::vector<double> const &JxW_values = dual_fe_face_values.get_JxW_values();
           unsigned int const n_face_q_points = dual_fe_face_values.n_quadrature_points;
 
-          gradient.resize(n_face_q_points);
-          neighbor_gradient.resize(n_face_q_points);
-          dual_gradient.resize(n_face_q_points);
-          neighbor_dual_gradient.resize(n_face_q_points);
+          gradient_u.resize(n_face_q_points);
+          neighbor_gradient_u.resize(n_face_q_points);
+          dual_gradient_u.resize(n_face_q_points);
+          neighbor_dual_gradient_u.resize(n_face_q_points);
 
           neighbor_subface_values[velocities].get_function_gradients(dual_solution,
-              neighbor_gradient);
+              neighbor_gradient_u);
           fe_face_values[velocities].get_function_gradients(dual_solution,
-              gradient);
+              gradient_u);
           neighbor_dual_subface_values[velocities].get_function_gradients(
-              dual_residual_solution, neighbor_dual_gradient);
+              dual_residual_solution, neighbor_dual_gradient_u);
           dual_fe_face_values[velocities].get_function_gradients(
-              dual_residual_solution, dual_gradient);
+              dual_residual_solution, dual_gradient_u);
 
           std::vector<Tensor<1,dim>> jump_per_face;
           jump_per_face.resize(n_face_q_points);
@@ -1794,8 +1875,9 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
           {
             for (unsigned int i=0; i<dim; ++i)
               for (unsigned int j=0; j<dim; ++j)
-                jump_per_face[q][i] += (gradient[q][i][j]-neighbor_gradient[q][i][j] +
-                    dual_gradient[q][i][j]-neighbor_dual_gradient) * 
+                jump_per_face[q][i] += (gradient_u[q][i][j] - 
+                    neighbor_gradient_u[q][i][j] + dual_gradient_u[q][i][j] - 
+                    neighbor_dual_gradient_u[q][i][j]) * 
                   dual_fe_face_values.normal_vector(q)[j];
 
             jump_val += scalar_product(jump_per_face[q],jump_per_face[q]) *
@@ -1808,54 +1890,24 @@ double StokesProblem<dim>::compute_local_dual_error_estimator()
           jump_term += dual_cell->face(face)->diameter()/(2.*min_fe_degree) * jump_val;
         }
       }
-      else
-      {
-        unsigned int const q_index = dual_cell->active_fe_index();
-
-        dual_hp_fe_face_values.reinit(dual_cell, face, q_index);
-        FEFaceValues<dim> const &dual_fe_face_values = 
-          dual_hp_fe_face_values.get_present_fe_values();
-        std::vector<double> const &JxW_values = 
-          dual_fe_face_values.n_quadrature_points;
-        unsigned int const n_face_q_points = dual_fe_face_values.n_quadrature_points;
-
-        gradient.resize(n_face_q_points);
-        dual_gradient.resize(n_face_q_points);
-
-        fe_face_values[velocities].get_function_gradients(dual_solution,
-            gradient);
-        dual_fe_face_values[velocities].get_function_gradients(
-            dual_residual_solution, dual_gradient);
-
-        std::vector<Tensor<1,dim>> jump_per_face;
-        jump_per_face.resize(n_face_q_points);
-        double jump_val(0.);
-        for (unsigned int q=0; q<n_face_q_points; ++q)
-        {
-          for (unsigned int i=0; i<dim; ++i)
-            for (unsigned int j=0; j<dim; ++j)
-              jump_per_face[q][i] += (gradient[q][i][j] + dual_gradient[q][i][j]) * 
-                dual_fe_face_values.normal_vector(q)[j];
-
-          jump_val += scalar_product(jump_per_face[q],jump_per_face_[q])*JxW_values[q];
-        }
-
-        unsigned int const min_fe_degree = dual_cell->get_fe().degree;
-
-        jump_term += (dual_cell->face(face)->diameter()/(2.*min_fe_degree)) * jump_val;
-      }
     }
-    dual_error_esimator += residual_term + jump_term;
+    go_error_estimator_square += residual_term + jump_term + res_divergence_square +
+      res_pressure_square;
   }                     
+
+  return go_error_estimator_square;
 }
 
 
 template <int dim>
-void StokesProblem<dim>::compute_goal_oriented_error_estimator()
+std::vector<std::pair<double, typename hp::DoFHandler<dim>::active_cell_iterator>>
+StokesProblem<dim>::compute_goal_oriented_error_estimator()
 {
+  std::vector<std::pair<double, DoFHandler_active_cell_iterator>>
+    go_error_estimator_square(triangulation.n_active_cells());
   DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
                                   endc = dof_handler.end();
-  for (; cell!=endc; ++cell)
+  for (unsigned int i=0; cell!=endc; ++cell, ++i)
   {
     // Create the local triangulation associated to a patch
     Triangulation<dim> local_triangulation;
@@ -1881,8 +1933,85 @@ void StokesProblem<dim>::compute_goal_oriented_error_estimator()
     // Compute the dual residual on the patch
     BlockVector<double> dual_residual_solution = compute_local_dual_residual(
         local_dof_handler, local_dual_dof_handler);
-    compute_local_dual_error_estimator();
-    compute_local_goal_oriented_estimator();
+    go_error_estimator_square.push_back(std::pair<double, DoFHandler_active_cell_iterator>
+        (compute_local_go_error_estimator_square(local_dof_handler, local_dual_dof_handler, 
+                                                 dual_residual_solution), cell));
+  }
+
+  return go_error_estimator_square;
+}
+
+
+template <int dim>
+void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle, 
+    const double theta, std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
+    const &go_error_estimator_square)
+{
+  primal_indicator_cell.clear();
+  candidate_cell_set.clear();
+  marked_cells.reinit(triangulation.n_active_cells());
+
+  // this vector "convergence_est_per_cell" will be finalized after checking out
+  // which h- or p- refinement are going to be chosen for each cell
+  convergence_est_per_cell.reinit(triangulation.n_active_cells());
+
+  h_Conv_Est.reinit(triangulation.n_active_cells());
+  p_Conv_Est.reinit(triangulation.n_active_cells());
+  hp_Conv_Est.reinit(triangulation.n_active_cells());
+
+  // Create the synchronous iterators used by WorkStream
+  std::vector<unsigned int> cell_indices(dof_handler.get_tria().n_active_cells(),0);
+  for (unsigned int i=0; i<dof_handler.get_tria().n_active_cells(); ++i)
+    cell_indices[i] = i;
+  DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
+                                  end_cell = dof_handler.end();
+  SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+    std::vector<unsigned int>::iterator>> synch_iter(std::tuple<DoFHandler_active_cell_iterator,
+        std::vector<unsigned int>::iterator> (cell, cell_indices.begin()));
+  SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
+    std::vector<unsigned int>::iterator>> end_synch_iter(std::tuple<DoFHandler_active_cell_iterator,
+        std::vector<unsigned int>::iterator> (end_cell, cell_indices.end()));
+  // Here the cells are marked for h- or p-refinement
+  WorkStream::run(synch_iter, end_synch_iter,
+      std_cxx11::bind(&StokesProblem<dim>::patch_convergence_estimator,this, cycle,
+        std_cxx11::_1, std_cxx11::_2, std_cxx11::_3),
+      std_cxx11::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,std_cxx11::_1),
+      ScratchData(),CopyData<dim>());
+
+  std::vector<std::pair<double, DoFHandler_active_cell_iterator>> go_error_estimator(
+      go_error_estimator_square);
+  for (unsigned int i=0; i<triangulation.n_active_cells(); ++i)
+  {
+    go_error_estimator[i].first += std::pow(est_per_cell[i],2);
+    go_error_estimator[i].first = std::sqrt(go_error_estimator[i].first);
+  }
+
+  std::sort(go_error_estimator.begin(), go_error_estimator.end(),
+      std::bind(&StokesProblem<dim>::sort_decreasing_order, this,
+        std::placeholders::_1, std::placeholders::_2));
+
+  //TODO not sure what to do here, it's not in the paper yet.
+  double L2_norm(0.);
+  for (auto const &error_estimator : go_error_estimator)
+    L2_norm += std::pow(error_estimator.first, 2.);
+  L2_norm = std::sqrt(L2_norm);
+  double sum(0.);
+  for (auto const &error_estimator : go_error_estimator)
+  {
+    sum += std::pow(error_estimator.first, 2);
+    candidate_cell_set.push_back(error_estimator.second);
+    // if theta is one, refine every cell
+    if ((theta<1.) && (sum>=std::pow(theta*L2_norm,2)))
+      break;
+  }
+  cell = dof_handler.begin_active();
+  for (unsigned int i=0; cell!=end_cell; ++cell,++i)
+  {
+    typename std::vector<DoFHandler_active_cell_iterator>::iterator  mark_candidate;
+    for (mark_candidate=candidate_cell_set.begin();
+        mark_candidate!=candidate_cell_set.end(); ++mark_candidate)
+      if (cell == *mark_candidate)
+        marked_cells[i]=1;
   }
 }
 
@@ -1890,10 +2019,9 @@ void StokesProblem<dim>::compute_goal_oriented_error_estimator()
 // This function, controls the portion of cells for refinement
 // The parameter theta here plays an important role in this step
 template <int dim>
-void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta, 
-    const bool goal_oriented)
+void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta)
 {
-  primal_indictor_cell.clear();
+  primal_indicator_cell.clear();
   candidate_cell_set.clear();
   marked_cells.reinit(triangulation.n_active_cells());
 
@@ -1924,24 +2052,19 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
       ScratchData(),CopyData<dim>());
 
   std::sort(primal_indicator_cell.begin(), primal_indicator_cell.end(),
-      std_cxx1x::bind(&StokesProblem<dim>::sort_decreasing_order,this,std_cxx1x::_1,std_cxx1x::_2));
+      std::bind(&StokesProblem<dim>::sort_decreasing_order, this,
+        std::placeholders::_1, std::placeholders::_2));
 
-  if (goal_oriented==true)
-  {
-  }
-
-  double L2_norm=est_per_cell.l2_norm();
-  unsigned int number_of_candidate_cells=0;
-  double sum=0;
+  double const L2_norm(est_per_cell.l2_norm());
+  double sum(0.);
   for (unsigned int i=0; i<primal_indicator_cell.size(); ++i)
     {
       DoFHandler_active_cell_iterator cell_sort = primal_indicator_cell[i].second;
-      sum += (primal_indicator[i].first)*(primal_indicator_cell[i].first);
+      sum += (primal_indicator_cell[i].first)*(primal_indicator_cell[i].first);
 
       candidate_cell_set.push_back(cell_sort);
-      number_of_candidate_cells=number_of_candidate_cells+1;
       // if theta is one, refine every cell
-      if ((theta<1.0) && (sum >= (theta*(L2_norm))*(theta*(L2_norm))))
+      if ((theta<1.0) && (sum>=std::pow(theta*L2_norm,2)))
         break;
     }
 
