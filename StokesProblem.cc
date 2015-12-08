@@ -24,29 +24,29 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
   {
     case (example_1) :
       {
-        exact_solution = new ExactSolutionEx1<dim>();
-        rhs_function = new RightHandSideEx1<dim>();
+        exact_solution.reset(new ExactSolutionEx1<dim>());
+        rhs_function.reset(new RightHandSideEx1<dim>());
 
         break;
       }
     case (example_2) :
       {
-        exact_solution = new ExactSolutionEx2<dim>();
-        rhs_function = new RightHandSideEx2<dim>();
+        exact_solution.reset(new ExactSolutionEx2<dim>());
+        rhs_function.reset(new RightHandSideEx2<dim>());
 
         break;
       }
     case (example_3) :
       {
-        exact_solution = new ExactSolutionEx3<dim>();
-        rhs_function = new RightHandSideEx3<dim>();
+        exact_solution.reset(new ExactSolutionEx3<dim>());
+        rhs_function.reset(new RightHandSideEx3<dim>());
 
         break;
       }
     case (example_4) :
       {
-        exact_solution = new ExactSolutionEx4<dim>();
-        rhs_function = new RightHandSideEx4<dim>();
+        exact_solution.reset(new ExactSolutionEx4<dim>());
+        rhs_function.reset(new RightHandSideEx4<dim>());
 
         break;
       }
@@ -118,23 +118,6 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
     dual_source.reset(new FunctionParser<dim>(dim+1));
     dual_source->initialize(FunctionParser<dim>::default_variable_names(),
         parameters.get_dual_source(), typename FunctionParser<dim>::ConstMap());
-  }
-}
-
-
-template <int dim>
-StokesProblem<dim>::~StokesProblem()
-{
-  if (exact_solution!=nullptr)
-  {
-    delete exact_solution;
-    exact_solution = nullptr;
-  }
-
-  if (rhs_function!=nullptr)
-  {
-    delete rhs_function;
-    rhs_function = nullptr;
   }
 }
 
@@ -1325,8 +1308,8 @@ void StokesProblem<dim>::patch_convergence_estimator(const unsigned int cycle,
   // Silence a warning
   (void) scratch_data;
 
-  DoFHandler_active_cell_iterator cell = std_cxx11::get<0>(synch_iterator.iterators);
-  const unsigned int patch_number(*std_cxx11::get<1>(synch_iterator.iterators));
+  DoFHandler_active_cell_iterator cell = std::get<0>(synch_iterator.iterators);
+  const unsigned int patch_number(*std::get<1>(synch_iterator.iterators));
   copy_data.global_cell = cell;
   copy_data.cell_index = patch_number;
 
@@ -1981,9 +1964,10 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
         std::vector<unsigned int>::iterator> (end_cell, cell_indices.end()));
   // Here the cells are marked for h- or p-refinement
   WorkStream::run(synch_iter, end_synch_iter,
-      std_cxx11::bind(&StokesProblem<dim>::patch_convergence_estimator,this, cycle,
-        std_cxx11::_1, std_cxx11::_2, std_cxx11::_3),
-      std_cxx11::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,std_cxx11::_1),
+      std::bind(&StokesProblem<dim>::patch_convergence_estimator,this, cycle,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+      std::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,
+        std::placeholders::_1),
       ScratchData(),CopyData<dim>());
 
   std::vector<std::pair<double, DoFHandler_active_cell_iterator>> go_error_estimator(
