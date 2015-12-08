@@ -35,6 +35,8 @@ void Parameters::declare_parameters(ParameterHandler &prm)
   prm.declare_entry("Max n cycles", "10", Patterns::Integer(0), "Maximum degree used");
   prm.declare_entry("Theta", "0.5", Patterns::Double(0.,1.), "Refinement parameters");
   prm.declare_entry("Tolerance", "1e-12", Patterns::Double(0.), "Solver tolerance");
+  prm.declare_entry("Dual source", "0", Patterns::Anything(), 
+      "Source of the dual problem");
 }
 
 
@@ -46,36 +48,36 @@ void Parameters::parse_parameters(ParameterHandler &prm)
 
   unsigned int ex_number = prm.get_integer("Example");
   switch (ex_number)
-    {
+  {
     case 1:
-    {
-      example = example_1;
-      dim = 2;
-      break;
-    }
+      {
+        example = example_1;
+        dim = 2;
+        break;
+      }
     case 2:
-    {
-      example = example_2;
-      dim = 2;
-      break;
-    }
+      {
+        example = example_2;
+        dim = 2;
+        break;
+      }
     case 3:
-    {
-      example = example_3;
-      dim = 2;
-      break;
-    }
+      {
+        example = example_3;
+        dim = 2;
+        break;
+      }
     case 4:
-    {
-      example = example_4;
-      dim = 3;
-      break;
-    }
+      {
+        example = example_4;
+        dim = 3;
+        break;
+      }
     default:
-    {
-      AssertThrow(false,ExcMessage("Unknow example"));
-    }
-    }
+      {
+        AssertThrow(false,ExcMessage("Unknow example"));
+      }
+  }
 
   std::string input = prm.get("Quadrature");
   if (input.compare("GaussLegendre")==0)
@@ -98,4 +100,6 @@ void Parameters::parse_parameters(ParameterHandler &prm)
   theta = prm.get_double("Theta");
 
   tolerance = prm.get_double("Tolerance");
+
+  dual_source = prm.get("Dual source");
 }

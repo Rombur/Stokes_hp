@@ -5,6 +5,7 @@
 
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
+#include <deal.II/base/function_parser.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/synchronous_iterator.h>
 #include <deal.II/base/work_stream.h>
@@ -176,7 +177,7 @@ private:
 
   Function<dim> *exact_solution;
   Function<dim> *rhs_function;
-  Function<dim> *dual_source;
+  std::shared_ptr<FunctionParser<dim>> dual_source;
 
   hp::FECollection<dim> fe_collection;
   hp::FECollection<dim> dual_fe_collection;

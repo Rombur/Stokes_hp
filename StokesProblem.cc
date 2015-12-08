@@ -110,6 +110,15 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
         FE_Nothing<dim>(), 1));
   quadrature_collection.push_back(QGauss<dim>(1));
   face_quadrature_collection.push_back (QGauss<dim-1>(1));
+
+
+  // Set the dual source if necessary
+  if (parameters.do_goal_oriented()==true)
+  {
+    dual_source.reset(new FunctionParser<dim>(dim+1));
+    dual_source->initialize(FunctionParser<dim>::default_variable_names(),
+        parameters.get_dual_source(), typename FunctionParser<dim>::ConstMap());
+  }
 }
 
 

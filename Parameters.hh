@@ -42,6 +42,8 @@ class Parameters
 
     double get_tolerance() const;
 
+    std::string get_dual_source() const;
+
   private :
     void declare_parameters(ParameterHandler &prm);
 
@@ -59,6 +61,7 @@ class Parameters
     unsigned int max_n_cycles;
     double theta;
     double tolerance;
+    std::string dual_source;
 };
 
 
@@ -129,6 +132,12 @@ inline
 double Parameters::get_tolerance() const
 {
   return tolerance;
+}
+
+inline
+std::string Parameters::get_dual_source() const
+{
+  return dual_source;
 }
 
 #endif
