@@ -9,15 +9,14 @@
 
 
 template <int dim>
-StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example, QUADRATURE quadrature, 
-    REFINEMENT refinement, unsigned int max_degree, bool goal_oriented):
+StokesProblem<dim>::StokesProblem(Parameters const &parameters):
   exact_solution(nullptr),
   rhs_function(nullptr),
   dof_handler(triangulation),
-  verbose(verbose),
-  example(example),
-  refinement(refinement),
-  max_degree(max_degree)
+  verbose(parameters.get_verbose()),
+  example(parameters.get_example()),
+  refinement(parameters.get_refinement()),
+  max_degree(parameters.get_max_degree())
 {
   // Set the exact solution used in the Dirichlet boundary condition and to
   // compute the error. Also set the rhs.
@@ -58,14 +57,14 @@ StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example, QUADRATURE quad
   }
 
   // Set the quadrature and the fe_collection
-  if (quadrature==gauss_lobatto)
+  if (parameters.get_quadrature()==gauss_lobatto)
   {
     for (unsigned int degree=1; degree<=max_degree; ++degree)
       fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree+1)), dim,
             FE_Q<dim> (QGaussLobatto<1> (degree)), 1));
 
     unsigned int quad_degree = 3;
-    if (goal_oriented==true)
+    if (parameters.do_goal_oriented()==true)
     {
       for (unsigned int degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
@@ -89,7 +88,7 @@ StokesProblem<dim>::StokesProblem(bool verbose, EXAMPLE example, QUADRATURE quad
             FE_Q<dim> (degree), 1));
 
     unsigned int quad_degree(3);
-    if (goal_oriented==true)
+    if (parameters.do_goal_oriented()==true)
     {
       for (unsigned degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
@@ -914,7 +913,7 @@ void StokesProblem<dim>::set_active_fe_indices(hp::DoFHandler<dim> &local_dof_ha
       else if (patch_cell->user_flag_set()==false)
         {
           // which assigns FE_Nothing for the cells out of patch
-          patch_cell->set_active_fe_index (max_degree);
+          patch_cell->set_active_fe_index(max_degree);
         }
       else
         Assert (false, ExcNotImplemented());

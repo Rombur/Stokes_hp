@@ -149,24 +149,17 @@ int main(int argc, char *argv[])
 {
   // Silence a warning
   (void) argc;
-  deallog.depth_console (0);
-  //MultithreadInfo::set_thread_limit(1);
+  deallog.depth_console(0);
   Parameters parameters(argv[1]);
 
   if (parameters.get_dim()==2)
   {
-    StokesProblem<2> stokes_problem(parameters.get_verbose(),
-        parameters.get_example(), parameters.get_quadrature(),
-        parameters.get_refinement(), parameters.get_max_degree(),
-        parameters.do_goal_oriented());
+    StokesProblem<2> stokes_problem(parameters);
     run(parameters, stokes_problem);
   }
   else
   {
-    StokesProblem<3> stokes_problem(parameters.get_verbose(),
-        parameters.get_example(), parameters.get_quadrature(),
-        parameters.get_refinement(), parameters.get_max_degree(),
-        parameters.do_goal_oriented());
+    StokesProblem<3> stokes_problem(parameters);
     run(parameters, stokes_problem);
   }
 

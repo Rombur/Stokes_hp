@@ -78,8 +78,7 @@ public:
   typedef typename Triangulation<dim>::active_cell_iterator Triangulation_active_cell_iterator;
   typedef typename Triangulation<dim>::cell_iterator Triangulation_cell_iterator;
 
-  StokesProblem (bool verbose, EXAMPLE example, QUADRATURE quadrature,
-      REFINEMENT refinement, unsigned int max_degree, bool goal_oriented);
+  StokesProblem (Parameters const &parameters);
 
   ~StokesProblem();
 
