@@ -207,10 +207,6 @@ void StokesProblem<dim>::setup_system()
   DoFHandler_active_cell_iterator first_cell = dof_handler.begin_active();
   std::vector<types::global_dof_index> local_dof_indices (first_cell->get_fe().dofs_per_cell);
   first_cell->get_dof_indices(local_dof_indices);
-  Point<dim> pt_ref_space = first_cell->get_fe().unit_support_point(
-                              first_cell->get_fe().component_to_system_index(dim,0));
-  MappingQ1<dim> mapping;
-  Point<dim> pt_real_space = mapping.transform_unit_to_real_cell(first_cell,pt_ref_space);
   types::global_dof_index first_pressure_dof =
     local_dof_indices[first_cell->get_fe().component_to_system_index(dim,0)];
 
