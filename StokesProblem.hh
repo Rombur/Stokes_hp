@@ -101,6 +101,8 @@ public:
 
   double error_estimate_l2_norm();
 
+  double pressure_mean_value();
+
 private:
   void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler,
       std::map<Triangulation_active_cell_iterator,DoFHandler_active_cell_iterator>

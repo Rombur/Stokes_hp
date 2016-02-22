@@ -17,8 +17,8 @@ void ExactSolutionEx3<2>::vector_value(const Point<2> &p, Vector<double> &values
 
   values(0) = 2.*y*cos(pow(x,2)+pow(y,2));
   values(1) = -2.*x*cos(pow(x,2)+pow(y,2));
-  values(2) = exp(-10.*(pow(x,2)+pow(y,2)));
-
+  values(2) = exp(-10.*(pow(x,2)+pow(y,2))) - 
+    ((1./40.)*M_PI*std::pow(std::erf(std::sqrt(10.)),2));
 }
 
 template <>

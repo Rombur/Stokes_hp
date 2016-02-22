@@ -60,16 +60,16 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
   if (parameters.get_quadrature()==gauss_lobatto)
   {
     for (unsigned int degree=1; degree<=max_degree; ++degree)
-      fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree+1)), dim,
-            FE_Q<dim> (QGaussLobatto<1> (degree)), 1));
+      fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree+2)), dim,
+            FE_Q<dim> (QGaussLobatto<1> (degree+1)), 1));
 
     unsigned int quad_degree = 3;
     if (parameters.do_goal_oriented()==true)
     {
       for (unsigned int degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
-              FE_Q<dim> (QGaussLobatto<1> (degree+2)), dim,
-              FE_Q<dim> (QGaussLobatto<1> (degree+1)), 1));
+              FE_Q<dim> (QGaussLobatto<1> (degree+3)), dim,
+              FE_Q<dim> (QGaussLobatto<1> (degree+2)), 1));
       ++quad_degree;
     }
 
@@ -84,16 +84,16 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
   else
   {
     for (unsigned int degree=1; degree<=max_degree; ++degree)
-      fe_collection.push_back(FESystem<dim>(FE_Q<dim> (degree+1), dim,
-            FE_Q<dim> (degree), 1));
+      fe_collection.push_back(FESystem<dim>(FE_Q<dim> (degree+2), dim,
+            FE_Q<dim> (degree+1), 1));
 
     unsigned int quad_degree(3);
     if (parameters.do_goal_oriented()==true)
     {
       for (unsigned degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
-              FE_Q<dim> (degree+2), dim,
-              FE_Q<dim> (degree+1), 1));
+              FE_Q<dim> (degree+3), dim,
+              FE_Q<dim> (degree+2), 1));
       ++quad_degree;
     }
 
@@ -217,9 +217,7 @@ void StokesProblem<dim>::setup_system()
   // component_to_system_index: "Compute the shape function for the given vector
   // component and index."
   constraints.add_line (first_pressure_dof);
-  Vector<double> values(dim+1);
-  exact_solution->vector_value(pt_real_space,values);
-  constraints.set_inhomogeneity (first_pressure_dof,values[dim]);
+  constraints.set_inhomogeneity (first_pressure_dof,0.);
 
   constraints.close();
 
@@ -340,11 +338,13 @@ void StokesProblem<dim>::solve(PRIMALDUAL primal_dual)
   {
     A_inverse.vmult(solution, system_rhs);
     constraints.distribute(solution);
+    solution.block(1).add(-pressure_mean_value());
   }
   else
   {
     A_inverse.vmult(dual_solution, system_rhs);
     constraints.distribute(dual_solution);
+    //TODO check what needs to be done here.
   }
 }
 
@@ -651,6 +651,35 @@ void StokesProblem<dim>::compute_error_estimator()
       Jump_est_per_cell(cell_index) = term3;
       est_per_cell(cell_index) = sqrt(Jump_est_per_cell(cell_index)+res_est_per_cell(cell_index));
     }
+}
+
+
+
+template <int dim>
+double StokesProblem<dim>::pressure_mean_value()
+{
+  hp::FEValues<dim> hp_fe_values(fe_collection, quadrature_collection, update_values|update_JxW_values);
+  const FEValuesExtractors::Scalar pressure(dim);
+
+  std::vector<double> values;
+  double domain_mean_val_p(0.);
+  double measure_domain(0.);
+  for (auto cell : dof_handler.active_cell_iterators())
+  {
+    hp_fe_values.reinit(cell);
+    const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values();
+    const std::vector<double> &JxW_values = fe_values.get_JxW_values();
+    const unsigned int n_q_points = fe_values.n_quadrature_points;
+    values.resize(n_q_points);
+    fe_values[pressure].get_function_values(solution, values);
+    for (unsigned int q=0; q<n_q_points; ++q)
+    {
+      domain_mean_val_p += values[q]*JxW_values[q];
+      measure_domain += JxW_values[q];
+    }
+  }
+
+  return domain_mean_val_p/measure_domain;
 }
 
 // get_patch_around_cell() : For each cell returns a vector of cells
@@ -1951,8 +1980,9 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
   hp_Conv_Est.reinit(triangulation.n_active_cells());
 
   // Create the synchronous iterators used by WorkStream
-  std::vector<unsigned int> cell_indices(dof_handler.get_tria().n_active_cells(),0);
-  for (unsigned int i=0; i<dof_handler.get_tria().n_active_cells(); ++i)
+  std::vector<unsigned int> cell_indices(
+      dof_handler.get_triangulation().n_active_cells(),0);
+  for (unsigned int i=0; i<dof_handler.get_triangulation().n_active_cells(); ++i)
     cell_indices[i] = i;
   DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
                                   end_cell = dof_handler.end();
@@ -2026,8 +2056,9 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
   hp_Conv_Est.reinit(triangulation.n_active_cells());
 
   // Create the synchronous iterators used by WorkStream
-  std::vector<unsigned int> cell_indices(dof_handler.get_tria().n_active_cells(),0);
-  for (unsigned int i=0; i<dof_handler.get_tria().n_active_cells(); ++i)
+  std::vector<unsigned int> cell_indices(
+      dof_handler.get_triangulation().n_active_cells(),0);
+  for (unsigned int i=0; i<dof_handler.get_triangulation().n_active_cells(); ++i)
     cell_indices[i] = i;
   DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
                                   end_cell = dof_handler.end();
@@ -2186,6 +2217,7 @@ void StokesProblem<dim>::refine_in_h_p()
     }
   while (cell_changed==true);
 }
+
 
 
 //Explicit initialization
