@@ -245,6 +245,9 @@ void StokesProblem<dim>::setup_system()
 template <int dim>
 void StokesProblem<dim>::assemble_system(PRIMALDUAL primal_dual)
 {
+  system_matrix = 0.;
+  system_rhs = 0.;
+
   hp::FEValues<dim> hp_fe_values(fe_collection, quadrature_collection,
       update_values|update_quadrature_points|update_JxW_values|update_gradients);
 
