@@ -37,8 +37,15 @@ IF(NOT ${deal.II_FOUND})
     "You may want to either pass a flag -DDEAL_II_DIR=/path/to/deal.II to cmake\n"
     "or set an environment variable \"DEAL_II_DIR\" that contains this path."
     )
-ENDIF()
+ENDIF()                   
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
+ADD_EXECUTABLE(test_parameters
+  test_parameters.cc
+  Parameters.cc
+  )
+DEAL_II_SETUP_TARGET(test_parameters)
 DEAL_II_INVOKE_AUTOPILOT()
+
+FILE(COPY test_project.inp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
