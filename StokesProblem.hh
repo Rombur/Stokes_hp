@@ -70,7 +70,7 @@ public:
 
   void generate_mesh();
 
-  void setup_system();
+  void setup_system(PRIMALDUAL primal_dual);
 
   void assemble_system(PRIMALDUAL primal_dual);
 
@@ -123,7 +123,8 @@ private:
 
   void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
       ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu,
-      BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs);
+      BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs,
+      PRIMALDUAL primal_dual);
 
   void patch_solve(hp::DoFHandler<dim> &local_dof_handler,
                    unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
@@ -153,13 +154,19 @@ private:
     std::map<Triangulation_active_cell_iterator,
     DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
-  BlockVector<double> compute_local_dual_residual(
-      hp::DoFHandler<dim> const &local_dof_handler,
-      hp::DoFHandler<dim> &local_dual_dof_handler);
+  void compute_local_dual_residual(
+      hp::DoFHandler<dim> &local_dof_handler,
+      unsigned int level_p_refine,
+      std::vector<unsigned int> const &block_component_patch,
+      std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
+        &patch_to_global_tria_map,
+      hp::DoFHandler<dim> &local_dual_dof_handler,
+      BlockVector<double> &local_dual_solu,
+      BlockVector<double> &dual_residual_solu);
 
   double compute_local_go_error_estimator_square(
-      hp::DoFHandler<dim> const &local_dof_handler,
       hp::DoFHandler<dim> const &dual_local_dof_handler,
+      BlockVector<double> const &local_dual_solution,
       BlockVector<double> const &dual_residual_solution);
 
   std::unique_ptr<Function<dim>> exact_solution;

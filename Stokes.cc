@@ -89,7 +89,7 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
     std::cout<<"Number of active cells: "<< stokes_problem.n_active_cells() << std::endl;
 
     std::cout<<"Set up"<<std::endl;
-    stokes_problem.setup_system();
+    stokes_problem.setup_system(primal);
 
     std::cout<<"Number of degrees of freedom: "<<stokes_problem.n_dofs()<<std::endl;
     n_dofs_per_cycles.push_back(stokes_problem.n_dofs());
@@ -112,6 +112,9 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
 
     if (parameters.do_goal_oriented())
     {
+      std::cout<<"Set up dual problem"<<std::endl;
+      stokes_problem.setup_system(dual);
+
       std::cout<<"Assemble dual system"<<std::endl;
       stokes_problem.assemble_system(dual);
 
@@ -152,6 +155,7 @@ int main(int argc, char *argv[])
   deallog.depth_console(0);
   Parameters parameters(argv[1]);
 
+  ::MultithreadInfo::set_thread_limit();
   if (parameters.get_dim()==2)
   {
     StokesProblem<2> stokes_problem(parameters);
