@@ -103,6 +103,9 @@ public:
 
   double pressure_mean_value();
 
+  // The following functions are only for testing purposes
+  Triangulation<dim>& get_triangulation();
+
 private:
   void set_active_fe_indices (hp::DoFHandler<dim> &local_dof_handler,
       std::map<Triangulation_active_cell_iterator,DoFHandler_active_cell_iterator>
@@ -242,6 +245,14 @@ inline
 double StokesProblem<dim>::error_estimate_l2_norm()
 {
   return est_per_cell.l2_norm();
+}
+
+
+template <int dim>
+inline
+Triangulation<dim>& StokesProblem<dim>::get_triangulation()
+{
+  return triangulation;
 }
 
 #endif

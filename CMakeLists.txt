@@ -45,7 +45,21 @@ ADD_EXECUTABLE(test_parameters
   test_parameters.cc
   Parameters.cc
   )
+ADD_EXECUTABLE(test_stokes_problem
+  test_stokes_problem.cc
+  StokesProblem.cc
+  ExactSolutionEx1.cc
+  ExactSolutionEx2.cc
+  ExactSolutionEx3.cc
+  ExactSolutionEx4.cc
+  RightHandSideEx1.cc
+  RightHandSideEx2.cc
+  RightHandSideEx3.cc
+  RightHandSideEx4.cc
+  Parameters.cc
+  )
 DEAL_II_SETUP_TARGET(test_parameters)
+DEAL_II_SETUP_TARGET(test_stokes_problem)
 DEAL_II_INVOKE_AUTOPILOT()
 
 FILE(COPY test_project.inp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

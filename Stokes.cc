@@ -79,7 +79,7 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
 {
   std::vector<unsigned int> n_dofs_per_cycles;
   std::vector<double> error_per_cycles;
-  for (unsigned int cycle=0; cycle<parameters.get_max_n_cycles(); ++cycle)
+  for (unsigned int cycle=0; cycle<=parameters.get_max_n_cycles(); ++cycle)
   {
     std::cout<< "-----------------------------------------------------------" << std::endl;
     std::cout << "Cycle " << cycle << ':' << std::endl;
