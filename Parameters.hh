@@ -44,6 +44,9 @@ class Parameters
 
     std::string get_dual_source() const;
 
+    // The following functions are only for testing purposes
+    void set_example(EXAMPLE ex);
+
   private :
     void declare_parameters(ParameterHandler &prm);
 
@@ -134,10 +137,18 @@ double Parameters::get_tolerance() const
   return tolerance;
 }
 
+
 inline
 std::string Parameters::get_dual_source() const
 {
   return dual_source;
+}
+
+
+inline
+void Parameters::set_example(EXAMPLE ex) 
+{
+  example = ex;
 }
 
 #endif
