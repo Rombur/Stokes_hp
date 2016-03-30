@@ -1011,7 +1011,7 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
   {
     SolutionTransfer<dim,BlockVector<double>, hp::DoFHandler<dim> > solution_transfer(local_dof_handler);
     solution_transfer.prepare_for_pure_refinement();
-
+    active_patch_cell = local_dof_handler.begin_active();
     for (; active_patch_cell!=active_end_patch_cell; ++active_patch_cell)
     {
       DoFHandler_active_cell_iterator global_cell = patch_to_global_tria_map[active_patch_cell];
@@ -1060,6 +1060,7 @@ void StokesProblem<dim>::h_refinement(Triangulation<dim> &local_triangulation,
       // execute_coarsening_and_refinement. save their values into
       // the material_id, since that one not only survives
       // refinement but is also inherited to the children
+      active_patch_cell = local_dof_handler.begin_active();
       for (; active_patch_cell!=active_end_patch_cell; ++active_patch_cell)
         {
           if (active_patch_cell->user_flag_set())
