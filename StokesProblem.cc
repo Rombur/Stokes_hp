@@ -350,7 +350,6 @@ void StokesProblem<dim>::solve(PRIMALDUAL primal_dual)
   {
     A_inverse.vmult(dual_solution, system_rhs);
     constraints.distribute(dual_solution);
-    //TODO check what needs to be done here.
   }
 }
 
@@ -368,8 +367,8 @@ void StokesProblem<dim>::compute_error()
   hp::FEValues<dim> hp_fe_values(fe_collection, quadrature_collection_error,
       update_values|update_quadrature_points|update_JxW_values|update_gradients|
       update_hessians);
-  const FEValuesExtractors::Vector velocities (0);
-  const FEValuesExtractors::Scalar pressure (dim);
+  const FEValuesExtractors::Vector velocities(0);
+  const FEValuesExtractors::Scalar pressure(dim);
 
   std::vector<double> values;
   std::vector<Tensor<2,dim>> gradients;

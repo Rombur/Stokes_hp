@@ -37,7 +37,7 @@ void ExactSolutionEx4<3>::vector_value(const Point<3> &p, Vector<double> &values
   values(1) = -2.*x*cos(pow(x,2)+pow(y,2));
   values(2) = 0.;
   values(3) = mu*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2))) - 
-    (std::pow(M_PI,3./2.)*mu*std::pow(std::sqrt(lambda),3)/(8.*std::pow(lambda,3./2.)));
+    (std::pow(M_PI,3./2.)*mu*std::pow(std::erf(std::sqrt(lambda)),3)/(std::pow(lambda,3./2.)));
 }
 
 
