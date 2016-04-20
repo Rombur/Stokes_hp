@@ -27,7 +27,7 @@ double RightHandSideEx4<dim>::value(const Point<dim> &p, const unsigned int comp
   if (component==1)
     val = -8.*pow(x,3)*cos(pow(x,2)+pow(y,2)) - 16.*x*sin(pow(x,2)+pow(y,2)) -
           8.*pow(y,2)*x*cos(pow(x,2)+pow(y,2)) - 
-          2.*mu*y*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
+          2.*mu*lambda*y*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2)));
 
   if (component==2)
     val= -2*mu*lambda*z*exp(-lambda*(pow(x,2)+pow(y,2)+pow(z,2))) ;

@@ -59,17 +59,19 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
   // Set the quadrature and the fe_collection
   if (parameters.get_quadrature()==gauss_lobatto)
   {
+    // One using GaussLobatto, we are seeting the number of points not the
+    // degree of the polynomial -> we need to increase the "degree" by one
     for (unsigned int degree=1; degree<=max_degree; ++degree)
-      fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree+2)), dim,
-            FE_Q<dim> (QGaussLobatto<1> (degree+1)), 1));
+      fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree+3)), dim,
+            FE_Q<dim> (QGaussLobatto<1> (degree+2)), 1));
 
     unsigned int quad_degree = 3;
     if (parameters.do_goal_oriented()==true)
     {
       for (unsigned int degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
-              FE_Q<dim> (QGaussLobatto<1> (degree+3)), dim,
-              FE_Q<dim> (QGaussLobatto<1> (degree+2)), 1));
+              FE_Q<dim> (QGaussLobatto<1> (degree+4)), dim,
+              FE_Q<dim> (QGaussLobatto<1> (degree+3)), 1));
       ++quad_degree;
     }
 
@@ -283,8 +285,8 @@ void StokesProblem<dim>::assemble_system(PRIMALDUAL primal_dual)
     local_rhs = 0;
 
     hp_fe_values.reinit(cell);
-    const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
-    const std::vector<double> &JxW_values = fe_values.get_JxW_values ();
+    const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values();
+    const std::vector<double> &JxW_values = fe_values.get_JxW_values();
     const unsigned int n_q_points = fe_values.n_quadrature_points;
 
     rhs_values.resize(n_q_points, Vector<double>(dim+1));
