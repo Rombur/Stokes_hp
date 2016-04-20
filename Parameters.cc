@@ -73,6 +73,12 @@ void Parameters::parse_parameters(ParameterHandler &prm)
         dim = 3;
         break;
       }
+    case 5:
+      {
+        example = example_5;
+        dim = 3;
+        break;
+      }
     default:
       {
         AssertThrow(false,ExcMessage("Unknow example"));

@@ -13,7 +13,9 @@ using namespace dealii;
 // Problem: Convergence without the Inf-Sup Condition"
 // Example 4 is the third example of "An adaptive Uzawa FEM for the Stokes
 // Problem: Convergence without the Inf-Sup Condition"
-enum EXAMPLE {example_1,example_2,example_3,example_4};
+// Example 5 is the same as example 3 but in 3D. This example is for debugging
+// purpose
+enum EXAMPLE {example_1,example_2,example_3,example_4,example_5};
 enum QUADRATURE {gauss_legendre,gauss_lobatto};
 enum REFINEMENT {h_refine,p_refine,hp_refine};
 

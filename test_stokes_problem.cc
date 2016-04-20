@@ -44,4 +44,16 @@ TEST_CASE("convergence rate 2", "[StokesProblem]")
   }
 
   REQUIRE(std::abs((old_error/new_error)-8.) < 0.1);
+} 
+
+TEST_CASE("3D problem", "[StokesProblem]")
+{
+  Parameters parameters("test_project.inp");
+  parameters.set_example(example_5);
+  StokesProblem<2> stokes_problem(parameters);
+  stokes_problem.generate_mesh();
+  stokes_problem.get_triangulation().refine_global(1);
+  stokes_problem.setup_system(primal);
+  stokes_problem.assemble_system(primal);
+  stokes_problem.solve(primal);
 }

@@ -18,10 +18,12 @@ SET(TARGET_SRC
   ExactSolutionEx2.cc
   ExactSolutionEx3.cc
   ExactSolutionEx4.cc
+  ExactSolutionEx5.cc
   RightHandSideEx1.cc
   RightHandSideEx2.cc
   RightHandSideEx3.cc
   RightHandSideEx4.cc
+  RightHandSideEx5.cc
   Parameters.cc
   # You can specify additional files here!
   )
@@ -52,10 +54,12 @@ ADD_EXECUTABLE(test_stokes_problem
   ExactSolutionEx2.cc
   ExactSolutionEx3.cc
   ExactSolutionEx4.cc
+  ExactSolutionEx5.cc
   RightHandSideEx1.cc
   RightHandSideEx2.cc
   RightHandSideEx3.cc
   RightHandSideEx4.cc
+  RightHandSideEx5.cc
   Parameters.cc
   )
 DEAL_II_SETUP_TARGET(test_parameters)

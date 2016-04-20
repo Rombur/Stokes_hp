@@ -50,6 +50,13 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
 
         break;
       }
+    case (example_5) :
+      {
+        exact_solution.reset(new ExactSolutionEx5<dim>());
+        rhs_function.reset(new RightHandSideEx5<dim>());
+
+        break;
+      }
     default :
       {
         AssertThrow(false, ExcMessage("Unknow Example"));
@@ -108,7 +115,7 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
     }
   }
 
-  fe_collection.push_back (FESystem<dim>(FE_Nothing<dim>(), dim,
+  fe_collection.push_back(FESystem<dim>(FE_Nothing<dim>(), dim,
         FE_Nothing<dim>(), 1));
   quadrature_collection.push_back(QGauss<dim>(1));
   face_quadrature_collection.push_back (QGauss<dim-1>(1));
@@ -324,6 +331,7 @@ void StokesProblem<dim>::assemble_system(PRIMALDUAL primal_dual)
         double fe_rhs(0.);
         for (unsigned int d=0; d<dim; ++d)
           fe_rhs += phi_u[i][d]*rhs_values[q][d];
+        
         local_rhs[i] += fe_rhs * JxW_values[q];
       }
     }
@@ -2057,7 +2065,7 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
 
 
 template <int dim>
-void StokesProblem <dim>::output_results (const unsigned int cycle)
+void StokesProblem<dim>::output_results (const unsigned int cycle)
 {
   Vector<float> fe_degrees(triangulation.n_active_cells());
   {

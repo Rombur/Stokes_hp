@@ -39,6 +39,12 @@ void output_convergence(EXAMPLE example, REFINEMENT refinement, double theta,
 
         break;
       }
+    case (example_5) :
+      {
+        output_stream<<"example_5 ";
+
+        break;
+      }
     default :
       {
         AssertThrow(false, ExcMessage("Unknow Example"));
