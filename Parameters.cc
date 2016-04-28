@@ -26,7 +26,7 @@ void Parameters::declare_parameters(ParameterHandler &prm)
 {
   prm.declare_entry("Goal oriented", "false", Patterns::Bool(), "Goal oriented run");
   prm.declare_entry("Verbose", "false", Patterns::Bool(), "Verbose output");
-  prm.declare_entry("Example", "1", Patterns::Integer(1,4), "Example to run");
+  prm.declare_entry("Example", "1", Patterns::Integer(1,5), "Example to run");
   prm.declare_entry("Quadrature", "GaussLegendre", Patterns::Selection(
                       "GaussLegendre|GaussLobatto"), "Type of quadrature to use");
   prm.declare_entry("Refinement", "hp", Patterns::Selection(
