@@ -72,22 +72,22 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
       fe_collection.push_back(FESystem<dim>(FE_Q<dim> (QGaussLobatto<1> (degree+3)), dim,
             FE_Q<dim> (QGaussLobatto<1> (degree+2)), 1));
 
-    unsigned int quad_degree = 3;
+    unsigned int n_quad_points = 4;
     if (parameters.do_goal_oriented()==true)
     {
       for (unsigned int degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
               FE_Q<dim> (QGaussLobatto<1> (degree+4)), dim,
               FE_Q<dim> (QGaussLobatto<1> (degree+3)), 1));
-      ++quad_degree;
+      ++n_quad_points;
     }
 
     for (unsigned int degree=1; degree<=max_degree; ++degree)
     {
-      quadrature_collection.push_back(QGauss<dim> (quad_degree));
-      face_quadrature_collection.push_back(QGauss<dim-1> (quad_degree));
-      quadrature_collection_error.push_back(QGauss<dim> (quad_degree+1));
-      ++quad_degree;
+      quadrature_collection.push_back(QGauss<dim> (n_quad_points));
+      face_quadrature_collection.push_back(QGauss<dim-1> (n_quad_points));
+      quadrature_collection_error.push_back(QGauss<dim> (n_quad_points+1));
+      ++n_quad_points;
     }
   }
   else
@@ -96,22 +96,22 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
       fe_collection.push_back(FESystem<dim>(FE_Q<dim> (degree+2), dim,
             FE_Q<dim> (degree+1), 1));
 
-    unsigned int quad_degree(3);
+    unsigned int n_quad_points(4);
     if (parameters.do_goal_oriented()==true)
     {
       for (unsigned degree=1; degree<=max_degree; ++degree)
         dual_fe_collection.push_back(FESystem<dim>(
               FE_Q<dim> (degree+3), dim,
               FE_Q<dim> (degree+2), 1));
-      ++quad_degree;
+      ++n_quad_points;
     }
 
     for (unsigned int degree=1; degree<=max_degree; ++degree)
     {
-      quadrature_collection.push_back(QGauss<dim> (quad_degree));
-      face_quadrature_collection.push_back(QGauss<dim-1> (quad_degree));
-      quadrature_collection_error.push_back(QGauss<dim> (quad_degree+1));
-      ++quad_degree;
+      quadrature_collection.push_back(QGauss<dim> (n_quad_points));
+      face_quadrature_collection.push_back(QGauss<dim-1> (n_quad_points));
+      quadrature_collection_error.push_back(QGauss<dim> (n_quad_points+1));
+      ++n_quad_points;
     }
   }
 
