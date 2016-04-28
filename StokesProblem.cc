@@ -210,9 +210,27 @@ void StokesProblem<dim>::setup_system(PRIMALDUAL primal_dual)
   //problem. For now, we do the easiest and choose homogeneous Dirichlet
   //boundary.
   if (primal_dual==primal)
-    VectorTools::interpolate_boundary_values(dof_handler, 0, *exact_solution,
-        constraints, fe_collection.component_mask(velocities));
+  {
+    // Project the boundary values. This allows to get the same results even
+    // when changing the FE type.
+    typename FunctionMap <dim>::type boundary_functions;
+    boundary_functions[0]= exact_solution.get();
+    std::map<types::global_dof_index,double> boundary_values;
+    VectorTools::project_boundary_values (dof_handler, boundary_functions,
+        face_quadrature_collection, boundary_values);
+    IndexSet boundary_dofs;
+    DoFTools::extract_boundary_dofs(dof_handler,
+        fe_collection.component_mask(velocities), boundary_dofs);
+    for (auto & p : boundary_values)
+      if (boundary_dofs.is_element(p.first))
+      {
+        constraints.add_line(p.first);
+        constraints.set_inhomogeneity(p.first, p.second);
+      }
+  }
   else
+    // Since we impose homogenous boundary conditions, we can simply interpolate
+    // the boundary values
     VectorTools::interpolate_boundary_values(dof_handler, 0, ZeroFunction<dim>(dim+1),
         constraints, fe_collection.component_mask(velocities));
 
