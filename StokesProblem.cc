@@ -2155,7 +2155,17 @@ void StokesProblem<dim>::refine_in_h_p()
       // Mark the cell for p-refinement if we haven't reached the maximum
       // polynomial order.
       else if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
+      {
         (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
+      }
+      else if ((p_ref_map[*cell_candidate]==true) && 
+          ((*cell_candidate)->active_fe_index()+1) >= (fe_collection.size()-1))
+      {
+        need_to_h_refine = true;
+        (*cell_candidate)->set_refine_flag();
+      }
+      else
+        Assert (false, ExcNotImplemented()); // should never get here!
     }
 
 
