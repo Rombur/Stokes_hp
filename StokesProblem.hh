@@ -118,23 +118,28 @@ private:
 
   void p_refinement(hp::DoFHandler<dim> &local_dof_handler,
       std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
-      &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solution);
+      &patch_to_global_tria_map, unsigned int level_p_refine, 
+      BlockVector<double> &local_solution, PRIMALDUAL primal_dual = primal);
 
   void h_refinement(Triangulation<dim> &local_triangulation,
                     hp::DoFHandler<dim> &local_dof_handler,
                     unsigned int level_h_refine,
                     BlockVector<double> &local_solution);
 
-
+  // Assemble the system on a patch for the primal and the dual problem.
   void patch_assemble_system(hp::DoFHandler<dim> const &local_dof_handler,
       ConstraintMatrix const &constraints_patch, BlockVector<double> const &local_solu,
       BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs,
       PRIMALDUAL primal_dual);
 
+  // Solve the system on a patch. Internally calls patch_assemble_system with
+  // PRIMALDUAL = PRIMAL. This is done to compute the convergence estimator
   void patch_solve(hp::DoFHandler<dim> &local_dof_handler,
                    unsigned int patch_number, unsigned int cycle, BlockVector<double> &local_solu,
                    double &conv_est, double &workload_num);
 
+  // The convergence estimator is the parameter which indicates which refinement
+  // pattern provides the largest error reduction.
   void patch_convergence_estimator(const unsigned int cycle,
                                    SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
                                    std::vector<unsigned int>::iterator>> const &synch_iterator,
@@ -150,7 +155,7 @@ private:
   void copy_to_refinement_maps(CopyData<dim> const &copy_data);
 
   std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
-    const DoFHandler_active_cell_iterator &cell);
+    const DoFHandler_active_cell_iterator &cell, const unsigned int n_layers);
 
   void build_triangulation_from_patch (
     const std::vector<DoFHandler_active_cell_iterator>  &patch,
@@ -159,13 +164,13 @@ private:
     std::map<Triangulation_active_cell_iterator,
     DoFHandler_active_cell_iterator> &patch_to_global_tria_map);
 
-  void compute_local_dual_residual(
+  // Compute the Ritz representation of the residual.
+  void compute_local_dual_ritz_residual(
       hp::DoFHandler<dim> &local_dof_handler,
       unsigned int level_p_refine,
       std::vector<unsigned int> const &block_component_patch,
       std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
         &patch_to_global_tria_map,
-      hp::DoFHandler<dim> &local_dual_dof_handler,
       BlockVector<double> &local_dual_solu,
       BlockVector<double> &dual_residual_solu);
 
@@ -179,7 +184,6 @@ private:
   std::unique_ptr<FunctionParser<dim>> dual_source;
 
   hp::FECollection<dim> fe_collection;
-  hp::FECollection<dim> dual_fe_collection;
 
   Triangulation<dim> triangulation;
   hp::DoFHandler<dim> dof_handler;

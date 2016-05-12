@@ -73,15 +73,6 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
             FE_Q<dim> (QGaussLobatto<1> (degree+2)), 1));
 
     unsigned int n_quad_points = 4;
-    if (parameters.do_goal_oriented()==true)
-    {
-      for (unsigned int degree=1; degree<=max_degree; ++degree)
-        dual_fe_collection.push_back(FESystem<dim>(
-              FE_Q<dim> (QGaussLobatto<1> (degree+4)), dim,
-              FE_Q<dim> (QGaussLobatto<1> (degree+3)), 1));
-      ++n_quad_points;
-    }
-
     for (unsigned int degree=1; degree<=max_degree; ++degree)
     {
       quadrature_collection.push_back(QGauss<dim> (n_quad_points));
@@ -97,15 +88,6 @@ StokesProblem<dim>::StokesProblem(Parameters const &parameters):
             FE_Q<dim> (degree+1), 1));
 
     unsigned int n_quad_points(4);
-    if (parameters.do_goal_oriented()==true)
-    {
-      for (unsigned degree=1; degree<=max_degree; ++degree)
-        dual_fe_collection.push_back(FESystem<dim>(
-              FE_Q<dim> (degree+3), dim,
-              FE_Q<dim> (degree+2), 1));
-      ++n_quad_points;
-    }
-
     for (unsigned int degree=1; degree<=max_degree; ++degree)
     {
       quadrature_collection.push_back(QGauss<dim> (n_quad_points));
@@ -719,15 +701,14 @@ double StokesProblem<dim>::pressure_mean_value()
 // which are located around that cell
 template <int dim>
 std::vector<typename StokesProblem<dim>::DoFHandler_active_cell_iterator>
-StokesProblem<dim>::get_patch_around_cell(const DoFHandler_active_cell_iterator &cell)
+StokesProblem<dim>::get_patch_around_cell(const DoFHandler_active_cell_iterator &cell,
+    const unsigned int n_layers)
 {
   std::vector<DoFHandler_active_cell_iterator> patch;
   std::set<DoFHandler_active_cell_iterator> cells_done;
 
   patch.push_back (cell);
   cells_done.insert(cell);
-  const unsigned int n_layers = 1;
-  //  i counter for the number of patch layers ... n_layers=1 here (1 level of patch around cell)
   for (unsigned int i=0; i<n_layers; ++i)
   {
     const unsigned int patch_size = patch.size();
@@ -1014,7 +995,8 @@ void StokesProblem<dim>::patch_output (unsigned int patch_number,
 template <int dim>
 void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
     std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
-    &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solu)
+    &patch_to_global_tria_map, unsigned int level_p_refine, BlockVector<double> &local_solu,
+    PRIMALDUAL primal_dual)
 {
   bool need_to_refine = false;
 
@@ -1032,6 +1014,13 @@ void StokesProblem<dim>::p_refinement(hp::DoFHandler<dim> &local_dof_handler,
       need_to_refine = true;
       break;
     }
+
+    // Throw an exception if we cannot increase the polynomial order when doing
+    // a goal-oriented simulation. The goal-oriented algorithm requires the
+    // error to be computed using higher polynomial order.
+    if ((primal_dual == dual) && 
+        (global_cell->active_fe_index()+1 == fe_collection.size()-1))
+      AssertThrow(false, ExcMessage("Reached the maximum polynomial order."));
   }
 
   if (need_to_refine==true)
@@ -1133,16 +1122,9 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
     BlockSparseMatrix<double> &patch_system, BlockVector<double> &patch_rhs,
     PRIMALDUAL primal_dual)
 {
-  std::shared_ptr<hp::FEValues<dim>> hp_fe_values;
-  if (primal_dual==primal)
-    hp_fe_values.reset(new hp::FEValues<dim> (fe_collection, quadrature_collection,
-          update_values|update_quadrature_points|update_JxW_values|update_gradients|
-          update_hessians));
-  else
-    hp_fe_values.reset(new hp::FEValues<dim> (dual_fe_collection, quadrature_collection,
-          update_values|update_quadrature_points|update_JxW_values|update_gradients|
-          update_hessians));
-
+  hp::FEValues<dim> hp_fe_values(hp::FEValues<dim> (fe_collection, quadrature_collection,
+        update_values|update_quadrature_points|update_JxW_values|update_gradients|
+        update_hessians));
 
   FullMatrix<double> local_matrix_patch;
   Vector<double> local_rhs_patch;
@@ -1174,8 +1156,8 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
           local_matrix_patch.reinit (dofs_per_cell, dofs_per_cell);
           local_rhs_patch.reinit (dofs_per_cell);
 
-          hp_fe_values->reinit (act_patch_cell);
-          const FEValues<dim> &fe_values = hp_fe_values->get_present_fe_values ();
+          hp_fe_values.reinit (act_patch_cell);
+          const FEValues<dim> &fe_values = hp_fe_values.get_present_fe_values ();
           const std::vector<double> &JxW_values = fe_values.get_JxW_values ();
           const unsigned int n_q_points = fe_values.n_quadrature_points;
 
@@ -1391,13 +1373,13 @@ void StokesProblem<dim>::patch_convergence_estimator(const unsigned int cycle,
   unsigned int level_h_refine(0);
   unsigned int level_p_refine(0);
   std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator> patch_to_global_tria_map;
-  std::vector<DoFHandler_active_cell_iterator> patch = get_patch_around_cell(cell);
+  std::vector<DoFHandler_active_cell_iterator> patch = get_patch_around_cell(cell, 1);
   build_triangulation_from_patch (patch, local_triangulation, level_h_refine, 
       level_p_refine, patch_to_global_tria_map);
   hp::DoFHandler<dim> local_dof_handler(local_triangulation);
-  set_active_fe_indices (local_dof_handler,patch_to_global_tria_map);
-  local_dof_handler.distribute_dofs (fe_collection);
-  std::vector<unsigned int> block_component_patch (dim+1, 0);
+  set_active_fe_indices(local_dof_handler,patch_to_global_tria_map);
+  local_dof_handler.distribute_dofs(fe_collection);
+  std::vector<unsigned int> block_component_patch(dim+1, 0);
   block_component_patch[dim]=1;
   DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
 
@@ -1481,31 +1463,30 @@ void StokesProblem<dim>::copy_to_refinement_maps(CopyData<dim> const &copy_data)
 
 
 template <int dim>
-void StokesProblem<dim>::compute_local_dual_residual(
-    hp::DoFHandler<dim> &local_dof_handler, 
+void StokesProblem<dim>::compute_local_dual_ritz_residual(
+    hp::DoFHandler<dim> &local_dual_dof_handler, 
     unsigned int level_p_refine,
     std::vector<unsigned int> const &block_component_patch,
     std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator>
       &patch_to_global_tria_map,
-    hp::DoFHandler<dim> &local_dual_dof_handler,
     BlockVector<double> &local_dual_solu,
     BlockVector<double> &dual_residual_solu)
 {
-  // Do a p-refinement of the local_dof_handler so that we can easily project
-  // the dual solution on the local_dual_dof_handler. 
-  std::vector<types::global_dof_index> dofs_per_block_patch (2);
-  DoFTools::count_dofs_per_block(local_dof_handler, dofs_per_block_patch, block_component_patch);
+  // Do a p-refinement of the local_dual_dof_handler and project the local
+  // solution to the refined mesh.
+  std::vector<types::global_dof_index> dofs_per_block_patch(2);
+  DoFTools::count_dofs_per_block(local_dual_dof_handler, dofs_per_block_patch, block_component_patch);
   local_dual_solu.reinit(dofs_per_block_patch);
 
-  // Here we are trying to project the values of the global vector "dual_solution"
+  // Here we are projecting the values of the global vector "dual_solution"
   // into vector "local_dual_solu" which is solution over patch cells corresponding
   // to cell "K".
-  DoFHandler_active_cell_iterator act_patch_cell = local_dof_handler.begin_active(),
-                                  act_end_patch_cell = local_dof_handler.end();
+  DoFHandler_active_cell_iterator act_patch_cell = local_dual_dof_handler.begin_active(),
+                                  act_end_patch_cell = local_dual_dof_handler.end();
   for (; act_patch_cell!=act_end_patch_cell; ++act_patch_cell)
     {
       const unsigned int dofs_per_cell = act_patch_cell->get_fe().dofs_per_cell;
-      // we check if the corresponding finite element for this cell is not 'FE_Nothing!'
+      // we check if the corresponding finite element for this cell is not 'FE_Nothing'
       // and it takes usual finite element.
       if (dofs_per_cell!=0)
         {
@@ -1516,7 +1497,8 @@ void StokesProblem<dim>::compute_local_dual_residual(
           act_patch_cell->set_dof_values(local_dual_solution_values, local_dual_solu);
         }
     }
-  p_refinement(local_dof_handler, patch_to_global_tria_map, level_p_refine, local_dual_solu);
+  p_refinement(local_dual_dof_handler, patch_to_global_tria_map, level_p_refine, 
+      local_dual_solu);
 
   // Build the constraint to force zero boundary condition on patch
   ConstraintMatrix constraints_patch;
@@ -1603,7 +1585,6 @@ double StokesProblem<dim>::compute_local_go_error_estimator_square(
     BlockVector<double> const &dual_residual_solution)
 {
   double go_error_estimator_square(0.);
-  AssertThrow(false, ExcMessage("Not implemented."));
 
 //  hp::FEValues<dim> dual_hp_fe_values(dual_fe_collection, quadrature_collection,
 //      update_values|update_quadrature_points|update_JxW_values|update_gradients|
@@ -1899,36 +1880,32 @@ StokesProblem<dim>::compute_goal_oriented_error_estimator()
                                   endc = dof_handler.end();
   for (unsigned int i=0; cell!=endc; ++cell, ++i)
   {
-    // Create the local triangulation associated to a patch
+    // Create the local triangulation associated to a patch. Unlike the primal
+    // case, for the dual problem the patch is composed of two layers of cells
+    // and not one.
     Triangulation<dim> local_triangulation;
     unsigned int level_h_refine(0);
     unsigned int level_p_refine(0);
     std::map<Triangulation_active_cell_iterator, DoFHandler_active_cell_iterator> 
       patch_to_global_tria_map;
-    std::vector<DoFHandler_active_cell_iterator> patch = get_patch_around_cell(cell);
+    std::vector<DoFHandler_active_cell_iterator> patch = get_patch_around_cell(cell, 2);
     build_triangulation_from_patch(patch, local_triangulation, level_h_refine, level_p_refine, 
         patch_to_global_tria_map);
 
     // Create the local dof_handler associated to the local triangulation and
     // the primal space. This is necessary so that the solution of the dual
     // problem can be refined to p+1 and then, projected to local_dual_dof_handler.
-    hp::DoFHandler<dim> local_dof_handler(local_triangulation);
-    set_active_fe_indices(local_dof_handler,patch_to_global_tria_map);
-    local_dof_handler.distribute_dofs(fe_collection);
+    hp::DoFHandler<dim> local_dual_dof_handler(local_triangulation);
+    set_active_fe_indices(local_dual_dof_handler, patch_to_global_tria_map);
+    local_dual_dof_handler.distribute_dofs(fe_collection);
     std::vector<unsigned int> block_component_patch (dim+1, 0);
     block_component_patch[dim]=1;
-    DoFRenumbering::component_wise(local_dof_handler, block_component_patch);
-    // Create the local dual dof_handler associated to the local triangulation
-    // and the dual sapce
-    hp::DoFHandler<dim> local_dual_dof_handler(local_triangulation);
-    set_active_fe_indices(local_dual_dof_handler,patch_to_global_tria_map);
-    local_dual_dof_handler.distribute_dofs(dual_fe_collection);
     DoFRenumbering::component_wise(local_dual_dof_handler, block_component_patch);
 
     // Compute the Ritz representation of dual residual on the patch
     BlockVector<double> local_dual_solution, dual_residual_solution;
-    compute_local_dual_residual(local_dof_handler, level_p_refine, 
-        block_component_patch, patch_to_global_tria_map, local_dual_dof_handler,
+    compute_local_dual_ritz_residual(local_dual_dof_handler, level_p_refine, 
+        block_component_patch, patch_to_global_tria_map,
         local_dual_solution, dual_residual_solution);
     go_error_estimator_square.push_back(std::pair<double, DoFHandler_active_cell_iterator>
         (compute_local_go_error_estimator_square(local_dual_dof_handler, 
@@ -1971,7 +1948,7 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
   SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
     std::vector<unsigned int>::iterator>> end_synch_iter(std::tuple<DoFHandler_active_cell_iterator,
         std::vector<unsigned int>::iterator> (end_cell, cell_indices.end()));
-  // Here the cells are marked for h- or p-refinement
+  // Compute the convergence estimator and then mark the cell for h- or p-refinement
   WorkStream::run(synch_iter, end_synch_iter,
       std::bind(&StokesProblem<dim>::patch_convergence_estimator,this, cycle,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
@@ -1979,6 +1956,9 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
         std::placeholders::_1),
       ScratchData(),CopyData<dim>());
 
+  // Compute go_error_estimator, i.e. the square root of the product of the
+  // square of the goal-oriented error estimator and the square of the primal
+  // error estimator.
   std::vector<std::pair<double, DoFHandler_active_cell_iterator>> go_error_estimator(
       go_error_estimator_square);
   for (unsigned int i=0; i<triangulation.n_active_cells(); ++i)
@@ -1987,11 +1967,12 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
     go_error_estimator[i].first = std::sqrt(go_error_estimator[i].first);
   }
 
+  // Sort the go_error_estimator from the largest to smallest value.
   std::sort(go_error_estimator.begin(), go_error_estimator.end(),
       std::bind(&StokesProblem<dim>::sort_decreasing_order, this,
         std::placeholders::_1, std::placeholders::_2));
 
-  //TODO not sure what to do here, it's not in the paper yet.
+  // Mark for refinement the cells with the largest go_error_estimator.
   double L2_norm(0.);
   for (auto const &error_estimator : go_error_estimator)
     L2_norm += std::pow(error_estimator.first, 2.);
@@ -2017,7 +1998,8 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
 }
 
 
-// This function, controls the portion of cells for refinement
+// This function controls the portion of cells for refinement for the primal
+// problem.
 // The parameter theta here plays an important role in this step
 template <int dim>
 void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta)
@@ -2133,8 +2115,7 @@ void StokesProblem<dim>::output_results (const unsigned int cycle)
 }
 
 // This function goes through all cells and tries to do h- or p- refinement
-// on all candidade cells which already have been marked for h- or p-refinment
-
+// on all candidates cells which already have been marked for h- or p-refinment
 template <int dim>
 void StokesProblem<dim>::refine_in_h_p()
 {
@@ -2143,39 +2124,46 @@ void StokesProblem<dim>::refine_in_h_p()
   for (cell_candidate=candidate_cell_set.begin(); cell_candidate!=candidate_cell_set.end();
        ++cell_candidate)
     {
-      std::vector<DoFHandler_active_cell_iterator> patch_cells =
-        get_patch_around_cell (*cell_candidate);
-
       // Mark the cell for h-refinement
       if (p_ref_map[*cell_candidate]==false)
         {
           need_to_h_refine = true;
           (*cell_candidate)->set_refine_flag();
         }
-      // Mark the cell for p-refinement if we haven't reached the maximum
-      // polynomial order.
-      else if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
-      {
-        (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
-      }
-      else if ((p_ref_map[*cell_candidate]==true) && 
-          ((*cell_candidate)->active_fe_index()+1) >= (fe_collection.size()-1))
-      {
-        need_to_h_refine = true;
-        (*cell_candidate)->set_refine_flag();
-      }
+      // Perform the p-refinement, i.e. increase the fe index of the cell
       else
-        Assert (false, ExcNotImplemented()); // should never get here!
+      {
+        // Increase the order of the FE on the cell if we haven't 
+        // reached the maximum polynomial order.
+        if (((*cell_candidate)->active_fe_index()+1) < (fe_collection.size()-1))
+        {
+          (*cell_candidate)->set_active_fe_index((*cell_candidate)->active_fe_index()+1);
+        }
+        // Mark the cell for h-refinement if they were marked for p-refinement
+        // but we reached the maximum polynomial order.
+        else
+        {
+          if ((p_ref_map[*cell_candidate]==true) && 
+              ((*cell_candidate)->active_fe_index()+1) >= (fe_collection.size()-1))
+          {
+            need_to_h_refine = true;
+            (*cell_candidate)->set_refine_flag();
+          }
+          else
+            Assert (false, ExcNotImplemented()); // should never get here!
+        }
+      }
     }
-
-
 
   // Clear the p-refinement map
   p_ref_map.clear();
 
+  // Perform the h-refinement
   if (need_to_h_refine==true)
     triangulation.execute_coarsening_and_refinement();
 
+  // Smooth the p-refinement so that we don't get polynomial orders too
+  // different in adjacent cells.
   bool cell_changed=false;
   do
     {
@@ -2185,16 +2173,21 @@ void StokesProblem<dim>::refine_in_h_p()
                                       endc = dof_handler.end();
       for (; cell!=endc; ++cell,++count_cell)
         {
-          std::vector<DoFHandler_active_cell_iterator> patch_cells = get_patch_around_cell (cell);
+          std::vector<DoFHandler_active_cell_iterator> patch_cells = 
+            get_patch_around_cell(cell, 1);
 
           for (unsigned int i=1; i<patch_cells.size(); ++i)
             {
 
+              // Increase the order of the cells around patch_cells[0] if their
+              // order is less than patch_cells[0] order - 1.
               if (patch_cells[i]->active_fe_index()+1 < (patch_cells[0]->active_fe_index()))
                 {
                   patch_cells[i]->set_active_fe_index(patch_cells[0]->active_fe_index()-1);
                   cell_changed=true;
                 }
+              // Decrease the order of the cells around patch_cells[0] if their
+              // order is greater than patch_cells[0] order + 1.
               else if (patch_cells[i]->active_fe_index() > (patch_cells[0]->active_fe_index()+1))
                 {
                   patch_cells[0]-> set_active_fe_index (patch_cells[i]->active_fe_index()-1);

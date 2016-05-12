@@ -130,13 +130,13 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
       std::cout<<"Compute goal oriented error estimator"<<std::endl;
       auto go_error_estimator_square = stokes_problem.compute_goal_oriented_error_estimator();
 
-      std::cout<<"Marking Cell"<<std::endl;
+      std::cout<<"Mark Cell"<<std::endl;
       stokes_problem.mark_cells_goal_oriented(cycle, parameters.get_theta(), 
           go_error_estimator_square);
     }
     else
     {
-      std::cout<<"Marking Cell"<<std::endl;
+      std::cout<<"Mark Cell"<<std::endl;
       stokes_problem.mark_cells(cycle, parameters.get_theta());
     }
 
