@@ -174,8 +174,15 @@ private:
       BlockVector<double> &local_dual_solu,
       BlockVector<double> &dual_residual_solu);
 
+  // Compute the square of the a posterio error on a two-layer patch for the
+  // dual problem.
+  double squared_error_estimator_on_two_layer_patch(
+      hp::DoFHandler<dim> const &local_dual_dof_handler,
+      BlockVector<double> const &dual_solution,
+      BlockVector<double> const &dual_residual_solution);
+
   double compute_local_go_error_estimator_square(
-      hp::DoFHandler<dim> const &dual_local_dof_handler,
+      hp::DoFHandler<dim> const &local_dual_dof_handler,
       BlockVector<double> const &local_dual_solution,
       BlockVector<double> const &dual_residual_solution);
 
