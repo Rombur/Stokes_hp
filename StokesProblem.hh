@@ -182,8 +182,9 @@ private:
       BlockVector<double> const &dual_residual_solution);
 
   double compute_local_go_error_estimator_square(
+      double squared_primal_error_estimator,
+      double squared_two_layer_error_estimator,
       hp::DoFHandler<dim> const &local_dual_dof_handler,
-      BlockVector<double> const &local_dual_solution,
       BlockVector<double> const &dual_residual_solution);
 
   std::unique_ptr<Function<dim>> exact_solution;

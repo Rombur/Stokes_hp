@@ -1842,11 +1842,49 @@ double StokesProblem<dim>::squared_error_estimator_on_two_layer_patch(
 
 template <int dim>
 double StokesProblem<dim>::compute_local_go_error_estimator_square(
+    double squared_primal_error_estimator,
+    double squared_two_layer_error_estimator,
     hp::DoFHandler<dim> const &local_dual_dof_handler,
-    BlockVector<double> const &local_dual_solution,
     BlockVector<double> const &dual_residual_solution)
 {
   double go_error_estimator_square = 0.;
+  go_error_estimator_square += squared_two_layer_error_estimator;
+
+  hp::FEValues<dim> hp_fe_values(fe_collection, quadrature_collection, 
+      update_values|update_gradients|update_hessians|update_quadrature_points
+      |update_JxW_values);
+  FEValuesExtractors::Vector velocities(0);
+  FEValuesExtractors::Scalar pressure (dim);
+
+  //TODO check that having a tensor makes sense
+  std::vector<Tensor<2,dim>> dual_residual_gradients_v;
+  std::vector<double> dual_residual_values_p;
+  for (auto cell : local_dual_dof_handler.active_cell_iterators())
+  {
+    hp_fe_values.reinit(cell);
+    FEValues<dim> const &fe_values = hp_fe_values.get_present_fe_values();
+    std::vector<double> const &JxW_values = fe_values.get_JxW_values();
+    unsigned int const n_q_points = fe_values.n_quadrature_points;
+
+    dual_residual_gradients_v.resize(n_q_points);
+    dual_residual_values_p.resize(n_q_points);
+
+    fe_values[velocities].get_function_gradients(dual_residual_solution,
+        dual_residual_gradients_v);
+    fe_values[pressure].get_function_values(dual_residual_solution,
+        dual_residual_values_p);
+    for (unsigned int q=0; q<n_q_points; ++q)
+    {
+      for (unsigned int i=0; i<dim; ++i)
+       for (unsigned int j=0; j<dim; ++j)
+        go_error_estimator_square += dual_residual_gradients_v[q][i][j] *
+          dual_residual_gradients_v[q][i][j] * JxW_values[q];
+      go_error_estimator_square += dual_residual_values_p[q] *
+        dual_residual_values_p[q] * JxW_values[q];
+    }
+  }
+
+  go_error_estimator_square *= squared_primal_error_estimator;
   
   return go_error_estimator_square;
 }
@@ -1897,9 +1935,11 @@ StokesProblem<dim>::compute_goal_oriented_error_estimator()
         local_dual_dof_handler, local_dual_solution, local_dual_residual_solution);
     
     // Compute the square of the goal-oriented a posteriori error estimator
+    double squared_primal_error_estimator = est_per_cell[i]*est_per_cell[i];
     go_error_estimator_square.push_back(std::pair<double, DoFHandler_active_cell_iterator>
-        (compute_local_go_error_estimator_square(local_dual_dof_handler, 
-                                                 local_dual_solution,
+        (compute_local_go_error_estimator_square(squared_primal_error_estimator,
+                                                 squared_two_layer_error_estimator,
+                                                 local_dual_dof_handler, 
                                                  local_dual_residual_solution),
          cell));
   }
