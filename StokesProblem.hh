@@ -152,6 +152,9 @@ private:
   bool sort_decreasing_order (const std::pair<double, DoFHandler_active_cell_iterator> &i,
                               const std::pair<double, DoFHandler_active_cell_iterator > &j);
 
+  bool sort_decreasing_order_tuple (const std::tuple<double, double, DoFHandler_active_cell_iterator> &i,
+                              const std::tuple<double, double, DoFHandler_active_cell_iterator > &j);
+
   void copy_to_refinement_maps(CopyData<dim> const &copy_data);
 
   std::vector<DoFHandler_active_cell_iterator> get_patch_around_cell(
@@ -174,7 +177,7 @@ private:
       BlockVector<double> &local_dual_solu,
       BlockVector<double> &dual_residual_solu);
 
-  // Compute the square of the a posterio error on a two-layer patch for the
+  // Compute the square of the a posteriori error on a two-layer patch for the
   // dual problem.
   double squared_error_estimator_on_two_layer_patch(
       hp::DoFHandler<dim> const &local_dual_dof_handler,

@@ -121,6 +121,14 @@ bool StokesProblem<dim>::sort_decreasing_order (
   return ((i.first) > (j.first));
 }
 
+template <int dim>
+bool StokesProblem<dim>::sort_decreasing_order_tuple (
+  const std::tuple<double,double,DoFHandler_active_cell_iterator > &i,
+  const std::tuple<double,double,DoFHandler_active_cell_iterator > &j)
+{
+  return ((std::get<0>(i)) > (std::get<0>(j)));
+}
+
 
 template <int dim>
 void StokesProblem<dim>::generate_mesh()
@@ -1986,32 +1994,32 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
         std::placeholders::_1),
       ScratchData(),CopyData<dim>());
 
-  // Compute go_error_estimator, i.e. the square root of the product of the
-  // square of the goal-oriented error estimator and the square of the primal
-  // error estimator.
-  std::vector<std::pair<double, DoFHandler_active_cell_iterator>> go_error_estimator(
-      go_error_estimator_square);
+  // Compute go_error_estimator
+  std::vector<std::tuple<double, double, DoFHandler_active_cell_iterator>> go_error_estimator(
+      triangulation.n_active_cells());
   for (unsigned int i=0; i<triangulation.n_active_cells(); ++i)
   {
-    go_error_estimator[i].first += std::pow(est_per_cell[i],2);
-    go_error_estimator[i].first = std::sqrt(go_error_estimator[i].first);
+    std::get<0>(go_error_estimator[i]) = std::sqrt(go_error_estimator_square[i].first);
+    //TODO check that the order is the same
+    std::get<1>(go_error_estimator[i]) = est_per_cell[i];
+    std::get<2>(go_error_estimator[i]) = go_error_estimator_square[i].second;
   }
 
   // Sort the go_error_estimator from the largest to smallest value.
   std::sort(go_error_estimator.begin(), go_error_estimator.end(),
-      std::bind(&StokesProblem<dim>::sort_decreasing_order, this,
+      std::bind(&StokesProblem<dim>::sort_decreasing_order_tuple, this,
         std::placeholders::_1, std::placeholders::_2));
 
   // Mark for refinement the cells with the largest go_error_estimator.
   double L2_norm(0.);
   for (auto const &error_estimator : go_error_estimator)
-    L2_norm += std::pow(error_estimator.first, 2.);
+    L2_norm += std::pow(std::get<1>(error_estimator), 2.);
   L2_norm = std::sqrt(L2_norm);
   double sum(0.);
   for (auto const &error_estimator : go_error_estimator)
   {
-    sum += std::pow(error_estimator.first, 2);
-    candidate_cell_set.push_back(error_estimator.second);
+    sum += std::pow(std::get<1>(error_estimator), 2);
+    candidate_cell_set.push_back(std::get<2>(error_estimator));
     // if theta is one, refine every cell
     if ((theta<1.) && (sum>=std::pow(theta*L2_norm,2)))
       break;
