@@ -1946,7 +1946,7 @@ StokesProblem<dim>::compute_goal_oriented_error_estimator()
     
     // Compute the square of the goal-oriented a posteriori error estimator
     double squared_primal_error_estimator = est_per_cell[i]*est_per_cell[i];
-    go_error_estimator_square.push_back(std::pair<double, DoFHandler_active_cell_iterator>
+    go_error_estimator_square[i] = (std::pair<double, DoFHandler_active_cell_iterator>
         (compute_local_go_error_estimator_square(squared_primal_error_estimator,
                                                  squared_two_layer_error_estimator,
                                                  local_dual_dof_handler, 
@@ -1992,9 +1992,9 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
   WorkStream::run(synch_iter, end_synch_iter,
       std::bind(&StokesProblem<dim>::patch_convergence_estimator,this, cycle,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-      std::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,
+      std::bind(&StokesProblem<dim>::copy_to_refinement_maps, this,
         std::placeholders::_1),
-      ScratchData(),CopyData<dim>());
+      ScratchData(), CopyData<dim>());
 
   // Compute go_error_estimator
   std::vector<std::tuple<double, double, DoFHandler_active_cell_iterator>> go_error_estimator(
