@@ -85,6 +85,11 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
 {
   std::vector<unsigned int> n_dofs_per_cycles;
   std::vector<double> error_per_cycles;
+  if (parameters.do_goal_oriented())
+    std::cout<<"GOAL-ORIENTED"<<std::endl;
+  else
+    std::cout<<"HP-ADAPTIVITY"<<std::endl;
+
   for (unsigned int cycle=0; cycle<=parameters.get_max_n_cycles(); ++cycle)
   {
     std::cout<< "-----------------------------------------------------------" << std::endl;

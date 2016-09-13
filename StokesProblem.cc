@@ -473,6 +473,7 @@ template <int dim>
 void StokesProblem<dim>::compute_error_estimator()
 {
   est_per_cell.reinit(triangulation.n_active_cells());
+  go_est_per_cell.reinit(triangulation.n_active_cells());
   hp::FEValues<dim> hp_fe_values (fe_collection, quadrature_collection,
       update_values|update_quadrature_points|update_JxW_values|update_gradients|
       update_hessians);
@@ -1202,8 +1203,8 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
               for (unsigned int k=0; k<dofs_per_cell; ++k)
                 {
                   grad_phi_u[k] = fe_values[velocities].gradient (k, q);
-                  phi_u[k] = fe_values[velocities].value (k, q);
-                  phi_p[k] = fe_values[pressure].value (k, q);
+                  phi_u[k] = fe_values[velocities].value(k, q);
+                  phi_p[k] = fe_values[pressure].value(k, q);
                 }
 
 
@@ -1943,8 +1944,8 @@ StokesProblem<dim>::compute_goal_oriented_error_estimator()
     // Compute the square of the a posteriori error estimator on the two-layer patch. 
     double squared_two_layer_error_estimator = squared_error_estimator_on_two_layer_patch(
         local_dual_dof_handler, local_dual_solution, local_dual_residual_solution);
-    
-    // Compute the square of the goal-oriented a posteriori error estimator
+
+    // Compute the square of the goal-oriented a posteriori error estimator 
     double squared_primal_error_estimator = est_per_cell[i]*est_per_cell[i];
     go_error_estimator_square[i] = (std::pair<double, DoFHandler_active_cell_iterator>
         (compute_local_go_error_estimator_square(squared_primal_error_estimator,
@@ -2005,6 +2006,7 @@ void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle,
     //TODO check that the order is the same
     std::get<1>(go_error_estimator[i]) = est_per_cell[i];
     std::get<2>(go_error_estimator[i]) = go_error_estimator_square[i].second;
+    go_est_per_cell[i] = std::sqrt(go_error_estimator_square[i].first);
   }
 
   // Sort the go_error_estimator from the largest to smallest value.
@@ -2139,6 +2141,7 @@ void StokesProblem<dim>::output_results (const unsigned int cycle)
   data_out.add_data_vector (marked_cells, "marked_cells");
   data_out.add_data_vector (fe_degrees, "fe_degree");
   data_out.add_data_vector (est_per_cell, "Error_Estimator");
+  data_out.add_data_vector (go_est_per_cell, "GO_Error_Estimator");
   data_out.add_data_vector (error_per_cell, "Error");
   data_out.add_data_vector (Vect_Pressure_Err, "Pressure_Error");
   data_out.add_data_vector (Vect_grad_Velocity_Err, "Grad_Velocity_Error");

@@ -224,6 +224,7 @@ private:
   Vector<double> convergence_est_per_cell;
   Vector<double> error_per_cell;
   Vector<double> est_per_cell;
+  Vector<double> go_est_per_cell;
   Vector<double> Vect_Pressure_Err;
   Vector<double> Vect_grad_Velocity_Err;
   Vector<double> Vect_Velocity_Err;
