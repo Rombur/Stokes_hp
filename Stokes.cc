@@ -121,6 +121,8 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
     std::cout<< "L2_norm of ERROR Estimate is: " << stokes_problem.error_estimate_l2_norm() 
       << std::endl;
 
+    stokes_problem.compute_convergence_estimator(cycle);
+
     if (parameters.do_goal_oriented())
     {
       std::cout<<"Set up dual problem"<<std::endl;
@@ -136,13 +138,13 @@ void run(Parameters const &parameters, StokesProblem<dim> &stokes_problem)
       auto go_error_estimator_square = stokes_problem.compute_goal_oriented_error_estimator();
 
       std::cout<<"Mark Cell"<<std::endl;
-      stokes_problem.mark_cells_goal_oriented(cycle, parameters.get_theta(), 
+      stokes_problem.mark_cells_goal_oriented(parameters.get_theta(), 
           go_error_estimator_square);
     }
     else
     {
       std::cout<<"Mark Cell"<<std::endl;
-      stokes_problem.mark_cells(cycle, parameters.get_theta());
+      stokes_problem.mark_cells(parameters.get_theta());
     }
 
     std::cout<<"Output results"<<std::endl;

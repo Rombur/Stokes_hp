@@ -1228,7 +1228,7 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
           local_dof_indices.resize(dofs_per_cell);
           act_patch_cell->get_dof_indices (local_dof_indices);
           constraints_patch.distribute_local_to_global(local_matrix_patch, local_rhs_patch,
-                                                       local_dof_indices, patch_system, patch_rhs);
+              local_dof_indices, patch_system, patch_rhs);
         }
     }
 }
@@ -1958,93 +1958,8 @@ StokesProblem<dim>::compute_goal_oriented_error_estimator()
   return go_error_estimator_square;
 }
 
-
 template <int dim>
-void StokesProblem<dim>::mark_cells_goal_oriented(const unsigned int cycle, 
-    const double theta, std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
-    const &go_error_estimator_square)
-{
-  primal_indicator_cell.clear();
-  candidate_cell_set.clear();
-  marked_cells.reinit(triangulation.n_active_cells());
-
-  // this vector "convergence_est_per_cell" will be finalized after checking out
-  // which h- or p- refinement are going to be chosen for each cell
-  convergence_est_per_cell.reinit(triangulation.n_active_cells());
-
-  h_Conv_Est.reinit(triangulation.n_active_cells());
-  p_Conv_Est.reinit(triangulation.n_active_cells());
-  hp_Conv_Est.reinit(triangulation.n_active_cells());
-
-  // Create the synchronous iterators used by WorkStream
-  std::vector<unsigned int> cell_indices(
-      dof_handler.get_triangulation().n_active_cells(),0);
-  for (unsigned int i=0; i<dof_handler.get_triangulation().n_active_cells(); ++i)
-    cell_indices[i] = i;
-  DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
-                                  end_cell = dof_handler.end();
-  SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
-    std::vector<unsigned int>::iterator>> synch_iter(std::tuple<DoFHandler_active_cell_iterator,
-        std::vector<unsigned int>::iterator> (cell, cell_indices.begin()));
-  SynchronousIterators<std::tuple<DoFHandler_active_cell_iterator,
-    std::vector<unsigned int>::iterator>> end_synch_iter(std::tuple<DoFHandler_active_cell_iterator,
-        std::vector<unsigned int>::iterator> (end_cell, cell_indices.end()));
-  // Compute the convergence estimator and then mark the cell for h- or p-refinement
-  WorkStream::run(synch_iter, end_synch_iter,
-      std::bind(&StokesProblem<dim>::patch_convergence_estimator,this, cycle,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-      std::bind(&StokesProblem<dim>::copy_to_refinement_maps, this,
-        std::placeholders::_1),
-      ScratchData(), CopyData<dim>());
-
-  // Compute go_error_estimator
-  std::vector<std::tuple<double, double, DoFHandler_active_cell_iterator>> go_error_estimator(
-      go_error_estimator_square.size());
-  for (unsigned int i=0; i<go_error_estimator.size(); ++i)
-  {
-    std::get<0>(go_error_estimator[i]) = std::sqrt(go_error_estimator_square[i].first);
-    //TODO check that the order is the same
-    std::get<1>(go_error_estimator[i]) = est_per_cell[i];
-    std::get<2>(go_error_estimator[i]) = go_error_estimator_square[i].second;
-    go_est_per_cell[i] = std::sqrt(go_error_estimator_square[i].first);
-  }
-
-  // Sort the go_error_estimator from the largest to smallest value.
-  std::sort(go_error_estimator.begin(), go_error_estimator.end(),
-      std::bind(&StokesProblem<dim>::sort_decreasing_order_tuple, this,
-        std::placeholders::_1, std::placeholders::_2));
-
-  // Mark for refinement the cells with the largest go_error_estimator.
-  double L2_norm(0.);
-  for (auto const &error_estimator : go_error_estimator)
-    L2_norm += std::pow(std::get<1>(error_estimator), 2.);
-  L2_norm = std::sqrt(L2_norm);
-  double sum(0.);
-  for (auto const &error_estimator : go_error_estimator)
-  {
-    sum += std::pow(std::get<1>(error_estimator), 2);
-    candidate_cell_set.push_back(std::get<2>(error_estimator));
-    // if theta is one, refine every cell
-    if ((theta<1.) && (sum>=std::pow(theta*L2_norm,2)))
-      break;
-  }
-  cell = dof_handler.begin_active();
-  for (unsigned int i=0; cell!=end_cell; ++cell,++i)
-  {
-    typename std::vector<DoFHandler_active_cell_iterator>::iterator  mark_candidate;
-    for (mark_candidate=candidate_cell_set.begin();
-        mark_candidate!=candidate_cell_set.end(); ++mark_candidate)
-      if (cell == *mark_candidate)
-        marked_cells[i]=1;
-  }
-}
-
-
-// This function controls the portion of cells for refinement for the primal
-// problem.
-// The parameter theta here plays an important role in this step
-template <int dim>
-void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta)
+void StokesProblem<dim>::compute_convergence_estimator(const unsigned int cycle)
 {
   primal_indicator_cell.clear();
   candidate_cell_set.clear();
@@ -2076,7 +1991,63 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
         std_cxx11::_1, std_cxx11::_2, std_cxx11::_3),
       std_cxx11::bind(&StokesProblem<dim>::copy_to_refinement_maps,this,std_cxx11::_1),
       ScratchData(),CopyData<dim>());
+}
 
+template <int dim>
+void StokesProblem<dim>::mark_cells_goal_oriented(
+    const double theta, std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
+    const &go_error_estimator_square)
+{
+  // Compute go_error_estimator
+  std::vector<std::tuple<double, double, DoFHandler_active_cell_iterator>> go_error_estimator(
+      go_error_estimator_square.size());
+  for (unsigned int i=0; i<go_error_estimator.size(); ++i)
+  {
+    std::get<0>(go_error_estimator[i]) = std::sqrt(go_error_estimator_square[i].first);
+    //TODO check that the order is the same
+    std::get<1>(go_error_estimator[i]) = est_per_cell[i];
+    std::get<2>(go_error_estimator[i]) = go_error_estimator_square[i].second;
+    go_est_per_cell[i] = std::sqrt(go_error_estimator_square[i].first);
+  }
+
+  // Sort the go_error_estimator from the largest to smallest value.
+  std::sort(go_error_estimator.begin(), go_error_estimator.end(),
+      std::bind(&StokesProblem<dim>::sort_decreasing_order_tuple, this,
+        std::placeholders::_1, std::placeholders::_2));
+
+  // Mark for refinement the cells with the largest go_error_estimator.
+  double L2_norm(0.);
+  for (auto const &error_estimator : go_error_estimator)
+    L2_norm += std::pow(std::get<1>(error_estimator), 2.);
+  L2_norm = std::sqrt(L2_norm);
+  double sum(0.);
+  for (auto const &error_estimator : go_error_estimator)
+  {
+    sum += std::pow(std::get<1>(error_estimator), 2);
+    candidate_cell_set.push_back(std::get<2>(error_estimator));
+    // if theta is one, refine every cell
+    if ((theta<1.) && (sum>=std::pow(theta*L2_norm,2)))
+      break;
+  }
+  DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
+                                  end_cell = dof_handler.end();
+  for (unsigned int i=0; cell!=end_cell; ++cell,++i)
+  {
+    typename std::vector<DoFHandler_active_cell_iterator>::iterator  mark_candidate;
+    for (mark_candidate=candidate_cell_set.begin();
+        mark_candidate!=candidate_cell_set.end(); ++mark_candidate)
+      if (cell == *mark_candidate)
+        marked_cells[i]=1;
+  }
+}
+
+
+// This function controls the portion of cells for refinement for the primal
+// problem.
+// The parameter theta here plays an important role in this step
+template <int dim>
+void StokesProblem<dim>::mark_cells(const double theta)
+{
   std::sort(primal_indicator_cell.begin(), primal_indicator_cell.end(),
       std::bind(&StokesProblem<dim>::sort_decreasing_order, this,
         std::placeholders::_1, std::placeholders::_2));
@@ -2094,7 +2065,8 @@ void StokesProblem<dim>::mark_cells(const unsigned int cycle, const double theta
         break;
     }
 
-  cell = dof_handler.begin_active();
+  DoFHandler_active_cell_iterator cell = dof_handler.begin_active(),
+                                  end_cell = dof_handler.end();
   for (unsigned int i=0; cell!=end_cell; ++cell,++i)
     {
       typename std::vector<DoFHandler_active_cell_iterator>::iterator  mark_candidate;

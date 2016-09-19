@@ -85,11 +85,13 @@ public:
   std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
     compute_goal_oriented_error_estimator();
 
-  void mark_cells_goal_oriented(const unsigned int cycle, const double theta,
+  void mark_cells_goal_oriented(const double theta,
       std::vector<std::pair<double, DoFHandler_active_cell_iterator>> 
       const &go_error_estimator_square);
 
-  void mark_cells(const unsigned int cycle, const double theta);
+  void compute_convergence_estimator(const unsigned int cycle);
+
+  void mark_cells(const double theta);
 
   void output_results (const unsigned int cycle);
 
