@@ -1220,8 +1220,11 @@ void StokesProblem<dim>::patch_assemble_system(hp::DoFHandler<dim> const &local_
                     local_rhs1 += alpha[d]*phi_u[i][d];
                   local_rhs1 *= JxW_val;
 
-                  const double local_rhs2 =  phi_p[i]*div*JxW_val;
-                  local_rhs_patch[i] += local_rhs1+local_rhs2;
+                  const double local_rhs2 = phi_p[i]*div*JxW_val;
+                  if (primal_dual == dual)
+                    local_rhs_patch[i] += local_rhs1+local_rhs2;
+                  else
+                    local_rhs_patch[i] += local_rhs1-local_rhs2;
                 }
             }
 
@@ -1483,8 +1486,8 @@ void StokesProblem<dim>::compute_local_dual_ritz_residual(
     BlockVector<double> &local_dual_solu,
     BlockVector<double> &dual_residual_solu)
 {
-  // Do a p-refinement of the local_dual_dof_handler and project the local
-  // solution to the refined mesh.
+  // First we need to do a p-refinement of the local_dual_dof_handler and project 
+  // the local solution to the refined mesh.
   std::vector<types::global_dof_index> dofs_per_block_patch(2);
   DoFTools::count_dofs_per_block(local_dual_dof_handler, dofs_per_block_patch, block_component_patch);
   local_dual_solu.reinit(dofs_per_block_patch);
@@ -1643,6 +1646,10 @@ double StokesProblem<dim>::squared_error_estimator_on_two_layer_patch(
     dual_residual_values_p.resize(n_q_points);
     dual_residual_laplacians_v.resize(n_q_points);
 
+    // In the paper the residual solution and the dual solution are on two
+    // different space (p+1 and p) but here the dual solution has been projected
+    // to the same space as the residual solution, i.e., the dual solution is of
+    // order p+1.
     fe_values[pressure].get_function_gradients(dual_solution, 
         dual_solution_gradients_p);
     fe_values[velocities].get_function_divergences(dual_solution,
@@ -1867,7 +1874,6 @@ double StokesProblem<dim>::compute_local_go_error_estimator_square(
   FEValuesExtractors::Vector velocities(0);
   FEValuesExtractors::Scalar pressure (dim);
 
-  //TODO check that having a tensor makes sense
   std::vector<Tensor<2,dim>> dual_residual_gradients_v;
   std::vector<double> dual_residual_values_p;
   for (auto cell : local_dual_dof_handler.active_cell_iterators())
